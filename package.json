@@ -1,0 +1,40 @@
+{
+  "name": "tamer-studio",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Tamer Studio - AI Production Platform",
+  "author": "Tamer Studio",
+  "license": "UNLICENSED",
+
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=10.0.0"
+  },
+
+  "scripts": {
+    "dev": "next dev",
+
+    "build": "next build",
+
+    "start": "next start",
+
+    "lint": "next lint",
+
+    "typecheck": "tsc --noEmit",
+
+    "format": "prettier --write .",
+
+    "format:check": "prettier --check .",
+
+    "check": "pnpm lint && pnpm typecheck",
+
+    "test": "vitest",
+
+    "test:watch": "vitest --watch",
+
+    "prepare": "husky"
+  },
+
+  "packageManager": "pnpm@10"
+}
+```
