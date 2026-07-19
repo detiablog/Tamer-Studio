@@ -1,5 +1,3 @@
-DATABASE_URL=postgres://postgres:1234@localhost:5432/tamer_studio
-
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 

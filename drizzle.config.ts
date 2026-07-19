@@ -1,9 +1,8 @@
-DATABASE_URL=postgres://postgres:1234@localhost:5432/tamer_studio
-
+import "dotenv/config";
 import { defineConfig } from "drizzle-kit";
 
 export default defineConfig({
-  schema: "./src/lib/db/schema/*",
+  schema: "./src/lib/db/schema/**/*.ts",
   out: "./drizzle",
   dialect: "postgresql",
   dbCredentials: {
