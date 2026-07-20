@@ -4,7 +4,7 @@ import { DashboardCard } from "@/components/ui/DashboardCard";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/button";
-import { RoleGuard } from "@/components/admin/RoleGuard";
+import { RoleGuard } from "@/components/auth/RoleGuard";
 import { Shield, AlertTriangle, User } from "lucide-react";
 
 const AUDIT_LOGS = [
@@ -24,7 +24,7 @@ export default function AdminAuditLogsPage() {
   const filtered = severityFilter === "all" ? AUDIT_LOGS : AUDIT_LOGS.filter((log) => log.severity === severityFilter);
 
   return (
-    <RoleGuard allowedRoles={["admin", "super_admin"]}>
+      <RoleGuard allowedRoles={["workspace_admin", "organization_admin", "system_admin", "super_admin"]}>
       <div className="space-y-6">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard title="Total Events" value={12847} delta="Last 30 days" />

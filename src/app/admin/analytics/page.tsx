@@ -2,7 +2,7 @@ import * as React from "react";
 import { StatCard } from "@/components/ui/StatCard";
 import { DashboardCard } from "@/components/ui/DashboardCard";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
-import { RoleGuard } from "@/components/admin/RoleGuard";
+import { RoleGuard } from "@/components/auth/RoleGuard";
 import { TrendingUp, BarChart3 } from "lucide-react";
 
 const METRICS = [
@@ -22,7 +22,7 @@ const TOP_PAGES = [
 
 export default function AdminAnalyticsPage() {
   return (
-    <RoleGuard allowedRoles={["admin", "super_admin"]}>
+      <RoleGuard allowedRoles={["workspace_admin", "organization_admin", "system_admin", "super_admin"]}>
       <div className="space-y-6">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {METRICS.map((metric) => (

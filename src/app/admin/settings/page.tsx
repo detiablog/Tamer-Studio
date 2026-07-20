@@ -3,7 +3,7 @@ import { StatCard } from "@/components/ui/StatCard";
 import { DashboardCard } from "@/components/ui/DashboardCard";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/button";
-import { RoleGuard } from "@/components/admin/RoleGuard";
+import { RoleGuard } from "@/components/auth/RoleGuard";
 import { Globe, Shield, Server, Zap } from "lucide-react";
 
 export default function AdminSettingsPage() {

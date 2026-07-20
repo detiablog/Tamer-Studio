@@ -4,9 +4,11 @@ import * as React from "react";
 import { usePathname } from "next/navigation";
 import { SidebarItem } from "./SidebarItem";
 import { Home, Grid, Folder, ImageIcon, Film, Settings, FileText, Cpu } from "lucide-react";
+import { usePermissions } from "@/components/auth/use-permissions";
 
 export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
   const pathname = usePathname();
+  const { isAdmin } = usePermissions();
 
   const isActive = (href: string) => {
     if (href === "/dashboard") return pathname === "/dashboard" || pathname === "/";
@@ -28,6 +30,9 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
           Manage
         </div>
         <SidebarItem icon={Settings} label="Settings" href="/settings" active={isActive("/settings")} />
+        {isAdmin && (
+          <SidebarItem icon={Settings} label="Admin" href="/admin" active={isActive("/admin")} />
+        )}
       </nav>
     </aside>
   );

@@ -4,7 +4,7 @@ import { DashboardCard } from "@/components/ui/DashboardCard";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/button";
-import { RoleGuard } from "@/components/admin/RoleGuard";
+import { RoleGuard } from "@/components/auth/RoleGuard";
 import { Input } from "@/components/ui/input";
 import { Search, Filter, MoreVertical, UserPlus } from "lucide-react";
 
@@ -29,7 +29,7 @@ export default function AdminUsersPage() {
   );
 
   return (
-    <RoleGuard allowedRoles={["admin", "super_admin"]}>
+      <RoleGuard allowedRoles={["workspace_admin", "organization_admin", "system_admin", "super_admin"]}>
       <div className="space-y-6">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard title="Total Users" value={1248} delta="+12% this week" />

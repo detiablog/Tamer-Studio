@@ -3,7 +3,7 @@ import { StatCard } from "@/components/ui/StatCard";
 import { DashboardCard } from "@/components/ui/DashboardCard";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/button";
-import { RoleGuard } from "@/components/admin/RoleGuard";
+import { RoleGuard } from "@/components/auth/RoleGuard";
 import { Flag, ToggleLeft, ToggleRight } from "lucide-react";
 
 const FEATURE_FLAGS = [

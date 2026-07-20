@@ -4,7 +4,7 @@ import { DashboardCard } from "@/components/ui/DashboardCard";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/button";
-import { RoleGuard } from "@/components/admin/RoleGuard";
+import { RoleGuard } from "@/components/auth/RoleGuard";
 import { MoreVertical } from "lucide-react";
 
 const SUBSCRIPTIONS = [
@@ -20,7 +20,7 @@ export default function AdminSubscriptionsPage() {
   const totalRevenue = SUBSCRIPTIONS.reduce((sum, s) => sum + parseFloat(s.amount.replace("$", "")), 0);
 
   return (
-    <RoleGuard allowedRoles={["admin", "super_admin"]}>
+      <RoleGuard allowedRoles={["workspace_admin", "organization_admin", "system_admin", "super_admin"]}>
       <div className="space-y-6">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard title="Active Subscriptions" value={activeCount} delta="+2 this month" />
