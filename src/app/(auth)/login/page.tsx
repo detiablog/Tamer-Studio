@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { authClient } from "@/lib/auth/auth-client";
 import { LoginForm } from "@/features/auth/components/login-form";
 
@@ -22,7 +23,7 @@ export default function LoginPage() {
       <LoginForm />
       <p className="mt-4 text-center text-sm text-muted-foreground">
         Don&apos;t have an account?{" "}
-        <a href="/register" className="text-primary hover:underline">Create one</a>
+        <Link href="/register" className="text-primary hover:underline">Create one</Link>
       </p>
     </main>
   );

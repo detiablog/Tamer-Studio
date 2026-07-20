@@ -2,7 +2,7 @@
 
 > Single Source of Truth for AI Development
 
-Version: 1.0
+Version: 2.0
 Status: LOCKED
 
 ---
@@ -39,14 +39,40 @@ Never assume a file does not exist.
 
 Never rename or move folders unless explicitly instructed.
 
+```
 src/
-├── app/
-├── components/
-├── config/
-├── features/
-├── lib/
-├── services/
-└── types/
+├── app/                    # Next.js App Router pages
+│   ├── (auth)/            # Auth route group (login, register, forgot-password, etc.)
+│   ├── (dashboard)/       # Dashboard route group (protected)
+│   ├── (marketing)/       # Marketing route group (public)
+│   ├── admin/             # Admin panel
+│   ├── api/               # API routes
+│   ├── layout.tsx         # Root layout with theme, fonts, metadata
+│   ├── page.tsx           # Landing page
+│   └── globals.css        # Tailwind + theme variables
+├── components/            # Reusable UI
+│   ├── ui/                # shadcn/ui base components
+│   ├── auth/              # RoleGuard, PermissionGuard, usePermissions
+│   ├── admin/             # AdminShell, AdminDataTable, AdminSidebar
+│   ├── workspace/         # WorkspaceCard, WorkspaceDetail, WorkspaceEditForm
+│   ├── project/           # ProjectCard, ProjectDetail
+│   ├── production/        # ProductionCard
+│   ├── ai/                # AIProviderCard, PromptTemplateCard
+│   ├── providers/         # ThemeProvider
+│   └── layout/            # AppShell, PageLayout, Sidebar, Topbar
+├── features/              # Feature modules
+│   ├── auth/              # Login/Register forms, schemas, services
+│   ├── workspace/         # Workspace store + list
+│   ├── project/           # Project store + list
+│   ├── production/        # Production store + list
+│   └── ai/                # AI platform store + dashboard
+├── lib/                   # Shared utilities
+│   ├── auth/              # Auth client, server auth, permissions
+│   ├── db/                # Database client + Drizzle schema
+│   └── utils.ts           # cn() helper
+├── hooks/                 # Custom React hooks
+└── proxy.ts               # Auth proxy (Next.js 16)
+```
 
 Feature modules are located inside:
 
@@ -66,7 +92,11 @@ Frontend
 - React 19
 - TypeScript
 - Tailwind CSS v4
-- shadcn/ui
+- shadcn/ui (base-nova)
+- next-themes
+- Better Auth
+- Drizzle ORM
+- Sonner
 
 Backend
 
@@ -125,6 +155,8 @@ lib/auth/auth-client.ts
 Server Components only import:
 
 lib/auth/auth.ts
+
+Route protection is handled by proxy.ts.
 
 ---
 

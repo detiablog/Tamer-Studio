@@ -22,7 +22,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
       <main>{children}</main>
       <footer className="border-t mt-20">
         <div className="mx-auto max-w-6xl px-6 py-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-muted-foreground"> Tamer Studio. From intent to production.</p>
+          <p className="text-sm text-muted-foreground">Tamer Studio. From intent to production.</p>
           <div className="flex gap-6 text-sm text-muted-foreground">
             <Link href="/legal/privacy" className="hover:text-foreground">Privacy</Link>
             <Link href="/legal/terms" className="hover:text-foreground">Terms</Link>

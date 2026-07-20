@@ -30,241 +30,140 @@ Turn natural language intent into production-ready media using an extensible AI 
 
 ---
 
-# Production Flow
+## Technology Stack
 
-```text
-Intent
-   │
-   ▼
-Specification
-   │
-   ▼
-Production
-   │
-   ▼
-Run
-   │
-   ▼
-Task Pipeline
-   │
-   ▼
-Media
-   │
-   ▼
-Export
-```
+### Frontend
 
----
-
-# Production Types (MVP)
-
-- Affiliate Production
-- Drama Production
-
-Both production types share the same AI engine while providing different user experiences.
-
----
-
-# Domain Model
-
-```
-Workspace
-    │
-    ▼
-Project
-    │
-    ▼
-Production
-    │
-    ▼
-Run
-    │
-    ▼
-Task
-    │
-    ▼
-Media
-```
-
-Supporting Domains
-
-- Wallet
-- Authentication
-- Administration
-
----
-
-# Technology Stack
-
-## Frontend
-
-- Next.js
-- React
+- Next.js 16 (App Router)
+- React 19
 - TypeScript
-- Tailwind CSS
-- shadcn/ui
+- Tailwind CSS v4
+- shadcn/ui (base-nova)
+- next-themes (dark mode)
+- Better Auth
+- Drizzle ORM
+- Sonner (toasts)
 
-## Backend
+### Backend
 
-- Next.js App Router
-- Server Actions
+- Next.js App Router API Routes
+- Better Auth (email/password)
+- Drizzle ORM + PostgreSQL
 
-## Database
+### Package Manager
 
-- PostgreSQL
+- pnpm
 
-## Storage
+---
 
-- Cloudflare R2
+## Getting Started
 
-## Queue
+### Prerequisites
 
-- Trigger.dev
+- Node.js >= 22.0.0
+- pnpm >= 11.15.0
+- PostgreSQL database
+
+### Installation
+
+```bash
+pnpm install
+```
+
+### Environment Setup
+
+Copy `.env.example` to `.env.local` and fill in the required values:
+
+```bash
+cp .env.example .env.local
+```
+
+### Development
+
+```bash
+pnpm dev
+```
+
+### Build
+
+```bash
+pnpm build
+```
+
+### Type Check
+
+```bash
+pnpm typecheck
+```
+
+### Lint
+
+```bash
+pnpm lint
+```
+
+---
+
+## Project Structure
+
+```
+src/
+├── app/                    # Next.js App Router pages
+│   ├── (auth)/            # Authentication route group (login, register, etc.)
+│   ├── (dashboard)/       # Dashboard route group (protected pages)
+│   ├── (marketing)/       # Marketing route group (public pages)
+│   ├── admin/             # Admin panel pages
+│   ├── api/               # API routes
+│   ├── layout.tsx         # Root layout
+│   ├── page.tsx           # Home page
+│   └── globals.css        # Global styles
+├── components/            # Reusable UI components
+│   ├── ui/                # shadcn/ui primitives
+│   ├── auth/              # Auth guards and permission components
+│   ├── admin/             # Admin shell and data table
+│   ├── workspace/         # Workspace-specific components
+│   ├── project/           # Project-specific components
+│   ├── production/        # Production-specific components
+│   └── ai/                # AI platform components
+├── features/              # Feature modules with business logic
+│   ├── auth/              # Authentication feature (forms, schemas, services)
+│   ├── workspace/         # Workspace feature (store, list)
+│   ├── project/           # Project feature (store, list)
+│   ├── production/        # Production feature (store, list)
+│   └── ai/                # AI platform feature (store, dashboard)
+├── lib/                   # Shared utilities and configurations
+│   ├── auth/              # Auth client, server auth, permissions
+│   ├── db/                # Database client and schema
+│   └── utils.ts           # cn() utility
+├── hooks/                 # Custom React hooks
+└── proxy.ts               # Route proxy for auth protection
+```
+
+---
+
+## Architecture
+
+Tamer Studio follows a feature-based architecture:
+
+- **Presentation Layer**: Next.js App Router pages and React components
+- **Application Layer**: Feature modules in `src/features/` containing business logic
+- **Infrastructure Layer**: Database (Drizzle ORM), Auth (Better Auth), external services
+
+Business logic never depends directly on infrastructure concerns.
+
+---
 
 ## Authentication
 
-- Better Auth
-
-## Payment
-
-- iPaymu
-
-## AI Gateway
-
-Provider-independent architecture supporting multiple AI services.
-
-Examples:
-
-- OpenAI
-- Google
-- Anthropic
-- BytePlus
-- Kling
-- OpenRouter
+- Uses Better Auth with email/password
+- Client components import from `lib/auth/auth-client.ts`
+- Server components/actions import from `lib/auth/auth.ts`
+- Role-based access control with granular permissions
+- Route protection via `proxy.ts` (Next.js 16)
 
 ---
 
-# Repository Structure
-
-```
-docs/
-.ai/
-
-src/
-├── app/
-├── domains/
-├── core/
-├── infrastructure/
-├── shared/
-└── styles/
-```
-
----
-
-# Documentation
-
-| Document          | Description                       |
-| ----------------- | --------------------------------- |
-| 01_PRODUCT_PRD    | Product vision and business goals |
-| 02_DOMAIN_MODEL   | Business domain model             |
-| 03_USER_JOURNEY   | End-to-end workflow               |
-| 04_MVP_BACKLOG    | MVP roadmap                       |
-| 05_EVENT_STORMING | Business events and commands      |
-| 06_GLOSSARY       | Ubiquitous Language               |
-
----
-
-# Architecture
-
-Tamer Studio follows a layered architecture.
-
-```
-Presentation
-
-↓
-
-Application
-
-↓
-
-Domain
-
-↓
-
-Infrastructure
-```
-
-Business logic never depends directly on infrastructure.
-
----
-
-# AI Engine
-
-The AI Engine is provider-independent.
-
-```
-Intent
-
-↓
-
-Specification
-
-↓
-
-AI Gateway
-
-↓
-
-Capability
-
-↓
-
-Provider
-
-↓
-
-Media
-```
-
-Providers can be added or replaced without changing business logic.
-
----
-
-# Development Status
-
-Current Phase
-
-**Foundation**
-
-Completed
-
-- Product Definition
-- Domain Model
-- User Journey
-- MVP Backlog
-- Event Storming
-- Ubiquitous Language
-
-Next Milestone
-
-- Conceptual ERD
-- Logical ERD
-- Physical Database Schema
-- MVP Implementation
-
----
-
-# Design Philosophy
-
-Tamer Studio is designed as an **AI Production Operating System**, not as a traditional CRUD application.
-
-The system is built around production workflows where a single Production can be executed multiple times through independent Runs.
-
-Each Run maintains its own Tasks, Media, Events, and execution history, making every production reproducible and auditable.
-
----
-
-# License
+## License
 
 Private Repository
 

@@ -66,7 +66,7 @@ export function ProjectList() {
   return (
     <div>
       <div className="mb-4 flex items-center gap-3">
-        <Input placeholder="Search projects or tags" value={query} onChange={(e)=>{ setQuery(e.target.value); setPage(1); }} />
+        <Input placeholder="Search projects or tags" value={query} onChange={(e)=>{ setQuery(e.target.value); setPage(1); }} aria-label="Search projects or tags" />
         <select value={statusFilter} onChange={(e)=>{ setStatusFilter(e.target.value as unknown as ProjectStatus | "All"); setPage(1); }} className="rounded border p-2 bg-input">
           {statusOptions.map(s=> <option key={s} value={s}>{s}</option>)}
         </select>
