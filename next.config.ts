@@ -3,29 +3,24 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactStrictMode: true,
 
-  experimental: {
-    typedRoutes: true
-  },
+  typedRoutes: true,
 
   images: {
     remotePatterns: [
-      // Cloudflare R2
       {
         protocol: "https",
-        hostname: "**.r2.cloudflarestorage.com"
+        hostname: "**.r2.cloudflarestorage.com",
       },
-
-      // Public CDN (akan disesuaikan nanti)
       {
         protocol: "https",
-        hostname: "**"
-      }
-    ]
+        hostname: "**",
+      },
+    ],
   },
 
   poweredByHeader: false,
 
-  compress: true
+  compress: true,
 };
 
 export default nextConfig;

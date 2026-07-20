@@ -78,35 +78,35 @@ Buat hanya jika diperlukan.
 
 Folder:
 
-* kebab-case
+- kebab-case
 
 File:
 
-* kebab-case
+- kebab-case
 
 Component:
 
-* PascalCase
+- PascalCase
 
 Function:
 
-* camelCase
+- camelCase
 
 Variable:
 
-* camelCase
+- camelCase
 
 Constant:
 
-* UPPER_SNAKE_CASE
+- UPPER_SNAKE_CASE
 
 Type:
 
-* PascalCase
+- PascalCase
 
 Enum:
 
-* PascalCase
+- PascalCase
 
 ---
 
@@ -116,14 +116,14 @@ Gunakan strict mode.
 
 Hindari penggunaan:
 
-* any
+- any
 
 Gunakan:
 
-* unknown
-* generic
-* union
-* discriminated union
+- unknown
+- generic
+- union
+- discriminated union
 
 bila lebih tepat.
 
@@ -177,8 +177,8 @@ console.warn dan console.error hanya digunakan saat proses development atau debu
 
 Feature baru idealnya memiliki:
 
-* Unit Test
-* Integration Test (jika relevan)
+- Unit Test
+- Integration Test (jika relevan)
 
 Bug yang sudah diperbaiki sebaiknya ditambahkan test agar tidak muncul kembali.
 
@@ -188,14 +188,14 @@ Bug yang sudah diperbaiki sebaiknya ditambahkan test agar tidak muncul kembali.
 
 Sebelum merge, pastikan:
 
-* Nama file sesuai standar.
-* Tidak ada any yang tidak diperlukan.
-* Validasi menggunakan Zod.
-* Tidak ada business logic di UI.
-* Tidak ada hardcoded secret.
-* Kode mudah dibaca.
-* Tidak ada dependency yang tidak digunakan.
-* Dokumentasi fitur telah diperbarui bila ada perubahan perilaku.
+- Nama file sesuai standar.
+- Tidak ada any yang tidak diperlukan.
+- Validasi menggunakan Zod.
+- Tidak ada business logic di UI.
+- Tidak ada hardcoded secret.
+- Kode mudah dibaca.
+- Tidak ada dependency yang tidak digunakan.
+- Dokumentasi fitur telah diperbarui bila ada perubahan perilaku.
 
 ---
 
@@ -203,7 +203,7 @@ Sebelum merge, pastikan:
 
 Jika ragu antara dua solusi, pilih solusi yang:
 
-* lebih sederhana,
-* lebih mudah dipahami,
-* lebih mudah diuji,
-* dan lebih mudah dipelihara.
+- lebih sederhana,
+- lebih mudah dipahami,
+- lebih mudah diuji,
+- dan lebih mudah dipelihara.

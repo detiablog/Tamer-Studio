@@ -22,11 +22,11 @@ Turn natural language intent into production-ready media using an extensible AI 
 
 ## Core Principles
 
-* **Intent First** – Users describe what they want in natural language.
-* **Production First** – Every workflow is centered around production, not individual AI tools.
-* **Context is King** – AI decisions are driven by structured context instead of isolated prompts.
-* **Human in Control** – AI assists; users make the final decisions.
-* **Reproducible** – Every production can be re-run, audited, and reproduced.
+- **Intent First** – Users describe what they want in natural language.
+- **Production First** – Every workflow is centered around production, not individual AI tools.
+- **Context is King** – AI decisions are driven by structured context instead of isolated prompts.
+- **Human in Control** – AI assists; users make the final decisions.
+- **Reproducible** – Every production can be re-run, audited, and reproduced.
 
 ---
 
@@ -58,8 +58,8 @@ Export
 
 # Production Types (MVP)
 
-* Affiliate Production
-* Drama Production
+- Affiliate Production
+- Drama Production
 
 Both production types share the same AI engine while providing different user experiences.
 
@@ -88,9 +88,9 @@ Media
 
 Supporting Domains
 
-* Wallet
-* Authentication
-* Administration
+- Wallet
+- Authentication
+- Administration
 
 ---
 
@@ -98,36 +98,36 @@ Supporting Domains
 
 ## Frontend
 
-* Next.js
-* React
-* TypeScript
-* Tailwind CSS
-* shadcn/ui
+- Next.js
+- React
+- TypeScript
+- Tailwind CSS
+- shadcn/ui
 
 ## Backend
 
-* Next.js App Router
-* Server Actions
+- Next.js App Router
+- Server Actions
 
 ## Database
 
-* PostgreSQL
+- PostgreSQL
 
 ## Storage
 
-* Cloudflare R2
+- Cloudflare R2
 
 ## Queue
 
-* Trigger.dev
+- Trigger.dev
 
 ## Authentication
 
-* Better Auth
+- Better Auth
 
 ## Payment
 
-* iPaymu
+- iPaymu
 
 ## AI Gateway
 
@@ -135,12 +135,12 @@ Provider-independent architecture supporting multiple AI services.
 
 Examples:
 
-* OpenAI
-* Google
-* Anthropic
-* BytePlus
-* Kling
-* OpenRouter
+- OpenAI
+- Google
+- Anthropic
+- BytePlus
+- Kling
+- OpenRouter
 
 ---
 
@@ -238,19 +238,19 @@ Current Phase
 
 Completed
 
-* Product Definition
-* Domain Model
-* User Journey
-* MVP Backlog
-* Event Storming
-* Ubiquitous Language
+- Product Definition
+- Domain Model
+- User Journey
+- MVP Backlog
+- Event Storming
+- Ubiquitous Language
 
 Next Milestone
 
-* Conceptual ERD
-* Logical ERD
-* Physical Database Schema
-* MVP Implementation
+- Conceptual ERD
+- Logical ERD
+- Physical Database Schema
+- MVP Implementation
 
 ---
 
