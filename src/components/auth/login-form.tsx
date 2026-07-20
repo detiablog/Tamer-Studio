@@ -23,9 +23,7 @@ export function LoginForm() {
           <Input type="password" />
         </div>
 
-        <Button className="w-full">
-          Sign In
-        </Button>
+        <Button className="w-full">Sign In</Button>
       </CardContent>
     </Card>
   );

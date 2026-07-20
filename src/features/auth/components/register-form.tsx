@@ -28,9 +28,7 @@ export function RegisterForm() {
           <Input type="password" />
         </div>
 
-        <Button className="w-full">
-          Create Account
-        </Button>
+        <Button className="w-full">Create Account</Button>
       </CardContent>
     </Card>
   );
