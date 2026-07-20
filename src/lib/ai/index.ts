@@ -47,4 +47,28 @@ export type {
   GatewayConfiguration,
 } from "./gateway";
 
-export type { GatewayId, GatewayDefinition } from "./models";
+export {
+  InMemoryPromptTemplateRegistry,
+  DefaultContextBuilder,
+  DefaultVariableResolver,
+  DefaultPromptOptimizer,
+  DefaultPromptCompiler,
+  DefaultPromptLibrary,
+} from "./orchestrator";
+export type {
+  PromptTemplateRegistry,
+  ContextBuilder,
+  VariableResolver,
+  PromptOptimizer,
+  PromptOptimizationProfile,
+  OptimizationRule,
+  PromptCompiler,
+  PromptLibrary,
+  PromptCategory,
+  PromptTemplate,
+  PromptTemplateVersion,
+  PromptVariable,
+  PromptContext,
+  PromptPreview,
+  OrchestrationResult,
+} from "./orchestrator";
