@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -15,7 +14,6 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 
 export function RegisterForm() {
-  const router = useRouter();
   const [submitting, setSubmitting] = React.useState(false);
   const [showPassword, setShowPassword] = React.useState(false);
 
@@ -32,6 +30,7 @@ export function RegisterForm() {
         name: values.name,
         email: values.email,
         password: values.password,
+        callbackURL: "/dashboard",
       });
 
       const maybeError = (result as unknown as { error?: { message?: string } }).error;
@@ -41,7 +40,6 @@ export function RegisterForm() {
       }
 
       toast.success("Account created");
-      router.push("/dashboard" as unknown as Parameters<typeof router.push>[0]);
     } catch (err: unknown) {
       console.error(err);
       toast.error(String(err ?? "An unexpected error occurred"));
