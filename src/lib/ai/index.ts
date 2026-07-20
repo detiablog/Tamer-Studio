@@ -22,4 +22,29 @@ export type { UsageTracker, UsageRecord, UsageSummary } from "./monitoring";
 export { ConsoleExecutionLogger, LifecycleLoggingListener } from "./logging";
 export type { ExecutionLogger } from "./logging";
 
+export {
+  GatewayRegistry,
+  DefaultGatewayManager,
+  DefaultGatewayPolicyEngine,
+  DefaultGatewayDispatcher,
+  InMemoryGatewayConfiguration,
+  DefaultGatewayHealthMonitor,
+  DefaultGatewayMetricsCollector,
+} from "./gateway";
+export type {
+  GatewayManager,
+  GatewayPolicyEngine,
+  GatewayDispatcher,
+  GatewayConfigurationLoader,
+  GatewayHealthMonitor,
+  GatewayMetricsCollector,
+  GatewayHealthStatus,
+  GatewayHealth,
+  GatewayTimeoutRule,
+  GatewayRetryRule,
+  GatewayPolicy,
+  GatewayMetrics,
+  GatewayConfiguration,
+} from "./gateway";
+
 export type { GatewayId, GatewayDefinition } from "./models";
