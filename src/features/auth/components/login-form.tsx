@@ -50,7 +50,7 @@ export function LoginForm() {
       toast.success("Signed in");
 
       // Redirect to dashboard after successful sign in
-      router.push("/dashboard");
+      router.push("/dashboard" as unknown as Parameters<typeof router.push>[0]);
     } catch (err: unknown) {
       console.error(err);
       toast.error(String(err ?? "An unexpected error occurred"));
