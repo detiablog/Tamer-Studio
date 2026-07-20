@@ -1,4 +1,5 @@
 import * as React from "react"
+import Link from "next/link"
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -21,9 +22,9 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         {/* Footer */}
         <p className="mt-6 text-center text-xs text-muted-foreground">
           Protected by reCAPTCHA. Subject to the{" "}
-          <a href="/legal/privacy" className="text-primary hover:underline">Privacy Policy</a>
+          <Link href="/legal/privacy" className="text-primary hover:underline">Privacy Policy</Link>
           {" "}and{" "}
-          <a href="/legal/terms" className="text-primary hover:underline">Terms of Service</a>.
+          <Link href="/legal/terms" className="text-primary hover:underline">Terms of Service</Link>.
         </p>
       </div>
     </div>

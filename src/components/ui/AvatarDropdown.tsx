@@ -52,7 +52,7 @@ export function AvatarDropdown() {
         aria-haspopup="true"
         aria-label="Account menu"
       >
-        <Avatar name="A" size={32} />
+        <Avatar name={isSuperAdmin ? "S" : isAdmin ? "A" : "U"} size={32} />
         <div className="hidden md:flex flex-col items-start">
           <span className="text-sm font-medium leading-none">Account</span>
           <span className="text-xs text-muted-foreground leading-none mt-0.5">
@@ -72,7 +72,7 @@ export function AvatarDropdown() {
           >
             {/* User info header */}
             <div className="flex items-center gap-3 rounded-lg p-3">
-              <Avatar name="A" size={40} />
+              <Avatar name={isSuperAdmin ? "S" : isAdmin ? "A" : "U"} size={40} />
               <div className="flex flex-col">
                 <span className="text-sm font-medium">Account</span>
                 <span className="text-xs text-muted-foreground">user@example.com</span>
