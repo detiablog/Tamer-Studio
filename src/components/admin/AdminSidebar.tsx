@@ -1,5 +1,5 @@
-import * as React from "react";
-import { SidebarItem } from "@/components/ui/SidebarItem";
+import * as React from "react"
+import { SidebarItem } from "@/components/ui/SidebarItem"
 import {
   LayoutDashboard,
   Users,
@@ -14,15 +14,15 @@ import {
   ScrollText,
   Flag,
   Settings,
-} from "lucide-react";
-import { usePermissions } from "@/components/auth/use-permissions";
+} from "lucide-react"
+import { usePermissions } from "@/components/auth/use-permissions"
 
 type AdminSidebarProps = {
   pathname?: string;
 };
 
 export function AdminSidebar({ pathname }: AdminSidebarProps) {
-  const currentPath = pathname ?? typeof window !== "undefined" ? window.location.pathname : "";
+  const currentPath = pathname ?? (typeof window !== "undefined" ? window.location.pathname : "");
   const { hasPermission } = usePermissions();
 
   const isActive = (href: string) => {
@@ -32,7 +32,7 @@ export function AdminSidebar({ pathname }: AdminSidebarProps) {
   return (
     <aside className="w-72 shrink-0 px-3 py-4">
       <nav className="flex flex-col gap-1">
-        <div className="mb-2 px-2 text-xs uppercase tracking-wide text-muted-foreground">Admin</div>
+        <div className="mb-2 px-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">Admin</div>
         <SidebarItem icon={LayoutDashboard} label="Dashboard" href="/admin" active={isActive("/admin")} />
         {hasPermission("admin:users") && (
           <SidebarItem icon={Users} label="Users" href="/admin/users" active={isActive("/admin/users")} />
@@ -61,7 +61,8 @@ export function AdminSidebar({ pathname }: AdminSidebarProps) {
         {hasPermission("admin:coupons") && (
           <SidebarItem icon={Ticket} label="Coupons" href="/admin/coupons" active={isActive("/admin/coupons")} />
         )}
-        <div className="mt-3 mb-2 px-2 text-xs uppercase tracking-wide text-muted-foreground">Insights</div>
+
+        <div className="mt-6 mb-2 px-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">Insights</div>
         {hasPermission("admin:analytics") && (
           <SidebarItem icon={LineChart} label="Analytics" href="/admin/analytics" active={isActive("/admin/analytics")} />
         )}
@@ -71,11 +72,12 @@ export function AdminSidebar({ pathname }: AdminSidebarProps) {
         {hasPermission("admin:feature_flags") && (
           <SidebarItem icon={Flag} label="Feature Flags" href="/admin/feature-flags" active={isActive("/admin/feature-flags")} />
         )}
-        <div className="mt-3 mb-2 px-2 text-xs uppercase tracking-wide text-muted-foreground">System</div>
+
+        <div className="mt-6 mb-2 px-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">System</div>
         {hasPermission("admin:system") && (
           <SidebarItem icon={Settings} label="Settings" href="/admin/settings" active={isActive("/admin/settings")} />
         )}
       </nav>
     </aside>
-  );
+  )
 }

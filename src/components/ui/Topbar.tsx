@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Sun, Moon, Bell } from "lucide-react";
+import { Sun, Moon, Bell, Menu } from "lucide-react";
 import { Button } from "./button";
 import { SearchInput } from "./SearchInput";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
@@ -10,7 +10,7 @@ import { useTheme } from "next-themes";
 import { CommandPalette } from "./CommandPalette";
 import { NotificationCenter } from "./NotificationCenter";
 
-export function Topbar() {
+export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
   const { theme, setTheme } = useTheme()
   const [notifOpen, setNotifOpen] = React.useState(false)
 
@@ -19,6 +19,11 @@ export function Topbar() {
       <CommandPalette />
 
       <div className="flex items-center gap-3">
+        {onMenuClick && (
+          <button onClick={onMenuClick} className="sm:hidden flex h-9 w-9 items-center justify-center rounded-lg hover:bg-muted/40" aria-label="Open menu">
+            <Menu className="size-5" />
+          </button>
+        )}
         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted/30 font-heading text-sm">TS</div>
         <div className="font-heading text-sm font-semibold">Tamer Studio</div>
       </div>

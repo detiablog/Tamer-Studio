@@ -14,8 +14,16 @@ export default function LoginPage() {
   }, [isPending, session, router]);
 
   return (
-    <main className="flex min-h-screen items-center justify-center p-6">
+    <main>
+      <div className="mb-6">
+        <h2 className="text-lg font-semibold text-center">Welcome back</h2>
+        <p className="text-sm text-muted-foreground text-center mt-1">Sign in to your account to continue</p>
+      </div>
       <LoginForm />
+      <p className="mt-4 text-center text-sm text-muted-foreground">
+        Don&apos;t have an account?{" "}
+        <a href="/register" className="text-primary hover:underline">Create one</a>
+      </p>
     </main>
   );
 }

@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 export function LoginForm() {
   const router = useRouter();
   const [submitting, setSubmitting] = React.useState(false);
+  const [showPassword, setShowPassword] = React.useState(false);
 
   const {
     register,
@@ -27,7 +28,6 @@ export function LoginForm() {
   const onSubmit = async (values: LoginSchema & { remember?: boolean }) => {
     try {
       setSubmitting(true);
-      // Persist remembered email locally for UX (not required for auth server)
       if (values.remember) {
         localStorage.setItem("tamer.rememberEmail", values.email);
       } else {
@@ -39,8 +39,6 @@ export function LoginForm() {
         password: values.password,
       });
 
-      // The Better Auth client may return an object shaped like { error } or { session }
-      // Handle common cases conservatively
       const maybeError = (result as unknown as { error?: { message?: string } }).error;
       if (maybeError) {
         toast.error(maybeError.message || "Failed to sign in");
@@ -48,8 +46,6 @@ export function LoginForm() {
       }
 
       toast.success("Signed in");
-
-      // Redirect to dashboard after successful sign in
       router.push("/dashboard" as unknown as Parameters<typeof router.push>[0]);
     } catch (err: unknown) {
       console.error(err);
@@ -62,7 +58,6 @@ export function LoginForm() {
   React.useEffect(() => {
     const remembered = localStorage.getItem("tamer.rememberEmail");
     if (remembered) {
-      // pre-fill email field when remembered
       const el = document.querySelector<HTMLInputElement>('input[name="email"]');
       if (el) el.value = remembered;
     }
@@ -77,22 +72,47 @@ export function LoginForm() {
       <CardContent className="space-y-4">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Label>Email</Label>
-            <Input type="email" placeholder="you@company.com" {...register("email")} name="email" />
-            {errors.email ? <p className="text-sm text-red-500">{errors.email.message}</p> : null}
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="you@company.com"
+              {...register("email")}
+              autoComplete="email"
+              aria-invalid={!!errors.email}
+            />
+            {errors.email ? <p className="text-sm text-destructive">{errors.email.message}</p> : null}
           </div>
 
           <div className="space-y-2">
-            <Label>Password</Label>
-            <Input type="password" placeholder="Your password" {...register("password")} />
-            {errors.password ? <p className="text-sm text-red-500">{errors.password.message}</p> : null}
+            <Label htmlFor="password">Password</Label>
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Your password"
+                {...register("password")}
+                autoComplete="current-password"
+                aria-invalid={!!errors.password}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? "Hide" : "Show"}
+              </button>
+            </div>
+            {errors.password ? <p className="text-sm text-destructive">{errors.password.message}</p> : null}
           </div>
 
           <div className="flex items-center justify-between">
             <label className="flex items-center gap-2">
-              <input type="checkbox" {...register("remember")} className="rounded border-muted p-1" />
+              <input type="checkbox" {...register("remember")} className="rounded border-muted" />
               <span className="text-sm">Remember me</span>
             </label>
+            <a href="/forgot-password" className="text-sm text-primary hover:underline">Forgot password?</a>
           </div>
 
           <Button className="w-full" type="submit" disabled={submitting}>
