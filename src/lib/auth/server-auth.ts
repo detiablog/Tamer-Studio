@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth/auth";
 import { cookies } from "next/headers";
-import { hasPermission, hasAnyPermission, hasAllPermissions, type UserRole, type Permission } from "./permissions";
+import { hasPermission, hasAnyPermission, hasAllPermissions, getEffectivePermissions, type UserRole, type Permission } from "./permissions";
 
 export async function getServerSession() {
   try {
@@ -30,7 +30,7 @@ export async function requireAuth() {
 
 export async function requireRole(allowedRoles: UserRole[]) {
   const session = await requireAuth();
-  const role = (session.user as { role?: UserRole } | undefined)?.role ?? "user";
+  const role = (session.user as { role?: UserRole } | undefined)?.role ?? "guest";
   if (!allowedRoles.includes(role)) {
     throw new Error("Forbidden");
   }
@@ -39,7 +39,7 @@ export async function requireRole(allowedRoles: UserRole[]) {
 
 export async function requirePermission(permission: Permission) {
   const session = await requireAuth();
-  const role = (session.user as { role?: UserRole } | undefined)?.role ?? "user";
+  const role = (session.user as { role?: UserRole } | undefined)?.role ?? "guest";
   if (!hasPermission(role, permission)) {
     throw new Error("Forbidden");
   }
@@ -48,7 +48,7 @@ export async function requirePermission(permission: Permission) {
 
 export async function requireAnyPermission(permissions: Permission[]) {
   const session = await requireAuth();
-  const role = (session.user as { role?: UserRole } | undefined)?.role ?? "user";
+  const role = (session.user as { role?: UserRole } | undefined)?.role ?? "guest";
   if (!hasAnyPermission(role, permissions)) {
     throw new Error("Forbidden");
   }
@@ -57,9 +57,18 @@ export async function requireAnyPermission(permissions: Permission[]) {
 
 export async function requireAllPermissions(permissions: Permission[]) {
   const session = await requireAuth();
-  const role = (session.user as { role?: UserRole } | undefined)?.role ?? "user";
+  const role = (session.user as { role?: UserRole } | undefined)?.role ?? "guest";
   if (!hasAllPermissions(role, permissions)) {
     throw new Error("Forbidden");
   }
   return { session, role };
+}
+
+export function getRoleFromSession(session: { user: { role?: UserRole } } | null): UserRole {
+  return session?.user?.role ?? "guest";
+}
+
+export function getUserPermissions(session: { user: { role?: UserRole } } | null): Permission[] {
+  const role = getRoleFromSession(session);
+  return getEffectivePermissions(role);
 }
