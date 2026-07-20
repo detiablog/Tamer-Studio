@@ -5,7 +5,7 @@ export { DefaultWorkflowPlanner } from "./planner";
 export type { WorkflowPlanner } from "./planner";
 
 export { DefaultNodeExecutor } from "./executor";
-export type { NodeExecutor } from "./executor";
+export type { NodeExecutor } from "../sdk";
 
 export {
   PromptNodeHandler,
