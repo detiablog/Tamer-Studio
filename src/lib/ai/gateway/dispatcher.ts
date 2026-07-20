@@ -4,6 +4,7 @@ import type { GatewayPolicyEngine } from "./policy-engine";
 
 export interface GatewayDispatcher {
   dispatch(request: ExecutionRequest, policy: GatewayPolicy): Promise<ExecutionResponse>;
+  failureResponse(executionId: ExecutionId, code: string, message: string): ExecutionResponse;
 }
 
 export class DefaultGatewayDispatcher implements GatewayDispatcher {
@@ -79,7 +80,7 @@ export class DefaultGatewayDispatcher implements GatewayDispatcher {
     return { status: "placeholder", message: "Provider integration pending" };
   }
 
-  private failureResponse(executionId: ExecutionId, code: string, message: string): ExecutionResponse {
+  failureResponse(executionId: ExecutionId, code: string, message: string): ExecutionResponse {
     return {
       executionId,
       status: "failed",

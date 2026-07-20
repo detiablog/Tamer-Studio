@@ -17,6 +17,34 @@ export type { GatewayHealthMonitor } from "./health";
 export { DefaultGatewayMetricsCollector } from "./metrics";
 export type { GatewayMetricsCollector } from "./metrics";
 
+export {
+  DefaultCircuitBreaker,
+  DefaultRetryManager,
+  DefaultFailoverManager,
+  DefaultRecoveryManager,
+  GatewayEventBus,
+  InMemoryRuntimeStateManager,
+  DefaultHighAvailabilityGatewayRuntime,
+} from "./runtime";
+export type {
+  CircuitBreaker,
+  RetryManager,
+  FailoverManager,
+  RecoveryManager,
+  RuntimeStateManager,
+  HighAvailabilityGatewayRuntime,
+  CircuitBreakerState,
+  CircuitBreakerConfig,
+  CircuitBreakerSnapshot,
+  RetryConfig,
+  RetryAttempt,
+  GatewayEvent,
+  GatewayEventType,
+  GatewayEventListener,
+  GatewayEventHandler,
+  GatewayRuntimeState,
+} from "./runtime";
+
 export type {
   GatewayId,
   GatewayHealthStatus,
