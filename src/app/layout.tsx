@@ -17,8 +17,8 @@ export const metadata = {
   description: "Tamer Studio — AI-first production platform for creators. Manage projects, media, production, and publishing in one place.",
   keywords: ["AI", "Studio", "Projects", "Media", "Production", "Publishing"],
   icons: {
-    icon: "/favicon.ico",
-    apple: "/apple-touch-icon.png",
+    icon: "/favicon.svg",
+    apple: "/apple-touch-icon.svg",
   },
   alternates: {
     canonical: SITE_URL,

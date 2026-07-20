@@ -29,10 +29,7 @@ export function AppShell({ children }: AppShellProps) {
   // If there's no session, redirect client-side to login
   // Only perform redirect on client; AppShell is a client component
   if (!session) {
-    if (typeof window !== "undefined") {
-      router.push("/login");
-    }
-
+    router.push("/login");
     return null;
   }
 

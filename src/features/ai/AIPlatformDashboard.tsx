@@ -21,9 +21,9 @@ export function AIPlatformDashboard() {
   const [selectedTemplateId, setSelectedTemplateId] = React.useState<string>("");
   const [systemPrompt, setSystemPrompt] = React.useState("You are an expert AI assistant helping users prepare high-quality content prompts.");
   const [userPrompt, setUserPrompt] = React.useState("Write a concise AI platform summary for Tamer Studio.");
-  const [temperature, _setTemperature] = React.useState(0.7);
-  const [topP, _setTopP] = React.useState(0.9);
-  const [maxTokens, _setMaxTokens] = React.useState(800);
+  const [temperature] = React.useState(0.7);
+  const [topP] = React.useState(0.9);
+  const [maxTokens] = React.useState(800);
 
   React.useEffect(() => {
     refreshState();

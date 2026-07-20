@@ -59,7 +59,7 @@ export function ProductionCard({
         </div>
       </CardContent>
       <CardFooter className="flex flex-wrap gap-2">
-        <Link href={{ pathname: "/production/[id]", query: { id: job.id } }} className="flex-1">
+        <Link href={`/production/${job.id}`} className="flex-1">
           <Button variant="outline" className="w-full">Details</Button>
         </Link>
         {job.status === "Failed" ? (

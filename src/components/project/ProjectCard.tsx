@@ -16,7 +16,7 @@ type ProjectCardProps = {
   onArchive?: (id: string) => void;
 };
 
-export function ProjectCard({ p, onDelete, onEdit, onDuplicate: _onDuplicate, onToggleFav: _onToggleFav, onArchive: _onArchive }: ProjectCardProps) {
+export function ProjectCard({ p, onDelete, onEdit, onToggleFav, onArchive }: ProjectCardProps) {
   return (
     <div className="border rounded-lg overflow-hidden bg-card">
       <div className="h-40 bg-muted flex items-center justify-center">{p.thumbnail ? <Image src={p.thumbnail} alt={p.name} width={1200} height={320} className="object-cover w-full h-40" /> : <div className="text-xl">{p.name.charAt(0)}</div>}</div>
@@ -38,6 +38,8 @@ export function ProjectCard({ p, onDelete, onEdit, onDuplicate: _onDuplicate, on
             </Link>
             <div className="flex gap-2">
               <Button size="sm" variant="outline" onClick={() => onEdit?.(p.id)}>Edit</Button>
+              <Button size="sm" variant="secondary" onClick={() => onToggleFav?.(p.id)}>{p.favorite ? "Unfavorite" : "Favorite"}</Button>
+              <Button size="sm" variant="ghost" onClick={() => onArchive?.(p.id)}>Archive</Button>
               <Button size="sm" variant="destructive" onClick={() => onDelete?.(p.id)}>Delete</Button>
             </div>
           </div>

@@ -184,7 +184,7 @@ export function ProductionList() {
                 {paged.map((job) => (
                   <tr key={job.id} className="border-b border-border hover:bg-muted/30">
                     <td className="px-4 py-4">
-                      <Link href={{ pathname: "/production/[id]", query: { id: job.id } }} className="font-medium text-foreground hover:underline">{job.name}</Link>
+                       <Link href={`/production/${job.id}`} className="font-medium text-foreground hover:underline">{job.name}</Link>
                       <div className="text-xs text-muted-foreground">{job.project} • {job.workspace}</div>
                     </td>
                     <td className="px-4 py-4 text-sm text-muted-foreground">{job.workflowType}</td>
