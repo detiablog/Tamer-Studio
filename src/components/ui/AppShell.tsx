@@ -5,19 +5,23 @@ import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 import { authClient } from "@/lib/auth/auth-client";
 import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 
 type AppShellProps = {
   children?: React.ReactNode;
 };
 
 export function AppShell({ children }: AppShellProps) {
-  const collapsed = false;
+  const [sidebarOpen, setSidebarOpen] = React.useState(false);
   const router = useRouter();
 
-  // session hook from Better Auth client
   const { data: session, isPending } = (authClient as unknown as { useSession?: () => { data: unknown; isPending: boolean } }).useSession?.() ?? { data: null, isPending: false };
 
-  // If session is pending, show a simple loader to avoid flicker
+  useKeyboardShortcuts([
+    { key: "[", ctrlKey: true, action: () => setSidebarOpen((v) => !v), description: "Toggle sidebar" },
+  ]);
+
   if (isPending) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -26,8 +30,6 @@ export function AppShell({ children }: AppShellProps) {
     );
   }
 
-  // If there's no session, redirect client-side to login
-  // Only perform redirect on client; AppShell is a client component
   if (!session) {
     router.push("/login");
     return null;
@@ -35,14 +37,29 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <div className="min-h-screen flex bg-background text-foreground">
-      <div className="hidden w-72 border-r bg-sidebar p-3 dark:block sm:block">
-        <Sidebar collapsed={collapsed} />
+      {/* Mobile sidebar overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/50 sm:hidden"
+          onClick={() => setSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Sidebar - hidden on mobile by default */}
+      <div
+        className={cn(
+          "fixed inset-y-0 left-0 z-40 sm:relative sm:translate-x-0 transition-transform duration-300 ease-in-out",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        <Sidebar collapsed={false} />
       </div>
 
-      <div className="flex flex-1 flex-col">
-        <Topbar />
-
-        <main className="flex-1 p-6">{children}</main>
+      {/* Main content area */}
+      <div className="flex flex-1 flex-col min-w-0">
+        <Topbar onMenuClick={() => setSidebarOpen(true)} />
+        <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
       </div>
     </div>
   );

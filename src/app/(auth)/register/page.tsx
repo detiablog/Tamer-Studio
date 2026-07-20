@@ -14,8 +14,16 @@ export default function RegisterPage() {
   }, [isPending, session, router]);
 
   return (
-    <main className="flex min-h-screen items-center justify-center p-6">
+    <main>
+      <div className="mb-6">
+        <h2 className="text-lg font-semibold text-center">Create your account</h2>
+        <p className="text-sm text-muted-foreground text-center mt-1">Start your journey with Tamer Studio</p>
+      </div>
       <RegisterForm />
+      <p className="mt-4 text-center text-sm text-muted-foreground">
+        Already have an account?{" "}
+        <a href="/login" className="text-primary hover:underline">Sign in</a>
+      </p>
     </main>
   );
 }
