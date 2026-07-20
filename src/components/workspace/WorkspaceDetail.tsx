@@ -61,7 +61,7 @@ export function WorkspaceDetail({ id }: { id: string }) {
           </div>
 
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => { window.location.href = `/workspace/${id}/edit`; }}>Edit</Button>
+            <Button variant="outline" onClick={() => router.push(`/workspace/${id}/edit`)}>Edit</Button>
             <Button variant="destructive" onClick={handleDelete}>Delete</Button>
           </div>
         </aside>

@@ -1,4 +1,5 @@
 import * as React from "react"
+import Link from "next/link"
 
 export function Breadcrumb({ items }: { items: { label: string; href?: string }[] }) {
   return (
@@ -6,9 +7,9 @@ export function Breadcrumb({ items }: { items: { label: string; href?: string }[
       {items.map((it, idx) => (
         <span key={idx}>
                 {it.href ? (
-                  <a href={it.href} className="text-muted-foreground hover:text-foreground">
+                  <Link href={it.href as Parameters<typeof Link>[0]["href"]} className="text-muted-foreground hover:text-foreground">
                     {it.label}
-                  </a>
+                  </Link>
                 ) : (
                   <span>{it.label}</span>
                 )}
