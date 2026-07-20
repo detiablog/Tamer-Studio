@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 
 export function CommandPalette() {
   const [open, setOpen] = React.useState(false)
@@ -41,7 +42,7 @@ export function CommandPalette() {
         <input autoFocus value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search commands or pages..." className="w-full bg-transparent pb-2 text-sm outline-none" />
         <div className="mt-2 max-h-64 overflow-auto">
           {results.map((r) => (
-                              <div key={r.id} onClick={() => { setOpen(false); window.location.href = r.href }} className="cursor-pointer rounded-md px-3 py-2 hover:bg-muted/40">{r.title}</div>
+            <Link key={r.id} href={r.href as Parameters<typeof Link>[0]["href"]} onClick={() => setOpen(false)} className="block cursor-pointer rounded-md px-3 py-2 hover:bg-muted/40">{r.title}</Link>
           ))}
           {results.length === 0 ? <div className="text-sm text-muted-foreground px-3 py-2">No results</div> : null}
         </div>

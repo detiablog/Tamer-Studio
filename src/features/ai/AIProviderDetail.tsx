@@ -40,7 +40,7 @@ export function AIProviderDetail({ id }: { id: string }) {
   if (!provider) {
     return (
       <div className="rounded-3xl border border-border bg-muted/20 p-8 text-center text-sm text-muted-foreground">
-        Provider not found. <Link href={{ pathname: "/ai" }} className="text-primary hover:underline">Return to AI platform.</Link>
+        Provider not found. <Link href="/ai" className="text-primary hover:underline">Return to AI platform.</Link>
       </div>
     );
   }
@@ -50,7 +50,7 @@ export function AIProviderDetail({ id }: { id: string }) {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3 text-sm text-muted-foreground">
           <ArrowLeft className="size-4" />
-          <Link href={{ pathname: "/ai" }} className="hover:text-foreground">Back to AI platform</Link>
+          <Link href="/ai" className="hover:text-foreground">Back to AI platform</Link>
         </div>
         <div className="flex flex-wrap gap-3">
           <Button variant={provider.connectionStatus === "Connected" ? "destructive" : "secondary"} onClick={handleToggleConnection}>

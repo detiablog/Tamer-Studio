@@ -60,7 +60,7 @@ export function AIProviderCard({
       <CardFooter className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap gap-2">
           {isInstalled ? (
-            <Link href={{ pathname: "/ai/providers/[id]", query: { id: provider.id } }} className="rounded-lg border border-border bg-background px-3 py-2 text-sm transition hover:bg-muted/50">
+            <Link href={`/ai/providers/${provider.id}`} className="rounded-lg border border-border bg-background px-3 py-2 text-sm transition hover:bg-muted/50">
               Details
             </Link>
           ) : null}

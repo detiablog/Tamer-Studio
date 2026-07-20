@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 
 export function WorkspaceDetail({ id }: { id: string }) {
-  const [ws, _setWs] = React.useState(() => workspaceStore.get(id));
+  const [ws] = React.useState(() => workspaceStore.get(id));
   const router = useRouter();
 
   const handleDelete = () => {
