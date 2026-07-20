@@ -10,7 +10,7 @@ export default function LoginPage() {
   const { data: session, isPending } = authClient.useSession();
 
   useEffect(() => {
-    if (!isPending && session) router.push("/dashboard");
+    if (!isPending && session) router.push("/dashboard" as unknown as Parameters<typeof router.push>[0]);
   }, [isPending, session, router]);
 
   return (
