@@ -6,4 +6,4 @@ export * from "./billing";
 export * from "./commerce";
 export * from "./identity";
 export * from "./notification";
-export * from "./notification";
+export * from "./support";

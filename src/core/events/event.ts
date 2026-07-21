@@ -30,7 +30,20 @@ export type DomainEventType =
   | "workflow.completed"
   | "workflow.failed"
   | "system.config.updated"
-  | "system.error";
+  | "system.error"
+  | "ticket.created"
+  | "ticket.updated"
+  | "ticket.assigned"
+  | "ticket.resolved"
+  | "ticket.closed"
+  | "ticket.reopened"
+  | "ticket.archived"
+  | "knowledge.article.published"
+  | "knowledge.article.updated"
+  | "feedback.created"
+  | "sla.violated"
+  | "support.internal_note.created"
+  | "support.attachment.added";
 
 export type ApplicationEventType =
   | "notification.created"
@@ -46,7 +59,10 @@ export type ApplicationEventType =
   | "template.rendered"
   | "preferences.updated"
   | "event.queue.full"
-  | "event.dlq.alert";
+  | "event.dlq.alert"
+  | "support.ticket.created"
+  | "support.ticket.assigned"
+  | "support.sla.violated";
 
 export type EventType = DomainEventType | ApplicationEventType;
 
@@ -61,7 +77,7 @@ export interface Event {
 
 export interface DomainEvent extends Event {
   type: DomainEventType;
-  source: "identity" | "workspace" | "commerce" | "billing" | "ai" | "workflow" | "system";
+  source: "identity" | "workspace" | "commerce" | "billing" | "ai" | "workflow" | "system" | "support";
   actorId?: string;
   resourceId?: string;
   resourceType?: string;
