@@ -20,3 +20,14 @@ export interface AdminLoginResult {
   session?: AdminSession;
   requiresMasterKey?: boolean;
 }
+
+export interface AdminProfile {
+  id: string;
+  email: string;
+  name: string;
+  role: AdminRole;
+  isActive: boolean;
+  lastLoginAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
