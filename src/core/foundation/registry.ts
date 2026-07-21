@@ -10,6 +10,14 @@ import { MembershipService } from "../membership";
 import { ApiKeyService } from "../apikey";
 import { RbacService } from "../rbac";
 import { eventBus } from "../events";
+import { TicketService } from "../tickets";
+import { SupportService } from "../support";
+import { KnowledgeService } from "../knowledge";
+import { FeedbackService } from "../feedback";
+import { CustomerService } from "../customer";
+import { SLAService } from "../sla";
+import { AttachmentService } from "../attachments";
+import { InternalNoteService } from "../internal-notes";
 
 export class ServiceRegistry {
   static register(name: string, factory: () => unknown): void {
@@ -39,4 +47,12 @@ export function initializeServices(): void {
   ServiceRegistry.register("membershipService", () => new MembershipService());
   ServiceRegistry.register("apiKeyService", () => new ApiKeyService());
   ServiceRegistry.register("rbacService", () => new RbacService());
+  ServiceRegistry.register("ticketService", () => new TicketService());
+  ServiceRegistry.register("supportService", () => new SupportService());
+  ServiceRegistry.register("knowledgeService", () => new KnowledgeService());
+  ServiceRegistry.register("feedbackService", () => new FeedbackService());
+  ServiceRegistry.register("customerService", () => new CustomerService());
+  ServiceRegistry.register("slaService", () => new SLAService());
+  ServiceRegistry.register("attachmentService", () => new AttachmentService());
+  ServiceRegistry.register("internalNoteService", () => new InternalNoteService());
 }

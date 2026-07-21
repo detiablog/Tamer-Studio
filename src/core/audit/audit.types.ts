@@ -61,7 +61,29 @@ export type AuditAction =
   | "notification.read"
   | "notification.archived"
   | "notification.deleted"
-  | "notification.broadcast";
+  | "notification.broadcast"
+  | "ticket.created"
+  | "ticket.updated"
+  | "ticket.assigned"
+  | "ticket.resolved"
+  | "ticket.closed"
+  | "ticket.reopened"
+  | "ticket.archived"
+  | "ticket.comment.created"
+  | "ticket.internal_note.created"
+  | "ticket.attachment.added"
+  | "ticket.attachment.deleted"
+  | "ticket.deleted"
+  | "ticket.internal_note.created"
+  | "ticket.internal_note.deleted"
+  | "knowledge.article.created"
+  | "knowledge.article.updated"
+  | "knowledge.article.published"
+  | "knowledge.article.archived"
+  | "feedback.created"
+  | "sla.policy.created"
+  | "sla.policy.updated"
+  | "sla.violation.recorded";
 
 export interface AuditEntry {
   id: string;
