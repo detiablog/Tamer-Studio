@@ -1,13 +1,11 @@
 import type { UsageRecord, UsageSummary } from "./monitoring";
 
+export type { UsageRecord, UsageSummary } from "./monitoring";
+
 export type CreditAmount = number;
-
 export type CreditId = string;
-
 export type WalletId = string;
-
 export type TransactionId = string;
-
 export type ReservationId = string;
 
 export type BillingEventType =
@@ -146,6 +144,40 @@ export interface Plan {
   currency: string;
 }
 
+export interface Subscription {
+  id: string;
+  workspaceId: string;
+  planId: string;
+  status: "active" | "canceled" | "past_due" | "incomplete";
+  currentPeriodStart: string;
+  currentPeriodEnd: string;
+  cancelAtPeriodEnd: boolean;
+  metadata?: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface InvoiceLineItem {
+  description: string;
+  amount: number;
+  quantity?: number;
+}
+
+export interface Invoice {
+  id: string;
+  workspaceId: string;
+  subscriptionId?: string;
+  status: "draft" | "open" | "paid" | "void" | "uncollectible";
+  currency: string;
+  subtotal: number;
+  tax: number;
+  total: number;
+  lineItems: InvoiceLineItem[];
+  metadata?: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface QuotaUsage {
   workspaceId: string;
   planId: string;
@@ -269,12 +301,18 @@ export interface CostEngine {
   getPricing(providerId: string, capabilityId: string): ProviderPricing | undefined;
 }
 
+export interface CreditEngine {
+  convertCostToCredits(cost: number, currency: string): CreditAmount;
+  getConversionRate(currency: string): number;
+}
+
 export interface EstimationEngine {
   estimate(executionId: string, inputs: EstimationInput): Promise<CostEstimate>;
   estimateBreakdown(providerId: string, capabilityId: string, units: number): Promise<CostEstimateBreakdown>;
 }
 
 export interface EstimationInput {
+  executionId: string;
   providerId: string;
   capabilityId: string;
   modelId: string;
@@ -332,4 +370,52 @@ export interface UsageCollector {
   getByExecution(executionId: string): Promise<UsageRecord | undefined>;
   getByCapability(capabilityId: string): Promise<UsageRecord[]>;
   getSummary(): Promise<UsageSummary>;
+}
+
+export interface BillingEngine {
+  getWallet(workspaceId: string): Promise<Wallet>;
+  createWallet(workspaceId: string): Promise<Wallet>;
+  debit(
+    walletId: WalletId,
+    workspaceId: string,
+    amount: CreditAmount,
+    type: Exclude<CreditTransactionType, "purchase" | "refund" | "adjustment" | "expiration">,
+    description: string,
+    metadata?: Record<string, unknown>,
+  ): Promise<CreditTransaction>;
+  credit(
+    walletId: WalletId,
+    workspaceId: string,
+    amount: CreditAmount,
+    type: Extract<CreditTransactionType, "purchase" | "refund" | "adjustment" | "expiration">,
+    description: string,
+    metadata?: Record<string, unknown>,
+  ): Promise<CreditTransaction>;
+  refund(
+    walletId: WalletId,
+    workspaceId: string,
+    transactionId: TransactionId,
+    reason: string,
+  ): Promise<CreditTransaction>;
+  getTransactionHistory(workspaceId: string): Promise<CreditTransaction[]>;
+  reserveCredits(walletId: string, workspaceId: string, executionId: string, amount: CreditAmount): Promise<CreditReservation>;
+  confirmReservation(reservationId: ReservationId, actualCredits: CreditAmount): Promise<CreditReservation>;
+  releaseReservation(reservationId: ReservationId): Promise<CreditReservation>;
+  getReservation(executionId: string): Promise<CreditReservation | undefined>;
+  recordUsage(executionId: string, usage: UsageRecord): Promise<void>;
+  calculateCost(executionId: string, usage: UsageRecord): Promise<CostRecord>;
+  estimateCost(inputs: EstimationInput): Promise<CostEstimate>;
+  checkQuota(request: QuotaCheckRequest): Promise<QuotaCheckResult>;
+  recordQuotaUsage(workspaceId: string, usage: QuotaUsage): Promise<void>;
+  getPlan(planId: string): Promise<Plan | undefined>;
+  listPlans(): Promise<Plan[]>;
+  getSubscription(workspaceId: string): Promise<Subscription | undefined>;
+  createSubscription(workspaceId: string, planId: string): Promise<Subscription>;
+  createInvoice(workspaceId: string, lineItems: InvoiceLineItem[]): Promise<Invoice>;
+  getInvoice(invoiceId: string): Promise<Invoice | undefined>;
+  listInvoices(workspaceId: string): Promise<Invoice[]>;
+  evaluatePolicies(policies: BillingPolicy[], context: BillingContext): Promise<BillingDecision>;
+  generateCostReport(workspaceId: string, period: string): Promise<CostAnalyticsReport>;
+  detectCostAnomalies(workspaceId: string, threshold: number): Promise<CostAnomaly[]>;
+  emit(event: BillingEvent): Promise<void>;
 }
