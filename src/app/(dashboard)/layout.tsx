@@ -1,10 +1,10 @@
 import { AppShell } from "@/components/ui/AppShell";
 import { PageLayout } from "@/components/ui/PageLayout";
-import { requireAuth } from "@/lib/auth/server-auth";
+import { requireUser } from "@/core/auth";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   try {
-    await requireAuth();
+    await requireUser();
   } catch {
     return (
       <div className="flex min-h-screen items-center justify-center">
