@@ -24,3 +24,6 @@ export type { BillingPolicyEngine, BillingPolicy, BillingContext, BillingDecisio
 
 export { InMemoryCostAnalytics } from "./analytics";
 export type { CostAnalytics } from "./analytics";
+
+export { DefaultBillingEngine } from "./core-billing";
+export type { BillingEngine } from "./core-billing";

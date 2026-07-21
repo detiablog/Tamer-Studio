@@ -1,0 +1,82 @@
+import type { Plan } from "@/lib/ai/types/billing";
+export const defaultPlans: Plan[] = [
+  {
+    id: "free",
+    name: "Free",
+    description: "Free tier with limited credits",
+    monthlyCredits: 100,
+    reservedCreditsLimit: 10,
+    features: [
+      { key: "text", name: "Text Generation", enabled: true },
+      { key: "image", name: "Image Generation", enabled: false },
+      { key: "video", name: "Video Generation", enabled: false },
+    ],
+    limits: {
+      maxRequestsPerMinute: 10,
+      maxConcurrentExecutions: 1,
+      maxModelsPerExecution: 1,
+    },
+    currency: "USD",
+  },
+  {
+    id: "starter",
+    name: "Starter",
+    description: "Starter plan for individuals",
+    monthlyCredits: 1000,
+    reservedCreditsLimit: 100,
+    features: [
+      { key: "text", name: "Text Generation", enabled: true },
+      { key: "image", name: "Image Generation", enabled: true },
+      { key: "video", name: "Video Generation", enabled: false },
+    ],
+    limits: {
+      maxRequestsPerMinute: 60,
+      maxConcurrentExecutions: 5,
+      maxModelsPerExecution: 2,
+    },
+    pricePerCredit: 0.01,
+    currency: "USD",
+  },
+  {
+    id: "pro",
+    name: "Pro",
+    description: "Professional plan for power users",
+    monthlyCredits: 10000,
+    reservedCreditsLimit: 1000,
+    features: [
+      { key: "text", name: "Text Generation", enabled: true },
+      { key: "image", name: "Image Generation", enabled: true },
+      { key: "video", name: "Video Generation", enabled: true },
+      { key: "audio", name: "Audio Generation", enabled: true },
+    ],
+    limits: {
+      maxRequestsPerMinute: 300,
+      maxConcurrentExecutions: 20,
+      maxModelsPerExecution: 5,
+    },
+    pricePerCredit: 0.008,
+    currency: "USD",
+  },
+  {
+    id: "enterprise",
+    name: "Enterprise",
+    description: "Enterprise plan with unlimited access",
+    monthlyCredits: 100000,
+    reservedCreditsLimit: 10000,
+    features: [
+      { key: "text", name: "Text Generation", enabled: true },
+      { key: "image", name: "Image Generation", enabled: true },
+      { key: "video", name: "Video Generation", enabled: true },
+      { key: "audio", name: "Audio Generation", enabled: true },
+      { key: "workflow", name: "Workflow Automation", enabled: true },
+      { key: "analytics", name: "Advanced Analytics", enabled: true },
+    ],
+    limits: {
+      maxRequestsPerMinute: 1000,
+      maxConcurrentExecutions: 100,
+      maxModelsPerExecution: 10,
+    },
+    pricePerCredit: 0.005,
+    currency: "USD",
+  },
+];
