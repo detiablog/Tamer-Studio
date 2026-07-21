@@ -15,6 +15,13 @@ export interface AppConfig {
     url: string;
     env: "development" | "production" | "test";
   };
+  notifications: {
+    emailProvider?: string;
+    smsProvider?: string;
+    pushProvider?: string;
+    defaultFromEmail?: string;
+    defaultFromName?: string;
+  };
 }
 
 let cachedConfig: AppConfig | null = null;
@@ -45,6 +52,13 @@ export function loadConfig(): AppConfig {
       url: appUrl,
       env: nodeEnv as AppConfig["app"]["env"],
     },
+    notifications: {
+      emailProvider: getOptionalEnv("NOTIFICATION_EMAIL_PROVIDER", ""),
+      smsProvider: getOptionalEnv("NOTIFICATION_SMS_PROVIDER", ""),
+      pushProvider: getOptionalEnv("NOTIFICATION_PUSH_PROVIDER", ""),
+      defaultFromEmail: getOptionalEnv("NOTIFICATION_DEFAULT_FROM_EMAIL", "noreply@tamerstudio.com"),
+      defaultFromName: getOptionalEnv("NOTIFICATION_DEFAULT_FROM_NAME", "Tamer Studio"),
+    },
   };
 
   return cachedConfig;
@@ -62,6 +76,9 @@ export const config = {
   },
   get app() {
     return loadConfig().app;
+  },
+  get notifications() {
+    return loadConfig().notifications;
   },
 };
 

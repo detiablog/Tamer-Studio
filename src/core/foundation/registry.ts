@@ -9,6 +9,7 @@ import { PermissionService } from "../permissions";
 import { MembershipService } from "../membership";
 import { ApiKeyService } from "../apikey";
 import { RbacService } from "../rbac";
+import { eventBus } from "../events";
 
 export class ServiceRegistry {
   static register(name: string, factory: () => unknown): void {
@@ -28,6 +29,7 @@ export class ServiceRegistry {
 export function initializeServices(): void {
   ServiceRegistry.register("container", () => container);
   ServiceRegistry.register("lifecycle", () => lifecycle);
+  ServiceRegistry.register("eventBus", () => eventBus);
   ServiceRegistry.register("identity", () => new IdentityService());
   ServiceRegistry.register("userService", () => new UserService());
   ServiceRegistry.register("workspaceService", () => new WorkspaceService());

@@ -46,7 +46,22 @@ export type AuditAction =
   | "workspace.created"
   | "workspace.updated"
   | "workspace.transferred"
-  | "workspace.deleted";
+  | "workspace.deleted"
+  | "notification.template.created"
+  | "notification.template.updated"
+  | "notification.template.activated"
+  | "notification.template.deactivated"
+  | "notification.preferences.updated"
+  | "notification.created"
+  | "notification.queued"
+  | "notification.dispatched"
+  | "notification.delivered"
+  | "notification.failed"
+  | "notification.retried"
+  | "notification.read"
+  | "notification.archived"
+  | "notification.deleted"
+  | "notification.broadcast";
 
 export interface AuditEntry {
   id: string;
