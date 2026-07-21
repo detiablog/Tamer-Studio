@@ -4,10 +4,11 @@ import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
+import { config } from "@/core/config";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
-const SITE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+const SITE_URL = config.app.url;
 
 export const metadata = {
   title: {
@@ -25,7 +26,7 @@ export const metadata = {
   },
   openGraph: {
     title: "Tamer Studio",
-    description: "AI-first production platform for creators. Manage projects, media, production, and publishing in one place.",
+    description: "Tamer Studio — AI-first production platform for creators. Manage projects, media, production, and publishing in one place.",
     url: SITE_URL,
     siteName: "Tamer Studio",
     images: [
@@ -41,7 +42,7 @@ export const metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Tamer Studio",
-    description: "AI-first production platform for creators. Manage projects, media, production, and publishing in one place.",
+    description: "Tamer Studio — AI-first production platform for creators. Manage projects, media, production, and publishing in one place.",
     images: [new URL("/og-image.svg", SITE_URL).toString()],
   },
   robots: { index: true, follow: true },

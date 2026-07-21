@@ -1,12 +1,12 @@
 import { AdminShell } from "@/components/admin/AdminShell";
 import { PageLayout } from "@/components/ui/PageLayout";
-import { requireRole } from "@/lib/auth/server-auth";
+import { requireAdmin } from "@/core/admin";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   try {
-    await requireRole(["workspace_admin", "organization_admin", "system_admin", "super_admin"]);
+    await requireAdmin();
     
     return (
       <AdminShell>
