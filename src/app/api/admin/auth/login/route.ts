@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { loginAdmin } from "@/core/admin/login";
 import { setAdminSessionCookie } from "@/core/admin/session";
 import { checkRateLimit, getClientIdentifier } from "@/core/security/rate-limit";
+import { validateCsrfToken } from "@/core/security/csrf";
+import { cookies } from "next/headers";
 
 export async function POST(request: Request) {
   const identifier = getClientIdentifier(request);
@@ -10,6 +12,17 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { success: false, reason: "rate_limited" },
       { status: 429 }
+    );
+  }
+
+  const csrfToken = request.headers.get("x-csrf-token");
+  const cookieStore = await cookies();
+  const storedCsrf = cookieStore.get("csrf_token")?.value;
+
+  if (!csrfToken || !storedCsrf || !validateCsrfToken(csrfToken, storedCsrf)) {
+    return NextResponse.json(
+      { success: false, reason: "invalid_csrf" },
+      { status: 403 }
     );
   }
 

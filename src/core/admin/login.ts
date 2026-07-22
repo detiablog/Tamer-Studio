@@ -12,6 +12,11 @@ export async function loginAdmin(credentials: { email: string; password: string;
     return { success: false, reason: "invalid_master_key" as const };
   }
 
+  if (credentials.password.length < 12) {
+    logger.security("Admin login attempt with weak password", { email: credentials.email });
+    return { success: false, reason: "invalid_credentials" as const };
+  }
+
   const existingAdmin = await db.select().from(admin).where(eq(admin.email, credentials.email)).limit(1);
 
   if (existingAdmin.length === 0) {

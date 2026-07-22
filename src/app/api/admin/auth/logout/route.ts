@@ -1,9 +1,23 @@
 import { NextResponse } from "next/server";
 import { getAdminSessionFromToken } from "@/core/admin/session";
 import { logoutAdminByToken } from "@/core/admin/logout";
+import { getClientIdentifier } from "@/core/security/rate-limit";
+import { validateCsrfToken } from "@/core/security/csrf";
+import { cookies } from "next/headers";
 
 export async function POST(request: Request) {
   try {
+    const csrfToken = request.headers.get("x-csrf-token");
+    const cookieStore = await cookies();
+    const storedCsrf = cookieStore.get("csrf_token")?.value;
+
+    if (!csrfToken || !storedCsrf || !validateCsrfToken(csrfToken, storedCsrf)) {
+      return NextResponse.json(
+        { success: false, reason: "invalid_csrf" },
+        { status: 403 }
+      );
+    }
+
     const authorization = request.headers.get("authorization");
     const bearerToken = authorization?.startsWith("Bearer ")
       ? authorization.slice(7)
@@ -20,7 +34,10 @@ export async function POST(request: Request) {
       );
     }
 
-    const session = await getAdminSessionFromToken(token);
+    const clientIp = getClientIdentifier(request);
+    const userAgent = request.headers.get("user-agent") || undefined;
+
+    const session = await getAdminSessionFromToken(token, clientIp, userAgent);
 
     if (!session) {
       return NextResponse.json(

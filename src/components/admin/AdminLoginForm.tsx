@@ -7,6 +7,7 @@ type AdminLoginError = "missing_fields" | "invalid_master_key" | "invalid_creden
 
 type AdminLoginFormProps = {
   error?: AdminLoginError;
+  csrfToken: string;
 };
 
 type AdminLoginApiResponse = {
@@ -29,7 +30,7 @@ const ERROR_MESSAGES: Record<AdminLoginError, string> = {
   unexpected_error: "An unexpected error occurred. Please try again.",
 };
 
-export function AdminLoginForm({ error }: AdminLoginFormProps) {
+export function AdminLoginForm({ error, csrfToken }: AdminLoginFormProps) {
   const router = useRouter();
   const [submitting, setSubmitting] = React.useState(false);
   const [formError, setFormError] = React.useState<string | null>(error ? ERROR_MESSAGES[error] : null);
@@ -53,7 +54,10 @@ export function AdminLoginForm({ error }: AdminLoginFormProps) {
     try {
       const response = await fetch("/api/admin/auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-csrf-token": csrfToken,
+        },
         body: JSON.stringify({ email, password, adminKey }),
       });
 

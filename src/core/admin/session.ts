@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { db } from "@/lib/db";
 import { adminSession, admin } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
+import { logger } from "@/core/logger";
 import type { AdminSession } from "./types";
 
 export async function getAdminSession(): Promise<AdminSession | null> {
@@ -57,7 +58,7 @@ export async function setAdminSessionCookie(token: string): Promise<void> {
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     maxAge: 24 * 60 * 60,
-    path: "/admin",
+    path: "/",
   });
 }
 
@@ -66,7 +67,7 @@ export async function clearAdminSessionCookie(): Promise<void> {
   cookieStore.delete("admin_session");
 }
 
-export async function getAdminSessionFromToken(token: string): Promise<AdminSession | null> {
+export async function getAdminSessionFromToken(token: string, ipAddress?: string, userAgent?: string): Promise<AdminSession | null> {
   const session = await db.select().from(adminSession).where(eq(adminSession.token, token)).limit(1);
 
   if (session.length === 0) {
@@ -77,6 +78,28 @@ export async function getAdminSessionFromToken(token: string): Promise<AdminSess
 
   if (sessionRecord.expiresAt < new Date()) {
     await db.delete(adminSession).where(eq(adminSession.id, sessionRecord.id));
+    return null;
+  }
+
+  if (ipAddress && sessionRecord.ipAddress && sessionRecord.ipAddress !== ipAddress) {
+    await db.delete(adminSession).where(eq(adminSession.id, sessionRecord.id));
+    logger.security("Admin session invalidated due to IP mismatch", {
+      sessionId: sessionRecord.id,
+      adminId: sessionRecord.adminId,
+      storedIp: sessionRecord.ipAddress,
+      requestIp: ipAddress,
+    });
+    return null;
+  }
+
+  if (userAgent && sessionRecord.userAgent && sessionRecord.userAgent !== userAgent) {
+    await db.delete(adminSession).where(eq(adminSession.id, sessionRecord.id));
+    logger.security("Admin session invalidated due to User-Agent mismatch", {
+      sessionId: sessionRecord.id,
+      adminId: sessionRecord.adminId,
+      storedUserAgent: sessionRecord.userAgent,
+      requestUserAgent: userAgent,
+    });
     return null;
   }
 
