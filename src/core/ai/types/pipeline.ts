@@ -5,8 +5,14 @@ export interface RetryPolicy {
   readonly backoffMs?: number;
   readonly backoffMultiplier?: number;
   readonly maxBackoffMs?: number;
-  readonly retryableStatusCodes: readonly number[];
-  readonly retryableErrors: readonly string[];
+  readonly retryableStatusCodes?: readonly number[];
+  readonly retryableErrors?: readonly string[];
+}
+
+export interface CircuitBreakerPolicy {
+  readonly failureThreshold: number;
+  readonly successThreshold: number;
+  readonly recoveryTimeoutMs: number;
 }
 
 export interface TimeoutPolicy {

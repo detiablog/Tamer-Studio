@@ -1,5 +1,5 @@
 import type { AIProvider } from "@/core/admin/providers/providers.types";
-import type { AIProviderConfig } from "../types";
+import type { AIProviderConfig } from "../types/domain";
 import { logger } from "@/core/logger";
 import { logAction } from "@/core/audit";
 
@@ -26,11 +26,11 @@ export class DefaultProviderFactory implements ProviderFactory {
     const provider: AIProvider = {
       id: crypto.randomUUID(),
       name: config.name ?? `${config.providerType}-provider`,
-      providerType: config.providerType,
+      providerType: config.providerType as AIProvider["providerType"],
       status: "active",
       priority: 0,
       enabled: true,
-      apiKeyConfigured: true,
+      apiKeyConfigured: !!config.apiKey,
       capabilities: [],
       models: [],
       rateLimit: {
@@ -52,6 +52,14 @@ export class DefaultProviderFactory implements ProviderFactory {
       },
       createdAt: now,
       updatedAt: now,
+      config: {
+        apiKey: config.apiKey,
+        baseUrl: config.baseUrl ?? config.apiEndpoint,
+        timeoutMs: config.timeoutMs,
+        retryCount: config.retryCount,
+        providerType: config.providerType,
+        headers: config.headers,
+      },
     };
 
     this.createdProviders.add(provider.id);

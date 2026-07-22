@@ -2,18 +2,21 @@ import type { AIRequest } from "../types/domain";
 import type { AIProvider } from "@/core/admin/providers/providers.types";
 import type { RuntimeOptions, RuntimeResult, TelemetryRecord } from "../runtime/types";
 import type { AIError } from "../types/domain";
+import type { RetryPolicy } from "../types/pipeline";
 import type { ProviderSelector } from "../selector/provider-selector";
 import type { ProviderRegistry } from "../registry/provider-registry";
 import type { AdapterFactory } from "../providers/factory";
-import type { RetryManager, RetryPolicy } from "../retry/retry-manager";
+import type { RetryManager } from "../retry/retry-manager";
 import type { CircuitBreaker } from "../breaker/circuit-breaker";
 import type { FallbackManager } from "../fallback/fallback-manager";
 import type { TelemetryService } from "../telemetry/telemetry.service";
+import type { TimeoutManager } from "../pipeline/timeout";
 import type { AIProviderConfig } from "../providers/adapter";
 import { validateAIRequest, normalizeAIRequest } from "../runtime/validation";
 import { logger } from "@/core/logger";
 import { logAction } from "@/core/audit";
 import { randomUUID } from "crypto";
+import { defaultTimeoutManager } from "../pipeline/timeout";
 
 export interface ExecutionPipeline {
   execute<T>(request: AIRequest, options?: RuntimeOptions, signal?: AbortSignal): Promise<RuntimeResult<T>>;
@@ -41,6 +44,7 @@ export class DefaultExecutionPipeline implements ExecutionPipeline {
     private circuitBreaker: CircuitBreaker,
     private fallbackManager: FallbackManager,
     private telemetry: TelemetryService,
+    private timeoutManager: TimeoutManager = defaultTimeoutManager,
     private pipelineLogger = logger,
   ) {}
 
@@ -52,7 +56,13 @@ export class DefaultExecutionPipeline implements ExecutionPipeline {
     const controller = new AbortController();
     this.executions.set(executionId, controller);
 
-    const effectiveSignal = this.mergeSignals(signal, controller.signal);
+    const effectiveOptions: RuntimeOptions = {
+      signal,
+      timeoutMs: normalizedRequest.timeoutMs ?? options?.timeoutMs ?? 30000,
+      telemetryEnabled: options?.telemetryEnabled ?? true,
+      ...options,
+    };
+    const effectiveSignal = this.mergeSignals(effectiveOptions.signal, controller.signal);
 
     if (effectiveSignal.aborted) {
       this.executions.delete(executionId);
@@ -71,6 +81,9 @@ export class DefaultExecutionPipeline implements ExecutionPipeline {
       traceId,
       spanId,
     });
+
+    let currentProviderId: string | undefined;
+    let _fallbackUsed = false;
 
     try {
       const providerId = await this.providerSelector.select(normalizedRequest);
@@ -100,8 +113,11 @@ export class DefaultExecutionPipeline implements ExecutionPipeline {
         return { success: false, error };
       }
 
+      currentProviderId = providerId;
+
       const adapterRequest = this.mapToAdapterRequest(normalizedRequest);
       const adapterConfig: AIProviderConfig = {
+        providerType: (provider as AIProvider).providerType,
         apiKey: (provider as ProviderConfigAccess).config?.apiKey,
         apiEndpoint: (provider as ProviderConfigAccess).config?.baseUrl,
         timeoutMs: (provider as ProviderConfigAccess).config?.timeoutMs,
@@ -110,24 +126,30 @@ export class DefaultExecutionPipeline implements ExecutionPipeline {
       };
 
       const retryPolicy: RetryPolicy = {
-        maxAttempts: 3,
-        backoffMs: 1000,
-        backoffMultiplier: 2,
-        maxBackoffMs: 30000,
+        maxAttempts: normalizedRequest.retryPolicy?.maxAttempts ?? 3,
+        backoffMs: normalizedRequest.retryPolicy?.backoffMs ?? 1000,
+        backoffMultiplier: normalizedRequest.retryPolicy?.backoffMultiplier ?? 2,
+        maxBackoffMs: normalizedRequest.retryPolicy?.maxBackoffMs ?? 30000,
+        retryableStatusCodes: normalizedRequest.retryPolicy?.retryableStatusCodes ?? [429, 500, 502, 503, 504],
+        retryableErrors: normalizedRequest.retryPolicy?.retryableErrors ?? [],
       };
 
-      let result: { content: string; model: string };
-      let currentProviderId = providerId;
-      let _fallbackUsed = false;
+      let result: { content: string; model: string; usage?: { promptTokens?: number; completionTokens?: number; totalTokens?: number } };
 
       try {
+        const timeoutMs = effectiveOptions.timeoutMs ?? normalizedRequest.timeoutMs ?? 30000;
         const adapterResult = await this.retryManager.execute(
-          () => adapter.execute(adapterRequest as unknown as Parameters<typeof adapter.execute>[0], adapterConfig),
+          () => this.timeoutManager.wrap(
+            effectiveSignal,
+            timeoutMs,
+            () => adapter.execute(adapterRequest as unknown as Parameters<typeof adapter.execute>[0], adapterConfig)
+          ),
           retryPolicy
         );
         result = {
           content: adapterResult.content,
           model: adapterResult.model,
+          usage: adapterResult.usage,
         };
         this.circuitBreaker.recordSuccess(providerId);
       } catch (error) {
@@ -154,13 +176,19 @@ export class DefaultExecutionPipeline implements ExecutionPipeline {
         }
 
         try {
+          const timeoutMs = effectiveOptions.timeoutMs ?? normalizedRequest.timeoutMs ?? 30000;
           const fallbackResult = await this.retryManager.execute(
-            () => fallbackAdapter.execute(adapterRequest as unknown as Parameters<typeof fallbackAdapter.execute>[0], adapterConfig),
+            () => this.timeoutManager.wrap(
+              effectiveSignal,
+              timeoutMs,
+              () => fallbackAdapter.execute(adapterRequest as unknown as Parameters<typeof fallbackAdapter.execute>[0], adapterConfig)
+            ),
             retryPolicy
           );
           result = {
             content: fallbackResult.content,
             model: fallbackResult.model,
+            usage: fallbackResult.usage,
           };
           this.circuitBreaker.recordSuccess(nextProviderId);
           currentProviderId = nextProviderId;
@@ -189,7 +217,12 @@ export class DefaultExecutionPipeline implements ExecutionPipeline {
         durationMs,
       });
 
-      this.recordTelemetry(normalizedRequest, currentProviderId, "success", durationMs, traceId, spanId);
+      this.recordTelemetry(normalizedRequest, currentProviderId, "success", durationMs, traceId, spanId, {
+        model: result.model,
+        fallbackUsed: _fallbackUsed,
+        tokensUsed: result.usage?.totalTokens ?? result.usage?.promptTokens,
+        cost: 0,
+      });
 
       this.executions.delete(executionId);
       return {
@@ -216,19 +249,26 @@ export class DefaultExecutionPipeline implements ExecutionPipeline {
         error: aiError,
       });
 
-      this.recordTelemetry(normalizedRequest, undefined, "failure", durationMs, traceId, spanId);
+      this.recordTelemetry(normalizedRequest, currentProviderId, "failure", durationMs, traceId, spanId, {
+        failureReason: aiError.code,
+      });
       this.executions.delete(executionId);
       return { success: false, error: aiError };
     }
   }
 
-  async *executeStream<T>(request: AIRequest, _options?: RuntimeOptions, _signal?: AbortSignal): AsyncIterable<RuntimeResult<T>> {
+  async *executeStream<T>(request: AIRequest, options?: RuntimeOptions, signal?: AbortSignal): AsyncIterable<RuntimeResult<T>> {
     validateAIRequest(request);
     const normalizedRequest = normalizeAIRequest(request);
 
     const executionId = `exec_${randomUUID()}`;
     const controller = new AbortController();
     this.executions.set(executionId, controller);
+
+    const effectiveSignal = this.mergeSignals(signal, controller.signal);
+    const timeoutMs = options?.timeoutMs ?? normalizedRequest.timeoutMs ?? 30000;
+    const timeoutSignal = AbortSignal.timeout(timeoutMs);
+    const effectiveStreamSignal = this.mergeSignals(effectiveSignal, timeoutSignal);
 
     const startTime = Date.now();
     const traceId = (normalizedRequest.context.metadata?.traceId as string | undefined) ?? randomUUID();
@@ -271,6 +311,7 @@ export class DefaultExecutionPipeline implements ExecutionPipeline {
 
       const adapterRequest = this.mapToAdapterRequest(normalizedRequest);
       const adapterConfig: AIProviderConfig = {
+        providerType: (provider as AIProvider).providerType,
         apiKey: (provider as ProviderConfigAccess).config?.apiKey,
         apiEndpoint: (provider as ProviderConfigAccess).config?.baseUrl,
         timeoutMs: (provider as ProviderConfigAccess).config?.timeoutMs,
@@ -280,7 +321,7 @@ export class DefaultExecutionPipeline implements ExecutionPipeline {
 
       try {
         for await (const chunk of adapter.executeStream(adapterRequest as unknown as Parameters<typeof adapter.executeStream>[0], adapterConfig)) {
-          if (controller.signal.aborted) {
+          if (effectiveStreamSignal.aborted) {
             break;
           }
           yield { success: true, data: chunk.content } as RuntimeResult<T>;
@@ -362,7 +403,16 @@ export class DefaultExecutionPipeline implements ExecutionPipeline {
     status: "success" | "failure",
     durationMs: number,
     traceId: string,
-    spanId: string
+    spanId: string,
+    extra?: {
+      retryCount?: number;
+      fallbackUsed?: boolean;
+      failureReason?: string;
+      tokensUsed?: number;
+      cost?: number;
+      streamingDurationMs?: number;
+      model?: string;
+    }
   ): Promise<void> {
     const record: TelemetryRecord = {
       executionId: request.id ?? `req_${randomUUID()}`,
@@ -371,6 +421,16 @@ export class DefaultExecutionPipeline implements ExecutionPipeline {
       durationMs,
       timestamp: new Date().toISOString(),
       providerId,
+      model: extra?.model ?? request.model,
+      retryCount: extra?.retryCount ?? 0,
+      fallbackUsed: extra?.fallbackUsed ?? false,
+      failureReason: extra?.failureReason,
+      tokensUsed: extra?.tokensUsed,
+      cost: extra?.cost,
+      streamingDurationMs: extra?.streamingDurationMs,
+      workspaceId: request.context.workspaceId,
+      projectId: request.context.projectId,
+      userId: request.context.userId,
       metadata: { traceId, spanId },
     };
     await this.telemetry.record(record).catch(() => {});

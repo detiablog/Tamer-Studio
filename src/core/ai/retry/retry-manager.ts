@@ -1,13 +1,5 @@
 import { logger } from "@/core/logger";
-
-export interface RetryPolicy {
-  maxAttempts: number;
-  backoffMs?: number;
-  backoffMultiplier?: number;
-  maxBackoffMs?: number;
-  retryableStatusCodes?: number[];
-  retryableErrors?: string[];
-}
+import type { RetryPolicy } from "../types/pipeline";
 
 export interface RetryManager {
   execute<T>(fn: () => Promise<T>, policy: RetryPolicy): Promise<T>;

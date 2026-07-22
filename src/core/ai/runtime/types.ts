@@ -1,9 +1,12 @@
 import type {
   AIRequest,
   AIError,
+  FallbackPolicy,
 } from "../types/domain";
+import type { RetryPolicy, CircuitBreakerPolicy as _CBPolicy } from "../types/pipeline";
 
-export type { AIRequest, AIError } from "../types/domain";
+export type { AIRequest, AIError, FallbackPolicy } from "../types/domain";
+export type { RetryPolicy, CircuitBreakerPolicy } from "../types/pipeline";
 
 export interface TelemetryRecord {
   executionId: string;
@@ -13,14 +16,22 @@ export interface TelemetryRecord {
   tokensUsed?: number;
   cost?: number;
   providerId?: string;
+  retryCount?: number;
+  fallbackUsed?: boolean;
+  failureReason?: string;
+  streamingDurationMs?: number;
+  workspaceId?: string;
+  projectId?: string;
+  userId?: string;
+  model?: string;
   metadata?: Record<string, unknown>;
   timestamp: string;
 }
 
 export interface RuntimeOptions {
   timeoutMs?: number;
-  retryPolicy?: Record<string, unknown>;
-  fallbackPolicy?: Record<string, unknown>;
+  retryPolicy?: RetryPolicy;
+  fallbackPolicy?: FallbackPolicy;
   telemetryEnabled?: boolean;
   metadata?: Record<string, unknown>;
   signal?: AbortSignal;

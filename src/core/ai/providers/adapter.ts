@@ -1,15 +1,10 @@
 import { AIError } from "../../errors/ai-error";
+import type { AIProviderConfig as DomainAIProviderConfig } from "../types/domain";
 
 export type ProviderAuthType = "api_key" | "oauth" | "bearer";
 
-export interface AIProviderConfig {
-  apiKey?: string;
-  apiEndpoint?: string;
-  timeoutMs?: number;
-  maxRetries?: number;
-  model?: string;
+export interface AIProviderConfig extends DomainAIProviderConfig {
   authType?: ProviderAuthType;
-  headers?: Record<string, string>;
 }
 
 export interface AIRequest {

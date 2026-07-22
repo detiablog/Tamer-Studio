@@ -1,3 +1,6 @@
+export { DefaultProviderBenchmarkService } from "./benchmark";
+export type { ProviderBenchmarkService, ProviderBenchmark, ExecutionMetrics } from "./benchmark";
+
 export { DefaultCircuitBreaker } from "./breaker";
 export type { CircuitBreaker } from "./breaker";
 
@@ -33,11 +36,14 @@ export { DefaultAIRuntime, validateAIRequest, normalizeAIRequest } from "./runti
 export type { AIRuntime, RuntimeOptions, RuntimeResult, TelemetryRecord } from "./runtime";
 
 export { DefaultRetryManager } from "./retry";
-export type { RetryManager, RetryPolicy } from "./retry";
+export type { RetryManager } from "./retry";
+export type { RetryPolicy } from "./types";
 
 export { InMemoryTelemetryService } from "./telemetry";
 export type { TelemetryService } from "./telemetry";
 
+export { DefaultCredentialResolver } from "./security";
+export type { ConfigService, CredentialResolutionContext, ResolvedCredentials, CredentialResolver } from "./security";
 export { ProviderCredentialLoader } from "./security";
 
 export * from "./types/domain";

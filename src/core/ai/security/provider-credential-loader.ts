@@ -1,4 +1,4 @@
-import type { AIProviderConfig } from "../types";
+import type { AIProviderConfig } from "../types/domain";
 import { logger } from "@/core/logger";
 import { logAction } from "@/core/audit";
 

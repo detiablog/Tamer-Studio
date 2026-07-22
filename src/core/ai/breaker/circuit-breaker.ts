@@ -1,6 +1,7 @@
 import { logger } from "@/core/logger";
 import { logAction } from "@/core/audit";
 import type { AuditAction } from "@/core/audit";
+import type { CircuitBreakerPolicy } from "../types/pipeline";
 
 export interface CircuitBreaker {
   allowRequest(providerId: string): boolean;
@@ -18,10 +19,15 @@ interface ProviderSnapshot {
 
 export class DefaultCircuitBreaker implements CircuitBreaker {
   private readonly snapshots = new Map<string, ProviderSnapshot>();
+  private readonly policy: Required<CircuitBreakerPolicy>;
 
-  private readonly failureThreshold = 5;
-  private readonly successThreshold = 2;
-  private readonly recoveryTimeoutMs = 30000;
+  constructor(policy?: Partial<CircuitBreakerPolicy>) {
+    this.policy = {
+      failureThreshold: policy?.failureThreshold ?? 5,
+      successThreshold: policy?.successThreshold ?? 2,
+      recoveryTimeoutMs: policy?.recoveryTimeoutMs ?? 30000,
+    };
+  }
 
   allowRequest(providerId: string): boolean {
     const state = this.getState(providerId);
@@ -34,7 +40,7 @@ export class DefaultCircuitBreaker implements CircuitBreaker {
     if (snapshot.state === "half-open") {
       snapshot.halfOpenSuccesses += 1;
 
-      if (snapshot.halfOpenSuccesses >= this.successThreshold) {
+      if (snapshot.halfOpenSuccesses >= this.policy.successThreshold) {
         const previousState = snapshot.state;
         snapshot.state = "closed";
         snapshot.failureCount = 0;
@@ -64,7 +70,7 @@ export class DefaultCircuitBreaker implements CircuitBreaker {
     if (snapshot.state === "closed") {
       snapshot.failureCount += 1;
 
-      if (snapshot.failureCount >= this.failureThreshold) {
+      if (snapshot.failureCount >= this.policy.failureThreshold) {
         const previousState = snapshot.state;
         snapshot.state = "open";
         snapshot.openedAt = Date.now();
@@ -79,7 +85,7 @@ export class DefaultCircuitBreaker implements CircuitBreaker {
       return snapshot?.state ?? "closed";
     }
 
-    if (Date.now() - snapshot.openedAt >= this.recoveryTimeoutMs) {
+    if (Date.now() - snapshot.openedAt >= this.policy.recoveryTimeoutMs) {
       const previousState = snapshot.state;
       snapshot.state = "half-open";
       snapshot.halfOpenSuccesses = 0;

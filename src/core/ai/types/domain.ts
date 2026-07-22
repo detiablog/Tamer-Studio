@@ -95,13 +95,19 @@ export interface AIResponse {
 }
 
 export interface AIProviderConfig {
+  readonly providerType: string;
+  readonly name?: string;
   readonly apiKey?: string;
   readonly baseUrl?: string;
+  readonly apiEndpoint?: string;
   readonly apiVersion?: string;
   readonly headers?: Record<string, string>;
   readonly timeoutMs?: number;
   readonly retryCount?: number;
   readonly region?: string;
+  readonly maxRetries?: number;
+  readonly authType?: "api_key" | "oauth" | "bearer";
+  readonly model?: string;
 }
 
 export interface AIHealth {
