@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { adminSession, admin } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { getSecurityHeaders } from "@/core/security/headers";
+import { metrics } from "@/core/observability/metrics";
 
 function withSecurityHeaders(response: NextResponse): NextResponse {
   const headers = getSecurityHeaders();
@@ -71,41 +72,54 @@ const ADMIN_ROLE_PERMISSIONS: Record<string, string[]> = {
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const method = request.method;
 
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon") ||
     pathname.startsWith("/api/auth") ||
     pathname.startsWith("/api/admin") ||
+    pathname.startsWith("/api/health") ||
     pathname.includes(".")
   ) {
+    metrics.increment("api.request", { method, route: pathname, status: "routed" });
     return withSecurityHeaders(NextResponse.next());
   }
 
   if (PUBLIC_ROUTES.includes(pathname) || pathname === "/") {
-    return withSecurityHeaders(NextResponse.next());
+    const response = withSecurityHeaders(NextResponse.next());
+    metrics.increment("api.request", { method, route: pathname, status: "public" });
+    return response;
   }
 
   const isAdminRoute = ADMIN_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`));
   if (isAdminRoute) {
     const sessionToken = request.cookies.get("admin_session")?.value;
     if (!sessionToken) {
-      return withSecurityHeaders(NextResponse.redirect(new URL("/admin/login", request.url)));
+      const response = withSecurityHeaders(NextResponse.redirect(new URL("/admin/login", request.url)));
+      metrics.increment("api.request", { method, route: pathname, status: "redirect" });
+      return response;
     }
 
     const session = await db.select().from(adminSession).where(eq(adminSession.token, sessionToken)).limit(1);
     if (session.length === 0) {
-      return withSecurityHeaders(NextResponse.redirect(new URL("/admin/login", request.url)));
+      const response = withSecurityHeaders(NextResponse.redirect(new URL("/admin/login", request.url)));
+      metrics.increment("api.request", { method, route: pathname, status: "redirect" });
+      return response;
     }
 
     const sessionRecord = session[0];
     if (sessionRecord.expiresAt < new Date()) {
-      return withSecurityHeaders(NextResponse.redirect(new URL("/admin/login", request.url)));
+      const response = withSecurityHeaders(NextResponse.redirect(new URL("/admin/login", request.url)));
+      metrics.increment("api.request", { method, route: pathname, status: "redirect" });
+      return response;
     }
 
     const adminRecord = await db.select().from(admin).where(eq(admin.id, sessionRecord.adminId)).limit(1);
     if (adminRecord.length === 0 || !adminRecord[0].isActive) {
-      return withSecurityHeaders(NextResponse.redirect(new URL("/admin/login", request.url)));
+      const response = withSecurityHeaders(NextResponse.redirect(new URL("/admin/login", request.url)));
+      metrics.increment("api.request", { method, route: pathname, status: "redirect" });
+      return response;
     }
 
     const requiredPermission = ADMIN_ROUTE_PERMISSIONS[pathname];
@@ -113,10 +127,13 @@ export async function proxy(request: NextRequest) {
       const adminRole = adminRecord[0].role;
       const permissions = ADMIN_ROLE_PERMISSIONS[adminRole] || [];
       if (!permissions.includes(requiredPermission)) {
-        return withSecurityHeaders(NextResponse.redirect(new URL("/admin", request.url)));
+        const response = withSecurityHeaders(NextResponse.redirect(new URL("/admin", request.url)));
+        metrics.increment("api.request", { method, route: pathname, status: "forbidden" });
+        return response;
       }
     }
 
+    metrics.increment("api.request", { method, route: pathname, status: "allowed" });
     return withSecurityHeaders(NextResponse.next());
   }
 
@@ -125,22 +142,30 @@ export async function proxy(request: NextRequest) {
     if (session) {
       const tokenValue = session.value;
       if (tokenValue.length >= 32 && /^[a-zA-Z0-9]+$/.test(tokenValue)) {
-        return withSecurityHeaders(NextResponse.redirect(new URL("/dashboard", request.url)));
+        const response = withSecurityHeaders(NextResponse.redirect(new URL("/dashboard", request.url)));
+        metrics.increment("api.request", { method, route: pathname, status: "redirect" });
+        return response;
       }
     }
+    metrics.increment("api.request", { method, route: pathname, status: "allowed" });
     return withSecurityHeaders(NextResponse.next());
   }
 
   const session = request.cookies.get("better-auth.session_token") || request.cookies.get("session");
   if (!session) {
-    return withSecurityHeaders(NextResponse.redirect(new URL("/login", request.url)));
+    const response = withSecurityHeaders(NextResponse.redirect(new URL("/login", request.url)));
+    metrics.increment("api.request", { method, route: pathname, status: "redirect" });
+    return response;
   }
 
   const userTokenValue = session.value;
   if (userTokenValue.length < 32 || !/^[a-zA-Z0-9]+$/.test(userTokenValue)) {
-    return withSecurityHeaders(NextResponse.redirect(new URL("/login", request.url)));
+    const response = withSecurityHeaders(NextResponse.redirect(new URL("/login", request.url)));
+    metrics.increment("api.request", { method, route: pathname, status: "redirect" });
+    return response;
   }
 
+  metrics.increment("api.request", { method, route: pathname, status: "allowed" });
   return withSecurityHeaders(NextResponse.next());
 }
 

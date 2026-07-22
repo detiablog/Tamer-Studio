@@ -7,3 +7,4 @@ export * from "./commerce";
 export * from "./identity";
 export * from "./notification";
 export * from "./support";
+export * from "./auth-events";

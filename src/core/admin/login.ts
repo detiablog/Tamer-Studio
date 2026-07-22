@@ -3,17 +3,32 @@ import { verifyMasterKey } from "./verify";
 import { db } from "@/lib/db";
 import { admin, adminSession } from "@/lib/db/schema";
 import { logger } from "@/core/logger";
+import { recordFailedLogin } from "@/lib/auth/events";
 import { randomUUID } from "crypto";
 import { eq } from "drizzle-orm";
 
-export async function loginAdmin(credentials: { email: string; password: string; adminKey: string }) {
+export async function loginAdmin(credentials: { email: string; password: string; adminKey: string; ipAddress?: string; userAgent?: string }) {
   if (!verifyMasterKey(credentials.adminKey)) {
     logger.security("Admin login attempt with invalid master key", { email: credentials.email });
+    await recordFailedLogin({
+      email: credentials.email,
+      identifier: credentials.ipAddress ?? "unknown",
+      reason: "invalid_master_key",
+      userAgent: credentials.userAgent,
+      ipAddress: credentials.ipAddress,
+    });
     return { success: false, reason: "invalid_master_key" as const };
   }
 
   if (credentials.password.length < 12) {
     logger.security("Admin login attempt with weak password", { email: credentials.email });
+    await recordFailedLogin({
+      email: credentials.email,
+      identifier: credentials.ipAddress ?? "unknown",
+      reason: "weak_password",
+      userAgent: credentials.userAgent,
+      ipAddress: credentials.ipAddress,
+    });
     return { success: false, reason: "invalid_credentials" as const };
   }
 
@@ -21,6 +36,13 @@ export async function loginAdmin(credentials: { email: string; password: string;
 
   if (existingAdmin.length === 0) {
     logger.security("Admin login attempt with non-existent email", { email: credentials.email });
+    await recordFailedLogin({
+      email: credentials.email,
+      identifier: credentials.ipAddress ?? "unknown",
+      reason: "email_not_found",
+      userAgent: credentials.userAgent,
+      ipAddress: credentials.ipAddress,
+    });
     return { success: false, reason: "invalid_credentials" as const };
   }
 
@@ -28,6 +50,13 @@ export async function loginAdmin(credentials: { email: string; password: string;
 
   if (!adminRecord.isActive) {
     logger.security("Admin login attempt for inactive account", { adminId: adminRecord.id });
+    await recordFailedLogin({
+      email: credentials.email,
+      identifier: credentials.ipAddress ?? "unknown",
+      reason: "account_inactive",
+      userAgent: credentials.userAgent,
+      ipAddress: credentials.ipAddress,
+    });
     return { success: false, reason: "account_inactive" as const };
   }
 
@@ -35,6 +64,13 @@ export async function loginAdmin(credentials: { email: string; password: string;
 
   if (!isValid) {
     logger.security("Admin login attempt with invalid password", { adminId: adminRecord.id });
+    await recordFailedLogin({
+      email: credentials.email,
+      identifier: credentials.ipAddress ?? "unknown",
+      reason: "invalid_password",
+      userAgent: credentials.userAgent,
+      ipAddress: credentials.ipAddress,
+    });
     return { success: false, reason: "invalid_credentials" as const };
   }
 

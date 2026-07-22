@@ -40,7 +40,13 @@ export async function POST(request: Request) {
       );
     }
 
-    const result = await loginAdmin({ email, password, adminKey });
+    const result = await loginAdmin({
+      email,
+      password,
+      adminKey,
+      ipAddress: identifier === "unknown" ? undefined : identifier,
+      userAgent: request.headers.get("user-agent") ?? undefined,
+    });
 
     if (!result.success) {
       return NextResponse.json(
