@@ -8,6 +8,7 @@ let maintenanceStartedAt: Date | undefined;
 let maintenanceScheduledEnd: Date | undefined;
 let maintenanceMessage: string | undefined;
 let allowAdminAccess = true;
+let shutdownInitiatedAt: Date | undefined;
 const notices: MaintenanceNotice[] = [];
 const schedules: MaintenanceSchedule[] = [];
 
@@ -64,6 +65,7 @@ export class MaintenanceService {
   async prepareEmergencyShutdown(adminId: string): Promise<EmergencyShutdownStatus> {
     const now = new Date();
     maintenanceStartedAt = now;
+    shutdownInitiatedAt = now;
     currentMode = "emergency";
     maintenanceMessage = "Emergency shutdown in progress";
     logAdminAction("maintenance.emergency.prepared", adminId, {});
@@ -73,10 +75,13 @@ export class MaintenanceService {
       gracefulShutdownInitiated: false,
       activeConnections: 0,
       pendingJobs: 0,
+      shutdownInitiatedAt,
     };
   }
 
   async executeEmergencyShutdown(adminId: string): Promise<void> {
+    shutdownInitiatedAt = new Date();
+    currentMode = "emergency";
     logAdminAction("maintenance.emergency.shutdown", adminId, {});
     logger.security("Emergency shutdown executed", { adminId });
   }

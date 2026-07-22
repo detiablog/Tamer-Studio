@@ -74,6 +74,8 @@ export interface SystemStats {
   diskUsage: number;
   nodeVersion: string;
   env: string;
+  maintenanceMode?: boolean;
+  readOnlyMode?: boolean;
 }
 
 export interface AlertStats {

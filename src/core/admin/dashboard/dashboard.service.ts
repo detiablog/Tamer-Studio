@@ -1,10 +1,14 @@
 import type { PlatformStats } from "./dashboard.types";
 import { db } from "@/lib/db";
-import { userProfile, workspace, invoice, wallet } from "@/lib/db/schema";
-import { UsageService } from "@/core/usage";
+import { userProfile, workspace, invoice, wallet, usageRecord } from "@/lib/db/schema";
+import { ProvidersService } from "../providers";
+import { OperationsService } from "../operations";
+import { MaintenanceService } from "../maintenance";
 
 export class DashboardService {
-  private usageService = new UsageService();
+  private providersService = new ProvidersService();
+  private operationsService = new OperationsService();
+  private maintenanceService = new MaintenanceService();
 
   async getPlatformStats(): Promise<PlatformStats> {
     const [users, workspaces, aiUsage, credits, revenue, providers, jobs, system, alerts] = await Promise.all([
@@ -63,13 +67,17 @@ export class DashboardService {
   }
 
   private async getAIUsageStats(): Promise<PlatformStats["aiUsage"]> {
-    const summary = await this.usageService.getSummary();
+    const allRecords = await db.select().from(usageRecord);
+    const totalRequests = allRecords.length;
+    const totalTokens = allRecords.reduce((sum, r) => sum + parseInt(r.tokens || "0", 10), 0);
+    const totalEstimatedCost = allRecords.reduce((sum, r) => sum + parseFloat(r.estimatedCost || "0"), 0);
+
     return {
-      totalRequests: summary.totalRequests,
-      totalTokens: summary.totalTokens,
-      totalEstimatedCost: summary.totalEstimatedCost,
-      currency: summary.currency,
-      activeProviders: 0,
+      totalRequests,
+      totalTokens,
+      totalEstimatedCost,
+      currency: "USD",
+      activeProviders: (await this.providersService.listProviders()).filter((p) => p.status === "active").length,
       failedRequests: 0,
     };
   }
@@ -82,7 +90,7 @@ export class DashboardService {
 
     return {
       totalCreditsIssued,
-      totalCreditsConsumed: 0,
+      totalCreditsConsumed: totalCreditsIssued - totalCreditsRemaining,
       totalCreditsRemaining,
       lowBalanceWarnings,
     };
@@ -111,44 +119,63 @@ export class DashboardService {
   }
 
   private async getProviderStats(): Promise<PlatformStats["providers"]> {
+    const allProviders = await this.providersService.listProviders();
     return {
-      totalProviders: 0,
-      activeProviders: 0,
-      unhealthyProviders: 0,
-      disabledProviders: 0,
+      totalProviders: allProviders.length,
+      activeProviders: allProviders.filter((p) => p.status === "active").length,
+      unhealthyProviders: allProviders.filter((p) => p.status === "error" || p.health.status === "unhealthy").length,
+      disabledProviders: allProviders.filter((p) => !p.enabled).length,
     };
   }
 
   private async getJobStats(): Promise<PlatformStats["jobs"]> {
+    const allJobs = await this.operationsService.listJobs();
     return {
-      totalJobs: 0,
-      queuedJobs: 0,
-      runningJobs: 0,
-      completedJobs: 0,
-      failedJobs: 0,
+      totalJobs: allJobs.length,
+      queuedJobs: allJobs.filter((j) => j.status === "queued").length,
+      runningJobs: allJobs.filter((j) => j.status === "running").length,
+      completedJobs: allJobs.filter((j) => j.status === "completed").length,
+      failedJobs: allJobs.filter((j) => j.status === "failed").length,
     };
   }
 
   private async getSystemStats(): Promise<PlatformStats["system"]> {
+    const maintenance = await this.maintenanceService.getStatus();
     const memUsage = process.memoryUsage();
-    const uptime = process.uptime();
 
     return {
-      uptime,
+      uptime: process.uptime(),
       memoryUsage: Math.round((memUsage.heapUsed / memUsage.heapTotal) * 100),
       cpuUsage: 0,
       diskUsage: 0,
       nodeVersion: process.version,
       env: process.env.NODE_ENV || "development",
+      maintenanceMode: maintenance.mode !== "normal",
+      readOnlyMode: maintenance.mode === "read_only",
     };
   }
 
   private async getAlertStats(): Promise<PlatformStats["alerts"]> {
+    const providers = await this.providersService.listProviders();
+    const alerts: PlatformStats["alerts"]["recent"] = [];
+
+    for (const provider of providers) {
+      if (provider.health.status === "unhealthy") {
+        alerts.push({
+          id: `alert_${provider.id}`,
+          severity: "critical",
+          message: `Provider ${provider.name} is unhealthy`,
+          source: "providers",
+          createdAt: provider.health.lastChecked,
+        });
+      }
+    }
+
     return {
-      critical: 0,
-      warning: 0,
-      info: 0,
-      recent: [],
+      critical: alerts.filter((a) => a.severity === "critical").length,
+      warning: alerts.filter((a) => a.severity === "warning").length,
+      info: alerts.filter((a) => a.severity === "info").length,
+      recent: alerts.slice(0, 10),
     };
   }
 }

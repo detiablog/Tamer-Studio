@@ -1,19 +1,43 @@
 import type { SystemConfig, RuntimeInfo } from "./system.types";
+import { MaintenanceService } from "../maintenance";
+import { SettingsService } from "../settings";
 import os from "os";
 
 export class SystemService {
+  private maintenanceService = new MaintenanceService();
+  private settingsService = new SettingsService();
+
   async getSystemConfig(): Promise<SystemConfig> {
+    const [maintenanceStatus, settings] = await Promise.all([
+      this.maintenanceService.getStatus(),
+      this.settingsService.getGlobalSettings(),
+    ]);
+
+    const modules = [
+      { name: "auth", status: "healthy" as const, initialized: true, lastHealthCheck: new Date() },
+      { name: "identity", status: "healthy" as const, initialized: true, lastHealthCheck: new Date() },
+      { name: "rbac", status: "healthy" as const, initialized: true, lastHealthCheck: new Date() },
+      { name: "audit", status: "healthy" as const, initialized: true, lastHealthCheck: new Date() },
+      { name: "events", status: "healthy" as const, initialized: true, lastHealthCheck: new Date() },
+      { name: "billing", status: "healthy" as const, initialized: true, lastHealthCheck: new Date() },
+      { name: "commerce", status: "healthy" as const, initialized: true, lastHealthCheck: new Date() },
+      { name: "notifications", status: "healthy" as const, initialized: true, lastHealthCheck: new Date() },
+      { name: "support", status: "healthy" as const, initialized: true, lastHealthCheck: new Date() },
+      { name: "usage", status: "healthy" as const, initialized: true, lastHealthCheck: new Date() },
+      { name: "credits", status: "healthy" as const, initialized: true, lastHealthCheck: new Date() },
+    ];
+
     return {
       platform: {
-        platformName: "Tamer Studio",
+        platformName: settings.platformName,
         version: process.env.APP_VERSION || "1.0.0",
         environment: process.env.NODE_ENV || "development",
         region: process.env.APP_REGION || "default",
-        maintenanceMode: false,
-        readOnlyMode: false,
-        registrationOpen: true,
-        maxUploadSize: 50 * 1024 * 1024,
-        rateLimitPerMinute: 100,
+        maintenanceMode: maintenanceStatus.mode === "maintenance",
+        readOnlyMode: maintenanceStatus.mode === "read_only",
+        registrationOpen: settings.registrationOpen,
+        maxUploadSize: settings.maxUploadSize,
+        rateLimitPerMinute: settings.rateLimitPerMinute,
       },
       environment: {
         nodeEnv: process.env.NODE_ENV || "development",
@@ -25,8 +49,17 @@ export class SystemService {
         databaseConnected: true,
         redisConnected: false,
       },
-      services: [],
-      modules: [],
+      services: [
+        { name: "identity", status: "healthy" as const, lastChecked: new Date(), responseTime: 0, version: "1.0.0" },
+        { name: "workspace", status: "healthy" as const, lastChecked: new Date(), responseTime: 0, version: "1.0.0" },
+        { name: "billing", status: "healthy" as const, lastChecked: new Date(), responseTime: 0, version: "1.0.0" },
+        { name: "commerce", status: "healthy" as const, lastChecked: new Date(), responseTime: 0, version: "1.0.0" },
+        { name: "notifications", status: "healthy" as const, lastChecked: new Date(), responseTime: 0, version: "1.0.0" },
+        { name: "support", status: "healthy" as const, lastChecked: new Date(), responseTime: 0, version: "1.0.0" },
+        { name: "ai-gateway", status: "healthy" as const, lastChecked: new Date(), responseTime: 0, version: "1.0.0" },
+        { name: "workflow-engine", status: "healthy" as const, lastChecked: new Date(), responseTime: 0, version: "1.0.0" },
+      ],
+      modules,
       configValidation: {
         valid: true,
         errors: [],
@@ -67,7 +100,7 @@ export class SystemService {
   }
 
   async getServiceRegistry(): Promise<{ name: string; status: string; lastChecked: Date; responseTime: number; errorMessage?: string; version?: string }[]> {
-    const services = [
+    return [
       { name: "identity", status: "healthy" as const, lastChecked: new Date(), responseTime: 0, version: "1.0.0" },
       { name: "workspace", status: "healthy" as const, lastChecked: new Date(), responseTime: 0, version: "1.0.0" },
       { name: "billing", status: "healthy" as const, lastChecked: new Date(), responseTime: 0, version: "1.0.0" },
@@ -77,12 +110,10 @@ export class SystemService {
       { name: "ai-gateway", status: "healthy" as const, lastChecked: new Date(), responseTime: 0, version: "1.0.0" },
       { name: "workflow-engine", status: "healthy" as const, lastChecked: new Date(), responseTime: 0, version: "1.0.0" },
     ];
-
-    return services;
   }
 
   async getModuleHealth(): Promise<{ name: string; status: string; initialized: boolean; errorMessage?: string; lastHealthCheck: Date }[]> {
-    const modules = [
+    return [
       { name: "auth", status: "healthy" as const, initialized: true, lastHealthCheck: new Date() },
       { name: "identity", status: "healthy" as const, initialized: true, lastHealthCheck: new Date() },
       { name: "rbac", status: "healthy" as const, initialized: true, lastHealthCheck: new Date() },
@@ -95,7 +126,5 @@ export class SystemService {
       { name: "usage", status: "healthy" as const, initialized: true, lastHealthCheck: new Date() },
       { name: "credits", status: "healthy" as const, initialized: true, lastHealthCheck: new Date() },
     ];
-
-    return modules;
   }
 }
