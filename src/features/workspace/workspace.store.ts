@@ -1,3 +1,5 @@
+import { logger } from "@/core/logger";
+
 export type Workspace = {
   id: string;
   name: string;
@@ -19,7 +21,7 @@ function readStore(): Workspace[] {
     if (!raw) return [];
     return JSON.parse(raw) as Workspace[];
   } catch (err) {
-    console.error("Failed to read workspaces", err);
+    logger.error("Failed to read workspaces", err as Error);
     return [];
   }
 }
@@ -28,7 +30,7 @@ function writeStore(list: Workspace[]) {
   try {
     localStorage.setItem(KEY, JSON.stringify(list));
   } catch (err) {
-    console.error("Failed to write workspaces", err);
+    logger.error("Failed to write workspaces", err as Error);
   }
 }
 

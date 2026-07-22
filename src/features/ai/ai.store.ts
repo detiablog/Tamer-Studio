@@ -1,3 +1,5 @@
+import { logger } from "@/core/logger";
+
 export type ProviderCategory =
   | "Large Language Models"
   | "Image Generation"
@@ -277,7 +279,7 @@ function readState(): { providers: AIProvider[]; marketplace: AIProvider[]; mode
     if (!raw) return { providers: sampleProviders, marketplace: sampleMarketplace, models: sampleModels, templates: sampleTemplates, usage: sampleUsage };
     return JSON.parse(raw);
   } catch (error) {
-    console.error("Failed to read AI platform state", error);
+    logger.error("Failed to read AI platform state", error as Error);
     return { providers: sampleProviders, marketplace: sampleMarketplace, models: sampleModels, templates: sampleTemplates, usage: sampleUsage };
   }
 }
@@ -286,7 +288,7 @@ function writeState(state: { providers: AIProvider[]; marketplace: AIProvider[];
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch (error) {
-    console.error("Failed to write AI platform state", error);
+    logger.error("Failed to write AI platform state", error as Error);
   }
 }
 

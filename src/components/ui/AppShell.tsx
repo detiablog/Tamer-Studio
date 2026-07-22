@@ -16,7 +16,7 @@ export function AppShell({ children }: AppShellProps) {
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
   const router = useRouter();
 
-  const { data: session, isPending } = (authClient as unknown as { useSession?: () => { data: unknown; isPending: boolean } }).useSession?.() ?? { data: null, isPending: false };
+  const { data: session, isPending } = authClient.useSession();
 
   useKeyboardShortcuts([
     { key: "[", ctrlKey: true, action: () => setSidebarOpen((v) => !v), description: "Toggle sidebar" },

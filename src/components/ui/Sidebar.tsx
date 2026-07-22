@@ -17,11 +17,9 @@ import {
   PanelLeft,
   ChevronRight,
 } from "lucide-react";
-import { usePermissions } from "@/components/auth/use-permissions";
 
 export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
   const pathname = usePathname();
-  const { isAdmin } = usePermissions();
   const [isCollapsed, setIsCollapsed] = React.useState(collapsed);
 
   const isActive = (href: string) => {
@@ -105,15 +103,6 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
               active={isActive("/settings")}
               shortcut={isCollapsed ? undefined : "⌘S"}
             />
-            {isAdmin && (
-              <SidebarItem
-                icon={Settings}
-                label={isCollapsed ? "" : "Admin"}
-                href="/admin"
-                active={isActive("/admin")}
-                shortcut={isCollapsed ? undefined : "⌘G"}
-              />
-            )}
           </div>
         </nav>
 
