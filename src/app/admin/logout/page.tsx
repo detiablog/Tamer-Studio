@@ -1,14 +1,16 @@
-import { clearAdminSessionCookie, getAdminSession } from "@/core/admin/session";
-import { logoutAdmin } from "@/core/admin/logout";
+import { cookies } from "next/headers";
+import { clearAdminSessionCookie } from "@/core/admin/session";
+import { logoutAdminByToken } from "@/core/admin/logout";
 import { redirect } from "next/navigation";
 
 async function logoutAdminAction() {
   "use server";
 
-  const session = await getAdminSession();
+  const cookieStore = await cookies();
+  const sessionToken = cookieStore.get("admin_session")?.value;
 
-  if (session) {
-    await logoutAdmin(session.id);
+  if (sessionToken) {
+    await logoutAdminByToken(sessionToken);
     await clearAdminSessionCookie();
   }
 
