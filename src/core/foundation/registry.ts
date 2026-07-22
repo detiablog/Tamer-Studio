@@ -18,6 +18,14 @@ import { CustomerService } from "../customer";
 import { SLAService } from "../sla";
 import { AttachmentService } from "../attachments";
 import { InternalNoteService } from "../internal-notes";
+import { DashboardService } from "../admin/dashboard";
+import { SystemService } from "../admin/system";
+import { SettingsService } from "../admin/settings";
+import { ModerationService } from "../admin/moderation";
+import { ProvidersService } from "../admin/providers";
+import { OperationsService } from "../admin/operations";
+import { FeatureFlagsService } from "../admin/feature-flags";
+import { MaintenanceService } from "../admin/maintenance";
 
 export class ServiceRegistry {
   static register(name: string, factory: () => unknown): void {
@@ -55,4 +63,13 @@ export function initializeServices(): void {
   ServiceRegistry.register("slaService", () => new SLAService());
   ServiceRegistry.register("attachmentService", () => new AttachmentService());
   ServiceRegistry.register("internalNoteService", () => new InternalNoteService());
+
+  ServiceRegistry.register("adminDashboardService", () => new DashboardService());
+  ServiceRegistry.register("adminSystemService", () => new SystemService());
+  ServiceRegistry.register("adminSettingsService", () => new SettingsService());
+  ServiceRegistry.register("adminModerationService", () => new ModerationService());
+  ServiceRegistry.register("adminProvidersService", () => new ProvidersService());
+  ServiceRegistry.register("adminOperationsService", () => new OperationsService());
+  ServiceRegistry.register("adminFeatureFlagsService", () => new FeatureFlagsService());
+  ServiceRegistry.register("adminMaintenanceService", () => new MaintenanceService());
 }

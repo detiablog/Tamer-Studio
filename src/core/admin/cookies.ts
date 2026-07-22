@@ -1,9 +1,9 @@
-import { cookies } from "next/headers";
+import { setAdminSessionCookie, clearAdminSessionCookie } from "./session";
 
-export async function setAdminCookies(): Promise<void> {
-  const _cookieStore = await cookies();
+export async function setAdminCookies(token: string): Promise<void> {
+  await setAdminSessionCookie(token);
 }
 
 export async function clearAdminCookies(): Promise<void> {
-  const _cookieStore = await cookies();
+  await clearAdminSessionCookie();
 }
