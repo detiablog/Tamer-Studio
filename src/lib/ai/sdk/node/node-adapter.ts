@@ -1,4 +1,4 @@
-import type { WorkflowNode, NodeInput, NodeOutput, RetryPolicy } from "../../workflows/types";
+import type { WorkflowNode } from "../../workflows/types";
 import type { WorkflowNodeDefinition, NodeValueType, NodeCategory } from "../types";
 
 export function workflowNodeToDefinition(node: WorkflowNode): WorkflowNodeDefinition {

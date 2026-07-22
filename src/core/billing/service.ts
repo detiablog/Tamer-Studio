@@ -1,4 +1,4 @@
-import type { BillingEngine, Wallet, CreditTransaction, CreditReservation, CreditAmount, WalletId, TransactionId, ReservationId, UsageRecord, CostRecord, CostEstimate, EstimationInput, Plan, Subscription, Invoice, InvoiceLineItem, QuotaCheckRequest, QuotaCheckResult, QuotaUsage, BillingEvent, BillingPolicy, BillingContext, BillingDecision, CostAnalyticsReport, CostAnomaly } from "@/lib/ai/types/billing";
+import type { BillingEngine, Wallet, CreditTransaction, CreditTransactionType, CreditReservation, CreditAmount, WalletId, TransactionId, ReservationId, UsageRecord, CostRecord, CostEstimate, EstimationInput, Plan, Subscription, Invoice, InvoiceLineItem, QuotaCheckRequest, QuotaCheckResult, QuotaUsage, BillingEvent, BillingPolicy, BillingContext, BillingDecision, CostAnalyticsReport, CostAnomaly } from "@/lib/ai/types/billing";
 import { WalletService } from "../wallet";
 import { UsageService } from "../usage";
 import { DefaultCostEngine } from "../cost";
@@ -22,12 +22,26 @@ export class DefaultBillingEngine implements BillingEngine {
     return this.walletService.createWallet(workspaceId);
   }
 
-  async debit(walletId: WalletId, workspaceId: string, amount: CreditAmount, type: CreditTransaction["type"], description: string, metadata?: Record<string, unknown>): Promise<CreditTransaction> {
-    return this.walletService.debit(walletId, workspaceId, amount, type as any, description, metadata);
+  async debit(
+    walletId: WalletId,
+    workspaceId: string,
+    amount: CreditAmount,
+    type: Exclude<CreditTransactionType, "purchase" | "refund" | "adjustment" | "expiration">,
+    description: string,
+    metadata?: Record<string, unknown>
+  ): Promise<CreditTransaction> {
+    return this.walletService.debit(walletId, workspaceId, amount, type, description, metadata);
   }
 
-  async credit(walletId: WalletId, workspaceId: string, amount: CreditAmount, type: CreditTransaction["type"], description: string, metadata?: Record<string, unknown>): Promise<CreditTransaction> {
-    return this.walletService.credit(walletId, workspaceId, amount, type as any, description, metadata);
+  async credit(
+    walletId: WalletId,
+    workspaceId: string,
+    amount: CreditAmount,
+    type: Extract<CreditTransactionType, "purchase" | "refund" | "adjustment" | "expiration">,
+    description: string,
+    metadata?: Record<string, unknown>
+  ): Promise<CreditTransaction> {
+    return this.walletService.credit(walletId, workspaceId, amount, type, description, metadata);
   }
 
   async refund(walletId: WalletId, workspaceId: string, transactionId: TransactionId, reason: string): Promise<CreditTransaction> {
@@ -83,7 +97,7 @@ export class DefaultBillingEngine implements BillingEngine {
     };
   }
 
-  async getReservation(executionId: string): Promise<CreditReservation | undefined> {
+  async getReservation(_executionId: string): Promise<CreditReservation | undefined> {
     return undefined;
   }
 
@@ -184,7 +198,7 @@ export class DefaultBillingEngine implements BillingEngine {
     };
   }
 
-  async detectCostAnomalies(workspaceId: string, threshold: number): Promise<CostAnomaly[]> {
+  async detectCostAnomalies(_workspaceId: string, _threshold: number): Promise<CostAnomaly[]> {
     return [];
   }
 

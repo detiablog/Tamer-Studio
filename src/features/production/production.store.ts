@@ -167,17 +167,19 @@ const sampleJobs: ProductionJob[] = [
 ];
 
 function readStore(): ProductionJob[] {
+  if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(KEY);
-    if (!raw) return [];
+    if (!raw) return seedJobs();
     return JSON.parse(raw) as ProductionJob[];
   } catch (err) {
     logger.error("Failed to read production jobs", err as Error);
-    return [];
+    return seedJobs();
   }
 }
 
 function writeStore(list: ProductionJob[]) {
+  if (typeof window === "undefined") return;
   try {
     localStorage.setItem(KEY, JSON.stringify(list));
   } catch (err) {
@@ -202,6 +204,9 @@ export const productionStore = {
   },
 
   create(payload: Omit<ProductionJob, "id" | "createdAt" | "updatedAt">) {
+    if (typeof window === "undefined") {
+      throw new Error("productionStore.create cannot be called on the server");
+    }
     const list = readStore();
     const id = crypto.randomUUID();
     const now = new Date().toISOString();
@@ -236,6 +241,9 @@ export const productionStore = {
   },
 
   update(id: string, patch: Partial<ProductionJob>) {
+    if (typeof window === "undefined") {
+      throw new Error("productionStore.update cannot be called on the server");
+    }
     const list = readStore();
     const index = list.findIndex((job) => job.id === id);
     if (index === -1) return null;
@@ -245,12 +253,18 @@ export const productionStore = {
   },
 
   delete(id: string) {
+    if (typeof window === "undefined") {
+      throw new Error("productionStore.delete cannot be called on the server");
+    }
     const list = readStore().filter((job) => job.id !== id);
     writeStore(list);
     return true;
   },
 
   retry(id: string) {
+    if (typeof window === "undefined") {
+      throw new Error("productionStore.retry cannot be called on the server");
+    }
     const job = this.get(id);
     if (!job) return null;
     return this.update(id, {
@@ -265,6 +279,9 @@ export const productionStore = {
   },
 
   cancel(id: string) {
+    if (typeof window === "undefined") {
+      throw new Error("productionStore.cancel cannot be called on the server");
+    }
     const job = this.get(id);
     if (!job) return null;
     return this.update(id, {
@@ -277,6 +294,9 @@ export const productionStore = {
   },
 
   duplicate(id: string) {
+    if (typeof window === "undefined") {
+      throw new Error("productionStore.duplicate cannot be called on the server");
+    }
     const job = this.get(id);
     if (!job) return null;
     const copy: ProductionJob = {

@@ -7,7 +7,7 @@ export interface PluginLoader {
 }
 
 export class DefaultPluginLoader implements PluginLoader {
-  async load(manifest: PluginManifest, _module: unknown): Promise<WorkflowPlugin> {
+  async load(_manifest: PluginManifest, _module: unknown): Promise<WorkflowPlugin> {
     throw new Error("Plugin loading from module not yet implemented");
   }
 

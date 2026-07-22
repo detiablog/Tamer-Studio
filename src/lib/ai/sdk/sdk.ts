@@ -1,6 +1,5 @@
 import type { WorkflowSDK, WorkflowNodeHandler, NodeCategory, WorkflowNodeDefinition, ExecutionContext, WorkflowMemory, ExecutionSnapshot, ValidationResult, WorkflowValidationResult, WorkflowPlugin, PluginSystem, NodeValidator, RollbackManager, WorkflowNodeRegistry } from "./types";
 import { InMemoryWorkflowNodeRegistry } from "./node/node-registry";
-import { DefaultNodeExecutor } from "./node/node-executor";
 import { DefaultNodeValidator, DefaultWorkflowValidator } from "./validation/validator";
 import { DefaultRollbackManager } from "./rollback/rollback-manager";
 import { DefaultPluginSystem } from "./plugin/plugin-system";

@@ -13,12 +13,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint .",
+    "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check": "pnpm lint && pnpm typecheck",
-    "test": "vitest",
+    "test": "vitest run",
     "test:watch": "vitest --watch",
     "prepare": "echo Skipping Husky"
   },
@@ -64,6 +64,7 @@
     "prettier": "^3.9.5",
     "tailwindcss": "^4.3.3",
     "typescript": "^5.9.2",
-    "typescript-eslint": "^8.64.0"
+    "typescript-eslint": "^8.64.0",
+    "vitest": "^4.1.10"
   }
 }

@@ -17,6 +17,7 @@ function withSecurityHeaders(response: NextResponse): NextResponse {
 const AUTH_ROUTES = ["/login", "/register", "/forgot-password", "/reset-password", "/verify-email"];
 const PUBLIC_ROUTES = ["/", "/about", "/contact", "/docs", "/pricing", "/legal/privacy", "/legal/terms"];
 const ADMIN_ROUTES = ["/admin"];
+const ADMIN_LOGIN_ROUTE = "/admin/login";
 
 const ADMIN_ROUTE_PERMISSIONS: Record<string, string> = {
   "/admin": "admin:read",
@@ -92,7 +93,7 @@ export async function proxy(request: NextRequest) {
     return response;
   }
 
-  const isAdminRoute = ADMIN_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`));
+  const isAdminRoute = ADMIN_ROUTES.some((route) => pathname === route || (pathname.startsWith(`${route}/`) && pathname !== ADMIN_LOGIN_ROUTE));
   if (isAdminRoute) {
     const sessionToken = request.cookies.get("admin_session")?.value;
     if (!sessionToken) {

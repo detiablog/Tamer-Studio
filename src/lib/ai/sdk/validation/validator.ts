@@ -1,4 +1,4 @@
-import type { WorkflowNodeDefinition, NodeExecutionContext, ValidationResult, WorkflowValidationResult, WorkflowValidator, NodeValidator, ValidationError, ValidationWarning } from "../types";
+import type { WorkflowNodeDefinition, ValidationResult, WorkflowValidationResult, WorkflowValidator, NodeValidator, ValidationError, ValidationWarning } from "../types";
 import type { WorkflowNodeRegistry } from "../node/node-registry";
 import { createValidationResult, createValidationError } from "./errors";
 

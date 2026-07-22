@@ -35,7 +35,7 @@ export function loadConfig(): AppConfig {
 
   const nodeEnv = process.env.NODE_ENV ?? "development";
   const appUrl = getOptionalEnv("NEXT_PUBLIC_APP_URL", "http://localhost:3000");
-  const adminMasterKey = getOptionalEnv("ADMIN_MASTER_KEY", "");
+  const adminMasterKey = getEnv("ADMIN_MASTER_KEY");
 
   cachedConfig = {
     database: {
