@@ -21,7 +21,6 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
         {/* Footer */}
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          Protected by reCAPTCHA. Subject to the{" "}
           <Link href="/legal/privacy" className="text-primary hover:underline">Privacy Policy</Link>
           {" "}and{" "}
           <Link href="/legal/terms" className="text-primary hover:underline">Terms of Service</Link>.

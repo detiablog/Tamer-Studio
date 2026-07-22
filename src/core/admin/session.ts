@@ -26,6 +26,12 @@ export async function getAdminSession(): Promise<AdminSession | null> {
     return null;
   }
 
+  const now = new Date();
+  const newExpiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  if (newExpiresAt > sessionRecord.expiresAt) {
+    await db.update(adminSession).set({ expiresAt: newExpiresAt }).where(eq(adminSession.id, sessionRecord.id));
+  }
+
   const adminRecord = await db.select().from(admin).where(eq(admin.id, sessionRecord.adminId)).limit(1);
 
   if (adminRecord.length === 0 || !adminRecord[0].isActive) {
