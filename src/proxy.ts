@@ -114,13 +114,21 @@ export async function proxy(request: NextRequest) {
   if (AUTH_ROUTES.includes(pathname)) {
     const session = request.cookies.get("better-auth.session_token") || request.cookies.get("session");
     if (session) {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
+      const tokenValue = session.value;
+      if (tokenValue.length >= 32 && /^[a-zA-Z0-9]+$/.test(tokenValue)) {
+        return NextResponse.redirect(new URL("/dashboard", request.url));
+      }
     }
     return NextResponse.next();
   }
 
   const session = request.cookies.get("better-auth.session_token") || request.cookies.get("session");
   if (!session) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  const userTokenValue = session.value;
+  if (userTokenValue.length < 32 || !/^[a-zA-Z0-9]+$/.test(userTokenValue)) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
