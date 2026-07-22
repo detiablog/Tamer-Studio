@@ -1,5 +1,6 @@
 import type { ExecutionId, ExecutionHistoryEntry } from "../types/execution";
 import type { ExecutionLifecycleEvent, ExecutionLifecycleListener } from "../execution/types";
+import { logger } from "@/core/logger";
 
 export interface ExecutionLogger {
   log(entry: Omit<ExecutionHistoryEntry, "createdAt" | "updatedAt">): Promise<void>;
@@ -31,7 +32,6 @@ export class ConsoleExecutionLogger implements ExecutionLogger {
 
 export class LifecycleLoggingListener implements ExecutionLifecycleListener {
   async onEvent(event: ExecutionLifecycleEvent, data: Record<string, unknown>): Promise<void> {
-    // eslint-disable-next-line no-console
-    console.log(`[AI Execution] ${event}`, data);
+    logger.info(`[AI Execution] ${event}`, data);
   }
 }

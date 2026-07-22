@@ -9,6 +9,7 @@
 | AI Prompts | ✅ Complete |
 | Core Platform | 🚧 In Progress |
 | Authentication | 🚧 In Progress |
+| AI Platform Core | 🚧 In Progress |
 | AI | 🚧 In Progress |
 | Project | 🚧 In Progress |
 | Workspace | 🚧 In Progress |
@@ -23,6 +24,22 @@
 | Analytics | 📋 Planned |
 | Marketplace | 📋 Planned |
 | Workflow Engine | 📋 Planned |
+
+## AI Platform Core Details
+
+| Component | Status |
+|---------|--------|
+| AI Domain Contracts | ✅ Complete |
+| AI Runtime | ✅ Complete |
+| Provider Registry | ✅ Complete |
+| Provider Factory | ✅ Complete |
+| Provider Adapters | ✅ Complete |
+| Provider Selector | ✅ Complete |
+| Execution Pipeline | ✅ Complete |
+| Fault Tolerance | ✅ Complete |
+| Observability | ✅ Complete |
+| Security | ✅ Complete |
+| Testing | 🚧 In Progress |
 
 Legend
 

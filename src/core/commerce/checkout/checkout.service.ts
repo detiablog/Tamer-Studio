@@ -47,7 +47,7 @@ export class DefaultCheckoutService implements CheckoutService {
     const taxCalculation = await this.taxService.calculateTax(subtotal - discount, input.currency, "");
     const total = taxCalculation.subtotal - discount + taxCalculation.taxAmount;
 
-    await this.updateOrderTotals(order.id, subtotal, taxCalculation.taxAmount, discount, total);
+    await this.orderService.updateOrderTotals(order.id, subtotal, taxCalculation.taxAmount, discount, total);
 
     const session = await this.repository.createSession({
       workspaceId: input.workspaceId,
@@ -82,21 +82,5 @@ export class DefaultCheckoutService implements CheckoutService {
 
   async getCheckoutSession(sessionId: string): Promise<CheckoutSession | undefined> {
     return this.repository.getSession(sessionId);
-  }
-
-  private async updateOrderTotals(orderId: string, subtotal: number, tax: number, discount: number, total: number): Promise<void> {
-    const { db } = await import("@/lib/db");
-    const { eq } = await import("drizzle-orm");
-    const { order: orderTable } = await import("@/lib/db/schema");
-
-    await db.update(orderTable)
-      .set({
-        subtotal: String(subtotal),
-        tax: String(tax),
-        discount: String(discount),
-        total: String(total),
-        updatedAt: new Date(),
-      })
-      .where(eq(orderTable.id, orderId));
   }
 }

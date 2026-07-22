@@ -28,6 +28,14 @@ export interface AIProvider {
   };
   createdAt: Date;
   updatedAt: Date;
+  config?: {
+    apiKey?: string;
+    baseUrl?: string;
+    timeoutMs?: number;
+    retryCount?: number;
+    providerType?: string;
+    headers?: Record<string, string>;
+  };
 }
 
 export interface ProviderModelAvailability {

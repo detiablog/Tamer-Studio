@@ -9,6 +9,7 @@ export interface OrderService {
   markOrderFailed(orderId: string): Promise<Order>;
   cancelOrder(orderId: string): Promise<Order>;
   markOrderRefunded(orderId: string): Promise<Order>;
+  updateOrderTotals(orderId: string, subtotal: number, tax: number, discount: number, total: number): Promise<Order>;
 }
 
 export class DefaultOrderService implements OrderService {
@@ -69,5 +70,9 @@ export class DefaultOrderService implements OrderService {
 
   async markOrderRefunded(orderId: string): Promise<Order> {
     return this.repository.updateOrderStatus(orderId, "refunded", { refundedAt: new Date().toISOString() });
+  }
+
+  async updateOrderTotals(orderId: string, subtotal: number, tax: number, discount: number, total: number): Promise<Order> {
+    return this.repository.updateOrderTotals(orderId, subtotal, tax, discount, total);
   }
 }

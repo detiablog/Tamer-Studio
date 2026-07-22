@@ -1,12 +1,10 @@
 import type { CustomerTimelineEvent, CustomerTimeline, TimelineEventType } from "./types";
-import { db } from "@/lib/db";
-import { supportCustomerTimeline } from "@/lib/db/schema/support";
-import { eq, desc } from "drizzle-orm";
-import { randomUUID } from "crypto";
+import { CustomerRepository } from "./customer.repository";
 import { TicketService } from "../tickets";
 import type { EventPublisher } from "@/core/events";
 
 export class CustomerService {
+  private repository = new CustomerRepository();
   private ticketService: TicketService;
 
   constructor(eventPublisher?: EventPublisher) {
@@ -14,32 +12,12 @@ export class CustomerService {
   }
 
   async addTimelineEvent(userId: string, type: TimelineEventType, title: string, description?: string, metadata?: Record<string, unknown>): Promise<CustomerTimelineEvent> {
-    const id = `timeline_${randomUUID()}`;
-    const now = new Date();
-
-    const [row] = await db.insert(supportCustomerTimeline).values({
-      id,
-      userId,
-      type,
-      title,
-      description: description ?? null,
-      metadata: metadata ?? {},
-      createdAt: now,
-    }).returning();
-
-    return this.mapEvent(row);
+    return this.repository.addTimelineEvent(userId, type, title, description, metadata);
   }
 
   async getTimeline(userId: string, limit = 50, offset = 0): Promise<CustomerTimeline> {
-    const supportEvents = await db.select().from(supportCustomerTimeline).where(eq(supportCustomerTimeline.userId, userId)).orderBy(desc(supportCustomerTimeline.createdAt)).limit(limit).offset(offset);
-
-    const events: CustomerTimelineEvent[] = supportEvents.map(this.mapEvent);
-
-    return {
-      userId,
-      events,
-      total: events.length,
-    };
+    const { events, total } = await this.repository.getTimeline(userId, limit, offset);
+    return { userId, events, total };
   }
 
   async getUnifiedTimeline(userId: string, limit = 50): Promise<CustomerTimelineEvent[]> {
@@ -55,14 +33,12 @@ export class CustomerService {
       createdAt: t.createdAt,
     }));
 
-    const supportEvents = await db.select().from(supportCustomerTimeline).where(eq(supportCustomerTimeline.userId, userId)).orderBy(desc(supportCustomerTimeline.createdAt)).limit(limit);
+    const { events } = await this.repository.getTimeline(userId, limit);
 
-    const otherEvents = supportEvents.map(this.mapEvent);
+    const allEvents = [...ticketEvents, ...events];
+    allEvents.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
-    const events = [...ticketEvents, ...otherEvents];
-    events.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-
-    return events.slice(0, limit);
+    return allEvents.slice(0, limit);
   }
 
   async recordSupportActivity(userId: string, title: string, description?: string, metadata?: Record<string, unknown>): Promise<CustomerTimelineEvent> {
@@ -87,17 +63,5 @@ export class CustomerService {
 
   async recordNotificationSent(userId: string, title: string, description?: string, metadata?: Record<string, unknown>): Promise<CustomerTimelineEvent> {
     return this.addTimelineEvent(userId, "notification.sent", title, description, metadata);
-  }
-
-  private mapEvent(row: typeof supportCustomerTimeline.$inferSelect): CustomerTimelineEvent {
-    return {
-      id: row.id,
-      userId: row.userId,
-      type: row.type as TimelineEventType,
-      title: row.title,
-      description: row.description ?? undefined,
-      metadata: row.metadata as Record<string, unknown> | undefined,
-      createdAt: row.createdAt,
-    };
   }
 }
