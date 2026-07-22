@@ -1,11 +1,11 @@
 import type { ModerationAction, AbuseReport, ContentReview, AuditReview } from "./moderation.types";
-import { db } from "@/lib/db";
-import { userProfile, workspace } from "@/lib/db/schema/identity";
-import { eq } from "drizzle-orm";
+import { ModerationRepository } from "./moderation.repository";
 import { logAdminAction } from "@/core/audit";
 import { logger } from "@/core/logger";
 
 export class ModerationService {
+  private repository = new ModerationRepository();
+
   async suspendUser(userId: string, reason: string, performedBy: string): Promise<ModerationAction> {
     const action: ModerationAction = {
       id: `mod_${Date.now()}`,
@@ -18,7 +18,7 @@ export class ModerationService {
       performedAt: new Date(),
       status: "completed",
     };
-    await db.update(userProfile).set({ status: "suspended", suspendedBy: performedBy }).where(eq(userProfile.userId, userId));
+    await this.repository.suspendUser(userId, performedBy);
     logAdminAction("user.suspended", performedBy, { userId, reason });
     logger.security("User suspended by admin", { userId, performedBy, reason });
     return action;
@@ -36,7 +36,7 @@ export class ModerationService {
       performedAt: new Date(),
       status: "completed",
     };
-    await db.update(userProfile).set({ status: "active", suspendedBy: null }).where(eq(userProfile.userId, userId));
+    await this.repository.unsuspendUser(userId, performedBy);
     logAdminAction("user.unsuspended", performedBy, { userId });
     logger.security("User unsuspended by admin", { userId, performedBy });
     return action;
@@ -54,7 +54,7 @@ export class ModerationService {
       performedAt: new Date(),
       status: "completed",
     };
-    await db.update(workspace).set({ status: "suspended" }).where(eq(workspace.id, workspaceId));
+    await this.repository.suspendWorkspace(workspaceId, performedBy);
     logAdminAction("workspace.suspended", performedBy, { workspaceId, reason });
     logger.security("Workspace suspended by admin", { workspaceId, performedBy, reason });
     return action;
@@ -72,7 +72,7 @@ export class ModerationService {
       performedAt: new Date(),
       status: "completed",
     };
-    await db.update(workspace).set({ status: "active" }).where(eq(workspace.id, workspaceId));
+    await this.repository.unsuspendWorkspace(workspaceId, performedBy);
     logAdminAction("workspace.unsuspended", performedBy, { workspaceId });
     logger.security("Workspace unsuspended by admin", { workspaceId, performedBy });
     return action;

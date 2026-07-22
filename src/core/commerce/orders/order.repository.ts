@@ -9,6 +9,7 @@ export interface OrderRepository {
   getOrdersByWorkspace(workspaceId: string): Promise<Order[]>;
   updateOrderStatus(orderId: string, status: Order["status"], extra?: Partial<Order>): Promise<Order>;
   cancelOrder(orderId: string): Promise<Order>;
+  updateOrderTotals(orderId: string, subtotal: number, tax: number, discount: number, total: number): Promise<Order>;
 }
 
 export class DefaultOrderRepository implements OrderRepository {
@@ -69,6 +70,20 @@ export class DefaultOrderRepository implements OrderRepository {
 
   async cancelOrder(orderId: string): Promise<Order> {
     return this.updateOrderStatus(orderId, "cancelled", { cancelledAt: new Date().toISOString() });
+  }
+
+  async updateOrderTotals(orderId: string, subtotal: number, tax: number, discount: number, total: number): Promise<Order> {
+    const now = new Date();
+    await db.update(orderTable).set({
+      subtotal: String(subtotal),
+      tax: String(tax),
+      discount: String(discount),
+      total: String(total),
+      updatedAt: now,
+    }).where(eq(orderTable.id, orderId));
+    const rows = await db.select().from(orderTable).where(eq(orderTable.id, orderId)).limit(1);
+    if (rows.length === 0) throw new Error(`Order ${orderId} not found after update`);
+    return this.mapRow(rows[0]);
   }
 
   private mapRow(row: typeof orderTable.$inferSelect): Order {

@@ -94,6 +94,10 @@ temp/
 # ----------------------------------------------------
 # Testing
 # ----------------------------------------------------
+# Vitest
+.vitest/
+
+# Playwright
 playwright-report/
 test-results/
 

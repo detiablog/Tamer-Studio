@@ -79,25 +79,10 @@ export class DefaultCommerceEngine implements CommerceEngine {
     const taxCalculation = await this.taxService.calculateTax(subtotal - discount, input.currency, "");
     const total = taxCalculation.subtotal - discount + taxCalculation.taxAmount;
 
-    const { db } = await import("@/lib/db");
-    const { eq } = await import("drizzle-orm");
-    const { order: orderTable } = await import("@/lib/db/schema");
-
-    await db.update(orderTable)
-      .set({
-        subtotal: String(subtotal),
-        tax: String(taxCalculation.taxAmount),
-        discount: String(discount),
-        total: String(total),
-        updatedAt: new Date(),
-      })
-      .where(eq(orderTable.id, order.id));
+    await this.orderService.updateOrderTotals(order.id, subtotal, taxCalculation.taxAmount, discount, total);
 
     const _session = await this.checkoutService.initiateCheckout(input);
     const _completed = await this.checkoutService.completeCheckout(_session.checkoutSessionId);
-
-    const rows = await db.select().from(orderTable).where(eq(orderTable.id, order.id)).limit(1);
-    if (rows.length === 0) throw new Error(`Order ${order.id} not found`);
 
     return {
       ...order,

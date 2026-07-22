@@ -5,6 +5,7 @@ import { adminSession, admin } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { getSecurityHeaders } from "@/core/security/headers";
 import { metrics } from "@/core/observability/metrics";
+import { ADMIN_ROUTE_PERMISSIONS, ADMIN_ROLE_PERMISSIONS } from "@/core/admin/rbac";
 
 function withSecurityHeaders(response: NextResponse): NextResponse {
   const headers = getSecurityHeaders();
@@ -18,58 +19,6 @@ const AUTH_ROUTES = ["/login", "/register", "/forgot-password", "/reset-password
 const PUBLIC_ROUTES = ["/", "/about", "/contact", "/docs", "/pricing", "/legal/privacy", "/legal/terms"];
 const ADMIN_ROUTES = ["/admin"];
 const ADMIN_LOGIN_ROUTE = "/admin/login";
-
-const ADMIN_ROUTE_PERMISSIONS: Record<string, string> = {
-  "/admin": "admin:read",
-  "/admin/users": "admin:users",
-  "/admin/organizations": "admin:organizations",
-  "/admin/workspaces": "admin:workspaces",
-  "/admin/ai-providers": "admin:ai_providers",
-  "/admin/jobs": "admin:jobs",
-  "/admin/queues": "admin:queues",
-  "/admin/billing": "admin:billing",
-  "/admin/subscriptions": "admin:subscriptions",
-  "/admin/coupons": "admin:coupons",
-  "/admin/analytics": "admin:analytics",
-  "/admin/audit-logs": "admin:audit_logs",
-  "/admin/feature-flags": "admin:feature_flags",
-  "/admin/settings": "admin:system",
-};
-
-const ADMIN_ROLE_PERMISSIONS: Record<string, string[]> = {
-  admin: [
-    "admin:read",
-    "admin:users",
-    "admin:organizations",
-    "admin:workspaces",
-    "admin:ai_providers",
-    "admin:jobs",
-    "admin:queues",
-    "admin:billing",
-    "admin:subscriptions",
-    "admin:coupons",
-    "admin:analytics",
-    "admin:audit_logs",
-    "admin:feature_flags",
-    "admin:system",
-  ],
-  super_admin: [
-    "admin:read",
-    "admin:users",
-    "admin:organizations",
-    "admin:workspaces",
-    "admin:ai_providers",
-    "admin:jobs",
-    "admin:queues",
-    "admin:billing",
-    "admin:subscriptions",
-    "admin:coupons",
-    "admin:analytics",
-    "admin:audit_logs",
-    "admin:feature_flags",
-    "admin:system",
-  ],
-};
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
