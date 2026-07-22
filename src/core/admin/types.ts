@@ -3,6 +3,7 @@ export type AdminRole = "admin" | "super_admin";
 export interface AdminCredentials {
   email: string;
   password: string;
+  adminKey: string;
 }
 
 export interface AdminSession {
@@ -15,10 +16,12 @@ export interface AdminSession {
   createdAt: Date;
 }
 
+export type AdminLoginFailureReason = "invalid_master_key" | "invalid_credentials" | "account_inactive";
+
 export interface AdminLoginResult {
   success: boolean;
   session?: AdminSession;
-  requiresMasterKey?: boolean;
+  reason?: AdminLoginFailureReason;
 }
 
 export interface AdminProfile {

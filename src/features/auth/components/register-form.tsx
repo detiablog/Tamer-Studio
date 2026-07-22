@@ -7,6 +7,8 @@ import { toast } from "sonner";
 
 import { authClient } from "@/lib/auth/auth-client";
 import { registerSchema, type RegisterSchema } from "@/features/auth/schemas/register.schema";
+import { hasAuthError } from "@/features/auth/types";
+import { logger } from "@/core/logger";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -33,16 +35,26 @@ export function RegisterForm() {
         callbackURL: "/dashboard",
       });
 
-      const maybeError = (result as unknown as { error?: { message?: string } }).error;
-      if (maybeError) {
-        toast.error(maybeError.message || "Failed to create account");
+      if (hasAuthError(result) && result.error?.message) {
+        logger.error("Registration failed", new Error(result.error.message));
+        toast.error("Unable to create account. Please check your information and try again.");
+        return;
+      }
+
+      if (hasAuthError(result)) {
+        logger.error("Registration failed with unknown auth error", new Error(result.error?.message ?? "Unknown auth error"));
+        toast.error("Unable to create account. Please try again later.");
         return;
       }
 
       toast.success("Account created");
-    } catch (err: unknown) {
-      console.error(err);
-      toast.error(String(err ?? "An unexpected error occurred"));
+    } catch (err) {
+      if (err instanceof Error) {
+        logger.error("Unexpected registration error", err);
+      } else {
+        logger.error("Unexpected registration error", new Error(String(err)));
+      }
+      toast.error("Unable to create account. Please try again later.");
     } finally {
       setSubmitting(false);
     }

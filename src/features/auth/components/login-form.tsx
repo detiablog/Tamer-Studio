@@ -7,6 +7,8 @@ import { toast } from "sonner";
 
 import { authClient } from "@/lib/auth/auth-client";
 import { loginSchema, type LoginSchema } from "@/features/auth/schemas/login.schema";
+import { hasAuthError } from "@/features/auth/types";
+import { logger } from "@/core/logger";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -38,16 +40,26 @@ export function LoginForm() {
         callbackURL: "/dashboard",
       });
 
-      const maybeError = (result as unknown as { error?: { message?: string } }).error;
-      if (maybeError) {
-        toast.error(maybeError.message || "Failed to sign in");
+      if (hasAuthError(result) && result.error?.message) {
+        logger.error("Login failed", new Error(result.error.message));
+        toast.error("Unable to sign in. Please check your credentials and try again.");
+        return;
+      }
+
+      if (hasAuthError(result)) {
+        logger.error("Login failed with unknown auth error", new Error(result.error?.message ?? "Unknown auth error"));
+        toast.error("Unable to sign in. Please try again later.");
         return;
       }
 
       toast.success("Signed in");
-    } catch (err: unknown) {
-      console.error(err);
-      toast.error(String(err ?? "An unexpected error occurred"));
+    } catch (err) {
+      if (err instanceof Error) {
+        logger.error("Unexpected login error", err);
+      } else {
+        logger.error("Unexpected login error", new Error(String(err)));
+      }
+      toast.error("Unable to sign in. Please try again later.");
     } finally {
       setSubmitting(false);
     }

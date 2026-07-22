@@ -1,3 +1,5 @@
+import { logger } from "@/core/logger";
+
 export type ProductionStatus =
   | "Draft"
   | "Queued"
@@ -170,7 +172,7 @@ function readStore(): ProductionJob[] {
     if (!raw) return [];
     return JSON.parse(raw) as ProductionJob[];
   } catch (err) {
-    console.error("Failed to read production jobs", err);
+    logger.error("Failed to read production jobs", err as Error);
     return [];
   }
 }
@@ -179,7 +181,7 @@ function writeStore(list: ProductionJob[]) {
   try {
     localStorage.setItem(KEY, JSON.stringify(list));
   } catch (err) {
-    console.error("Failed to write production jobs", err);
+    logger.error("Failed to write production jobs", err as Error);
   }
 }
 

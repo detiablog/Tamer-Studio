@@ -1,3 +1,5 @@
+import { logger } from "@/core/logger";
+
 export type ProjectStatus = "Draft" | "Planning" | "In Production" | "Review" | "Published" | "Archived";
 
 export type Project = {
@@ -28,7 +30,7 @@ function readStore(): Project[] {
     if (!raw) return [];
     return JSON.parse(raw) as Project[];
   } catch (err) {
-    console.error("Failed to read projects", err);
+    logger.error("Failed to read projects", err as Error);
     return [];
   }
 }
@@ -37,7 +39,7 @@ function writeStore(list: Project[]) {
   try {
     localStorage.setItem(KEY, JSON.stringify(list));
   } catch (err) {
-    console.error("Failed to write projects", err);
+    logger.error("Failed to write projects", err as Error);
   }
 }
 

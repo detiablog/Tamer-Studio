@@ -65,3 +65,34 @@ export async function clearAdminSessionCookie(): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.delete("admin_session");
 }
+
+export async function getAdminSessionFromToken(token: string): Promise<AdminSession | null> {
+  const session = await db.select().from(adminSession).where(eq(adminSession.token, token)).limit(1);
+
+  if (session.length === 0) {
+    return null;
+  }
+
+  const sessionRecord = session[0];
+
+  if (sessionRecord.expiresAt < new Date()) {
+    await db.delete(adminSession).where(eq(adminSession.id, sessionRecord.id));
+    return null;
+  }
+
+  const adminRecord = await db.select().from(admin).where(eq(admin.id, sessionRecord.adminId)).limit(1);
+
+  if (adminRecord.length === 0 || !adminRecord[0].isActive) {
+    return null;
+  }
+
+  return {
+    id: sessionRecord.id,
+    token: sessionRecord.token,
+    adminId: sessionRecord.adminId,
+    expiresAt: sessionRecord.expiresAt,
+    ipAddress: sessionRecord.ipAddress ?? undefined,
+    userAgent: sessionRecord.userAgent ?? undefined,
+    createdAt: sessionRecord.createdAt,
+  };
+}

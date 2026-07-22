@@ -15,22 +15,23 @@ export * from "./operations";
 export * from "./feature-flags";
 export * from "./maintenance";
 
-import { DashboardService } from "./dashboard";
-import { SystemService } from "./system";
-import { SettingsService } from "./settings";
-import { ModerationService } from "./moderation";
-import { ProvidersService } from "./providers";
-import { OperationsService } from "./operations";
-import { FeatureFlagsService } from "./feature-flags";
-import { MaintenanceService } from "./maintenance";
+import { ServiceRegistry } from "@/core/foundation";
+import type { DashboardService } from "./dashboard";
+import type { SystemService } from "./system";
+import type { SettingsService } from "./settings";
+import type { ModerationService } from "./moderation";
+import type { ProvidersService } from "./providers";
+import type { OperationsService } from "./operations";
+import type { FeatureFlagsService } from "./feature-flags";
+import type { MaintenanceService } from "./maintenance";
 
 export class AdminServices {
-  static dashboard = new DashboardService();
-  static system = new SystemService();
-  static settings = new SettingsService();
-  static moderation = new ModerationService();
-  static providers = new ProvidersService();
-  static operations = new OperationsService();
-  static featureFlags = new FeatureFlagsService();
-  static maintenance = new MaintenanceService();
+  static get dashboard() { return ServiceRegistry.get<DashboardService>("adminDashboardService"); }
+  static get system() { return ServiceRegistry.get<SystemService>("adminSystemService"); }
+  static get settings() { return ServiceRegistry.get<SettingsService>("adminSettingsService"); }
+  static get moderation() { return ServiceRegistry.get<ModerationService>("adminModerationService"); }
+  static get providers() { return ServiceRegistry.get<ProvidersService>("adminProvidersService"); }
+  static get operations() { return ServiceRegistry.get<OperationsService>("adminOperationsService"); }
+  static get featureFlags() { return ServiceRegistry.get<FeatureFlagsService>("adminFeatureFlagsService"); }
+  static get maintenance() { return ServiceRegistry.get<MaintenanceService>("adminMaintenanceService"); }
 }
