@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react";
 import { StatCard } from "@/components/ui/StatCard";
 import { DashboardCard } from "@/components/ui/DashboardCard";

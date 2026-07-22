@@ -25,6 +25,7 @@ export type Project = {
 const KEY = "tamer:projects";
 
 function readStore(): Project[] {
+  if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return [];
@@ -36,6 +37,7 @@ function readStore(): Project[] {
 }
 
 function writeStore(list: Project[]) {
+  if (typeof window === "undefined") return;
   try {
     localStorage.setItem(KEY, JSON.stringify(list));
   } catch (err) {
@@ -53,6 +55,9 @@ export const projectStore = {
   },
 
   create(payload: Omit<Project, "id" | "createdAt" | "updatedAt">) {
+    if (typeof window === "undefined") {
+      throw new Error("projectStore.create cannot be called on the server");
+    }
     const list = readStore();
     const id = crypto.randomUUID();
     const now = new Date().toISOString();
@@ -81,6 +86,9 @@ export const projectStore = {
   },
 
   update(id: string, patch: Partial<Project>) {
+    if (typeof window === "undefined") {
+      throw new Error("projectStore.update cannot be called on the server");
+    }
     const list = readStore();
     const i = list.findIndex((p) => p.id === id);
     if (i === -1) return null;
@@ -90,6 +98,9 @@ export const projectStore = {
   },
 
   delete(id: string) {
+    if (typeof window === "undefined") {
+      throw new Error("projectStore.delete cannot be called on the server");
+    }
     let list = readStore();
     list = list.filter((p) => p.id !== id);
     writeStore(list);

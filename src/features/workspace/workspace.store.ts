@@ -16,6 +16,7 @@ const KEY = "tamer:workspaces";
 const KEY_CURRENT = "tamer:workspaceId";
 
 function readStore(): Workspace[] {
+  if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return [];
@@ -27,6 +28,7 @@ function readStore(): Workspace[] {
 }
 
 function writeStore(list: Workspace[]) {
+  if (typeof window === "undefined") return;
   try {
     localStorage.setItem(KEY, JSON.stringify(list));
   } catch (err) {
@@ -44,6 +46,9 @@ export const workspaceStore = {
   },
 
   create(payload: Omit<Workspace, "id" | "createdAt" | "updatedAt">) {
+    if (typeof window === "undefined") {
+      throw new Error("workspaceStore.create cannot be called on the server");
+    }
     const list = readStore();
     const id = crypto.randomUUID();
     const now = new Date().toISOString();
@@ -66,6 +71,9 @@ export const workspaceStore = {
   },
 
   update(id: string, patch: Partial<Workspace>) {
+    if (typeof window === "undefined") {
+      throw new Error("workspaceStore.update cannot be called on the server");
+    }
     const list = readStore();
     const i = list.findIndex((w) => w.id === id);
     if (i === -1) return null;
@@ -75,6 +83,9 @@ export const workspaceStore = {
   },
 
   delete(id: string) {
+    if (typeof window === "undefined") {
+      throw new Error("workspaceStore.delete cannot be called on the server");
+    }
     let list = readStore();
     list = list.filter((w) => w.id !== id);
     writeStore(list);
@@ -89,10 +100,12 @@ export const workspaceStore = {
   },
 
   getCurrentId() {
+    if (typeof window === "undefined") return null;
     try { return localStorage.getItem(KEY_CURRENT); } catch (e) { void e; return null; }
   },
 
   setCurrentId(id: string) {
+    if (typeof window === "undefined") return;
     try { localStorage.setItem(KEY_CURRENT, id); } catch (e) { void e; }
   }
 };

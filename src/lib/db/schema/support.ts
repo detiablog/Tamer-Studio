@@ -64,7 +64,7 @@ export const supportKnowledgeCategory = pgTable(
     id: text("id").primaryKey(),
     name: text("name").notNull(),
     description: text("description"),
-    parentId: text("parent_id").references(() => supportKnowledgeCategory.id, { onDelete: "cascade" }),
+    parentId: text("parent_id").references((): any => supportKnowledgeCategory.id, { onDelete: "cascade" }), // eslint-disable-line @typescript-eslint/no-explicit-any
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()
@@ -74,7 +74,7 @@ export const supportKnowledgeCategory = pgTable(
   (table) => [
     index("support_knowledge_category_parent_id_idx").on(table.parentId),
   ]
-) as any; // eslint-disable-next-line @typescript-eslint/no-explicit-any
+);
 
 export const supportKnowledgeArticle = pgTable(
   "support_knowledge_article",

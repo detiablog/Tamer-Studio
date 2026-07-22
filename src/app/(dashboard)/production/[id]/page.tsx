@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react";
 import { AppShell } from "@/components/ui/AppShell";
 import { PageLayout } from "@/components/ui/PageLayout";
@@ -5,13 +7,15 @@ import { productionStore } from "@/features/production/production.store";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/Badge";
 
-export async function generateMetadata({ params }: { params: { id: string } }) {
-  const job = productionStore.get(params.id);
-  return { title: job ? `${job.name} - Production - Tamer Studio` : "Production - Tamer Studio" };
-}
-
 export default function ProductionDetailPage({ params }: { params: { id: string } }) {
-  const job = productionStore.get(params.id);
+  const [job, setJob] = React.useState<ReturnType<typeof productionStore.get> | null>(null);
+
+  React.useEffect(() => {
+    setJob(productionStore.get(params.id));
+    if (job?.name) {
+      document.title = `${job.name} - Production - Tamer Studio`;
+    }
+  }, [params.id]);
 
   if (!job) {
     return (

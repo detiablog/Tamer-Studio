@@ -1,6 +1,5 @@
-import type { Wallet, CreditTransaction, CreditReservation, CreditAmount, WalletId, TransactionId } from "@/lib/ai/types/billing";
+import type { Wallet, CreditTransaction, CreditAmount, WalletId, TransactionId } from "@/lib/ai/types/billing";
 import { WalletRepository } from "./repository";
-import { logger } from "@/core/logger";
 
 export class WalletService {
   private repository = new WalletRepository();

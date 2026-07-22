@@ -1,8 +1,7 @@
 import { db } from "@/lib/db";
 import { wallet, creditTransaction, creditReservation } from "@/lib/db/schema";
-import { eq, desc, and, sql } from "drizzle-orm";
-import type { Wallet, CreditTransaction, CreditReservation, CreditAmount, WalletId, TransactionId, ReservationId } from "@/lib/ai/types/billing";
-import { logger } from "@/core/logger";
+import { eq, desc } from "drizzle-orm";
+import type { Wallet, CreditTransaction, CreditReservation } from "@/lib/ai/types/billing";
 import { randomUUID } from "crypto";
 
 export class WalletRepository {

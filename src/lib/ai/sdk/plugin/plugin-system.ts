@@ -25,7 +25,7 @@ export class DefaultPluginSystem implements PluginSystem {
     this.plugins.delete(pluginId);
   }
 
-  async loadPlugin(manifest: PluginManifest, _module: unknown): Promise<WorkflowPlugin> {
+  async loadPlugin(_manifest: PluginManifest, _module: unknown): Promise<WorkflowPlugin> {
     throw new Error("Plugin loading from module not yet implemented");
   }
 
