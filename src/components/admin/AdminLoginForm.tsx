@@ -85,7 +85,7 @@ export function AdminLoginForm({ error, csrfToken }: AdminLoginFormProps) {
         <p className="text-sm text-muted-foreground">Enter your admin credentials and master key</p>
       </div>
 
-      <form onSubmit={onSubmit} className="space-y-4">
+      <form action="/api/admin/auth/login" method="POST" onSubmit={onSubmit} className="space-y-4">
         <div className="space-y-2">
           <label htmlFor="email" className="text-sm font-medium">Email</label>
           <input

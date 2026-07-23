@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  console.log("[AUTH GET]", url.pathname, url.search);
+  console.log("[AUTH GET]", url.pathname);
   
   try {
     const result = await auth.handler(request);
@@ -16,7 +16,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const url = new URL(request.url);
-  console.log("[AUTH POST]", url.pathname, url.search);
+  console.log("[AUTH POST]", url.pathname);
   
   try {
     const result = await auth.handler(request);

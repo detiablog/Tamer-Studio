@@ -14,10 +14,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, reason: "rate_limited" }, { status: 429 });
     }
 
-    const body = await request.json();
-    const email = typeof body.email === "string" ? body.email.trim() : "";
-    const password = typeof body.password === "string" ? body.password : "";
-    const adminKey = typeof body.adminKey === "string" ? body.adminKey : "";
+    const contentType = request.headers.get("content-type") || "";
+    let email = "";
+    let password = "";
+    let adminKey = "";
+
+    if (contentType.includes("application/json")) {
+      const body = await request.json();
+      email = typeof body.email === "string" ? body.email.trim() : "";
+      password = typeof body.password === "string" ? body.password : "";
+      adminKey = typeof body.adminKey === "string" ? body.adminKey : "";
+    } else if (contentType.includes("application/x-www-form-urlencoded") || contentType.includes("multipart/form-data")) {
+      const formData = await request.formData();
+      email = typeof formData.get("email") === "string" ? String(formData.get("email")).trim() : "";
+      password = typeof formData.get("password") === "string" ? String(formData.get("password")) : "";
+      adminKey = typeof formData.get("adminKey") === "string" ? String(formData.get("adminKey")) : "";
+    }
 
     if (!email || !password || !adminKey) {
       return NextResponse.json({ success: false, reason: "missing_fields" }, { status: 400 });
