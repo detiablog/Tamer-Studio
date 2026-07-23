@@ -1,26 +1,56 @@
-import * as React from "react"
-import { AppShell } from "@/components/ui/AppShell"
-import { PageLayout } from "@/components/ui/PageLayout"
-import { DashboardCard } from "@/components/ui/DashboardCard"
-import { Badge } from "@/components/ui/Badge"
-import { Button } from "@/components/ui/button"
-import { Avatar } from "@/components/ui/Avatar"
-import { Mail, MapPin, Briefcase, Shield, Key, Bell, Globe } from "lucide-react"
+"use client";
 
-export const metadata = { title: "Profile - Tamer Studio", description: "Manage your profile and preferences." }
+import * as React from "react";
+import useSWR from "swr";
+import { AppShell } from "@/components/ui/AppShell";
+import { PageLayout } from "@/components/ui/PageLayout";
+import { DashboardCard } from "@/components/ui/DashboardCard";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/button";
+import { Avatar } from "@/components/ui/Avatar";
+import { Mail, MapPin, Briefcase, Shield, Key, Bell, Globe } from "lucide-react";
 
-const PROFILE = {
-  name: "Alex Creator",
-  email: "alex@example.com",
-  role: "Admin",
-  workspace: "Acme Studio",
-  location: "Bangkok, Thailand",
-  plan: "Pro",
-  joined: "March 2026",
-  avatar: "AC",
-}
+const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 export default function ProfilePage() {
+  const { data, error, isLoading } = useSWR("/api/profile", fetcher);
+  const [saving, setSaving] = React.useState(false);
+
+  if (isLoading) {
+    return (
+      <AppShell>
+        <PageLayout title={"Profile"} description={"Your account information and preferences."} breadcrumb={[{ label: "Profile" }]}>
+          <div className="flex items-center justify-center p-8">Loading...</div>
+        </PageLayout>
+      </AppShell>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <AppShell>
+        <PageLayout title={"Profile"} description={"Your account information and preferences."} breadcrumb={[{ label: "Profile" }]}>
+          <div className="text-destructive p-8">Failed to load profile</div>
+        </PageLayout>
+      </AppShell>
+    );
+  }
+
+  const profile = data;
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await fetch("/api/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: profile.name, email: profile.email }),
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <AppShell>
       <PageLayout
@@ -28,32 +58,32 @@ export default function ProfilePage() {
         description={"Your account information and preferences."}
         breadcrumb={[{ label: "Profile" }]}
         actions={
-          <Button>Save Changes</Button>
+          <Button onClick={handleSave} disabled={saving}>{saving ? "Saving..." : "Save Changes"}</Button>
         }
       >
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-1">
             <DashboardCard title="Profile">
               <div className="flex flex-col items-center text-center">
-                <Avatar name={PROFILE.avatar} size={80} />
-                <h3 className="mt-4 text-lg font-semibold">{PROFILE.name}</h3>
-                <p className="text-sm text-muted-foreground">{PROFILE.email}</p>
+                <Avatar name={profile.avatar} size={80} />
+                <h3 className="mt-4 text-lg font-semibold">{profile.name}</h3>
+                <p className="text-sm text-muted-foreground">{profile.email}</p>
                 <div className="mt-3 flex gap-2">
-                  <Badge tone="info">{PROFILE.role}</Badge>
-                  <Badge tone="success">{PROFILE.plan}</Badge>
+                  <Badge tone="info">{profile.role}</Badge>
+                  <Badge tone="success">{profile.plan}</Badge>
                 </div>
                 <div className="mt-4 w-full space-y-2 text-sm text-left">
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Briefcase className="size-4" />
-                    <span>{PROFILE.workspace}</span>
+                    <span>{profile.workspace}</span>
                   </div>
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <MapPin className="size-4" />
-                    <span>{PROFILE.location}</span>
+                    <span>{profile.location}</span>
                   </div>
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Globe className="size-4" />
-                    <span>Joined {PROFILE.joined}</span>
+                    <span>Joined {profile.joined}</span>
                   </div>
                 </div>
               </div>
@@ -65,24 +95,16 @@ export default function ProfilePage() {
               <div className="space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">First Name</label>
-                    <input type="text" defaultValue="Alex" className="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50" />
+                    <label className="text-sm font-medium">Full Name</label>
+                    <input type="text" defaultValue={profile.name} className="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50" />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Last Name</label>
-                    <input type="text" defaultValue="Creator" className="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50" />
+                    <label className="text-sm font-medium">Email</label>
+                    <div className="flex items-center gap-2">
+                      <Mail className="size-4 text-muted-foreground" />
+                      <input type="email" defaultValue={profile.email} className="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50" />
+                    </div>
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Email</label>
-                  <div className="flex items-center gap-2">
-                    <Mail className="size-4 text-muted-foreground" />
-                    <input type="email" defaultValue={PROFILE.email} className="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Bio</label>
-                  <textarea rows={3} defaultValue="AI content creator and video producer." className="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50" />
                 </div>
               </div>
             </DashboardCard>
@@ -112,5 +134,5 @@ export default function ProfilePage() {
         </div>
       </PageLayout>
     </AppShell>
-  )
+  );
 }

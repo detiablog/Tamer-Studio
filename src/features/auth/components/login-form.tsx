@@ -41,14 +41,18 @@ export function LoginForm() {
       });
 
       if (hasAuthError(result) && result.error?.message) {
-        logger.error("Login failed", new Error(result.error.message));
-        toast.error("Unable to sign in. Please check your credentials and try again.");
+        const err = new Error(result.error.message);
+        err.name = "BetterAuthError";
+        logger.error("Login failed", err);
+        toast.error(result.error.message || "Unable to sign in. Please check your credentials and try again.");
         return;
       }
 
       if (hasAuthError(result)) {
-        logger.error("Login failed with unknown auth error", new Error(result.error?.message ?? "Unknown auth error"));
-        toast.error("Unable to sign in. Please try again later.");
+        const err = new Error(result.error?.message ?? "Unknown auth error");
+        err.name = "BetterAuthError";
+        logger.error("Login failed with unknown auth error", err);
+        toast.error(result.error?.message || "Unable to sign in. Please try again later.");
         return;
       }
 

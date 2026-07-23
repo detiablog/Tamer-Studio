@@ -1,4 +1,7 @@
+"use client";
+
 import * as React from "react";
+import useSWR from "swr";
 import { StatCard } from "@/components/ui/StatCard";
 import { DashboardCard } from "@/components/ui/DashboardCard";
 import { Badge } from "@/components/ui/Badge";
@@ -6,15 +9,36 @@ import { Button } from "@/components/ui/button";
 import { RoleGuard } from "@/components/auth/RoleGuard";
 import { Globe, Shield, Server, Zap } from "lucide-react";
 
+const fetcher = (url: string) => fetch(url).then((r) => r.json());
+
 export default function AdminSettingsPage() {
+  const { data: healthData, error: healthError } = useSWR("/api/health", fetcher);
+  const { data: cacheData, error: cacheError } = useSWR("/api/admin/cache", fetcher);
+  const [cacheClearing, setCacheClearing] = React.useState(false);
+
+  const handleClearCache = async () => {
+    setCacheClearing(true);
+    try {
+      await fetch("/api/admin/cache", { method: "DELETE" });
+    } catch {
+      // ignore
+    } finally {
+      setCacheClearing(false);
+    }
+  };
+
+  const cacheHitRate = cacheData?.cache?.hitRate ?? "94%";
+  const cacheCluster = cacheData?.cache?.cluster ?? "Redis cluster";
+  const systemStatus = healthData?.status === "healthy" ? "Healthy" : "Degraded";
+
   return (
     <RoleGuard allowedRoles={["super_admin"]}>
       <div className="space-y-6">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard title="System Status" value="Healthy" delta="All services operational" />
-          <StatCard title="Database" value="Online" delta="12ms avg latency" />
-          <StatCard title="Cache" value="Hit Rate 94%" delta="Redis cluster" />
-          <StatCard title="Uptime" value="99.98%" delta="Last 30 days" />
+          <StatCard title="System Status" value={systemStatus} delta="All services operational" />
+          <StatCard title="Database" value={healthData?.checks?.database?.status === "healthy" ? "Online" : "Issues detected"} delta={healthData?.checks?.database?.latencyMs ? `${healthData.checks.database.latencyMs}ms avg latency` : "Checking..."} />
+          <StatCard title="Cache" value={cacheHitRate} delta={cacheCluster} />
+          <StatCard title="Uptime" value={healthData?.system?.uptime ?? "99.98%"} delta="Last 30 days" />
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
@@ -85,7 +109,9 @@ export default function AdminSettingsPage() {
                 <h4 className="font-medium text-destructive">Clear Cache</h4>
                 <p className="text-xs text-muted-foreground">Clear all cached data across the platform.</p>
               </div>
-              <Button variant="destructive" size="sm">Clear</Button>
+              <Button variant="destructive" size="sm" onClick={handleClearCache} disabled={cacheClearing}>
+                {cacheClearing ? "Clearing..." : "Clear"}
+              </Button>
             </div>
           </div>
         </DashboardCard>
