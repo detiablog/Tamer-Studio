@@ -1,10 +1,9 @@
-import { hashSecret, safeCompare } from "@/core/security/crypto";
+import { verifySecret } from "@/core/security/crypto";
 
-export function verifyMasterKey(masterKey: string): boolean {
+export async function verifyMasterKey(masterKey: string): Promise<boolean> {
   const expectedHash = process.env.ADMIN_MASTER_KEY_HASH;
   if (!expectedHash) {
     return false;
   }
-  const actualHash = hashSecret(masterKey);
-  return safeCompare(actualHash, expectedHash);
+  return verifySecret(masterKey, expectedHash);
 }

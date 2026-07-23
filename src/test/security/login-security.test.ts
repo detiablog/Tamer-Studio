@@ -67,7 +67,8 @@ describe("security: login", () => {
     });
 
     const response = await POST(request);
-    const body = await response.json();
+    const body = await response.json().catch(() => ({}));
+    console.log("LOGIN RESPONSE", response.status, body);
     expect(response.status).toBe(401);
     expect(body.success).toBe(false);
     expect(body.reason).toBe("invalid_master_key");

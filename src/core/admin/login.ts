@@ -8,7 +8,8 @@ import { randomUUID } from "crypto";
 import { eq } from "drizzle-orm";
 
 export async function loginAdmin(credentials: { email: string; password: string; adminKey: string; ipAddress?: string; userAgent?: string }) {
-  if (!verifyMasterKey(credentials.adminKey)) {
+  const isValidMasterKey = await verifyMasterKey(credentials.adminKey);
+  if (!isValidMasterKey) {
     logger.security("Admin login attempt with invalid master key", { email: credentials.email });
     await recordFailedLogin({
       email: credentials.email,

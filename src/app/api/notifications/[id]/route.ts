@@ -1,13 +1,45 @@
+import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { NotificationRepository } from "@/core/notifications";
+import type { RequestContext } from "@/core/middleware/types";
+import { runMiddleware } from "@/core/middleware/compose";
+import { userAuthentication, csrfMiddleware } from "@/core/middleware";
 
 const repository = new NotificationRepository();
 
-export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const ctx: RequestContext = {
+    request,
+    params: {},
+    state: {
+      rateLimit: undefined,
+      origin: undefined,
+      adminSession: undefined,
+      userSession: undefined,
+      authError: undefined,
+      permissionError: undefined,
+      csrfError: undefined,
+      rateLimitError: undefined,
+      auditContext: undefined,
+    },
+    method: "PATCH",
+    pathname: request.nextUrl.pathname,
+    ip: request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0].trim() || undefined,
+  };
+
+  const errorResponse = await runMiddleware([
+    userAuthentication(),
+    csrfMiddleware(),
+  ], ctx);
+
+  if (errorResponse) {
+    return errorResponse;
+  }
+
   try {
     const body = await request.json().catch(() => ({}));
     const action = typeof body.action === "string" ? body.action : undefined;
-    const userId = typeof body.userId === "string" ? body.userId : "demo-user";
+    const userId = ctx.state.userSession?.userId;
 
     const allowedActions = ["read", "archive", "delete"];
     if (!action || !allowedActions.includes(action)) {
