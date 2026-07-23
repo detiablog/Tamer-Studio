@@ -1,2 +1,10 @@
 export { metrics } from "./metrics";
 export type { SystemMetrics } from "./metrics";
+export { tracer, InMemoryTracer } from "./tracing";
+export type { Span, SpanEvent, Tracer } from "./tracing";
+export { performance, PerformanceCollector } from "./performance";
+export type { PerformanceMetric } from "./performance";
+export { healthDashboard, InMemoryHealthDashboard } from "./health";
+export type { HealthCheck, HealthDashboard } from "./health";
+export { InMemoryTelemetryDashboard } from "./telemetry-dashboard";
+export type { TelemetryDashboard } from "./telemetry-dashboard";
