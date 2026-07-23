@@ -6,6 +6,7 @@ import { eq } from "drizzle-orm";
 import { getSecurityHeaders } from "@/core/security/headers";
 import { metrics } from "@/core/observability/metrics";
 import { getAdminSessionFromToken } from "@/core/admin/session";
+import { generateCsrfToken } from "@/core/security/csrf";
 
 function withSecurityHeaders(response: NextResponse): NextResponse {
   const headers = getSecurityHeaders();
@@ -38,6 +39,35 @@ export async function proxy(request: NextRequest) {
 
   if (PUBLIC_ROUTES.includes(pathname) || pathname === "/") {
     const response = withSecurityHeaders(NextResponse.next());
+    metrics.increment("api.request", { method, route: pathname, status: "public" });
+    return response;
+  }
+
+  if (pathname === ADMIN_LOGIN_ROUTE) {
+    const sessionToken = request.cookies.get("admin_session")?.value;
+    if (sessionToken) {
+      const ipAddress = request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0].trim() || undefined;
+      const userAgent = request.headers.get("user-agent") ?? undefined;
+      const session = await getAdminSessionFromToken(sessionToken, ipAddress, userAgent);
+      if (session) {
+        const adminRecord = await db.select().from(admin).where(eq(admin.id, session.adminId)).limit(1);
+        if (adminRecord.length > 0 && adminRecord[0].isActive) {
+          const response = withSecurityHeaders(NextResponse.redirect(new URL("/admin", request.url)));
+          metrics.increment("api.request", { method, route: pathname, status: "redirect" });
+          return response;
+        }
+      }
+    }
+    const response = withSecurityHeaders(NextResponse.next());
+    if (!request.cookies.get("csrf_token")?.value) {
+      response.cookies.set("csrf_token", generateCsrfToken(), {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 60 * 60,
+        path: "/",
+      });
+    }
     metrics.increment("api.request", { method, route: pathname, status: "public" });
     return response;
   }
