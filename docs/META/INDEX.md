@@ -1,0 +1,14 @@
+# META
+
+## Purpose
+Documentation Governance System (DGS) entry point.
+
+## Documents
+- DOCUMENTATION_ARCHITECTURE.md
+- DOCUMENTATION_MAP.md
+- DOCUMENTATION_RULES.md
+
+## Reading Order
+1. DOCUMENTATION_ARCHITECTURE
+2. DOCUMENTATION_MAP
+3. DOCUMENTATION_RULES
