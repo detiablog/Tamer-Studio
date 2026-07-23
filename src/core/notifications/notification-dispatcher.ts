@@ -1,3 +1,4 @@
+import type { WebhookMessage as _WebhookMessage, WebhookNotificationService as _WebhookNotificationService } from "./webhook.service";
 import type { MailService, MailMessage } from "@/core/mail";
 import type { SmsService, SmsMessage } from "@/core/sms";
 import type { PushService, PushMessage } from "@/core/push";

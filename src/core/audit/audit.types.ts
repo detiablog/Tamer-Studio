@@ -128,6 +128,18 @@ export type AuditAction =
   | "system.health.checked"
   | "settings.updated";
 
+export interface AuditQuery {
+  action?: AuditAction;
+  actorId?: string;
+  actorType?: string;
+  resourceType?: string;
+  resourceId?: string;
+  startDate?: Date;
+  endDate?: Date;
+  limit?: number;
+  offset?: number;
+}
+
 export interface AuditEntry {
   id: string;
   action: AuditAction;
