@@ -16,6 +16,25 @@ function withSecurityHeaders(response: NextResponse): NextResponse {
   return response;
 }
 
+/**
+ * Security: Prevent credentials from appearing in URL
+ * Detects and strips email, password, adminKey, token from URL parameters
+ */
+function stripCredentialsFromUrl(request: NextRequest): NextRequest | null {
+  const { pathname, searchParams } = request.nextUrl;
+  const suspiciousParams = ["email", "password", "adminKey", "token", "secret"];
+  const hasCredentialsInUrl = suspiciousParams.some(
+    (param) => searchParams.has(param) && searchParams.get(param)?.trim()
+  );
+
+  // If credentials found in URL on auth routes, signal redirect
+  if (hasCredentialsInUrl && (pathname.includes("/login") || pathname.includes("/admin/login"))) {
+    console.warn(`[SECURITY] Credentials detected in URL at ${pathname}. Redirecting to clean URL.`);
+    return null; // Signal to redirect
+  }
+  return request;
+}
+
 const AUTH_ROUTES = ["/login", "/register", "/forgot-password", "/reset-password", "/verify-email"];
 const PUBLIC_ROUTES = ["/", "/about", "/contact", "/docs", "/pricing", "/legal/privacy", "/legal/terms"];
 const ADMIN_ROUTES = ["/admin"];
@@ -24,6 +43,16 @@ const ADMIN_LOGIN_ROUTE = "/admin/login";
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const method = request.method;
+
+  // Security: Strip credentials from URL
+  const strippedRequest = stripCredentialsFromUrl(request);
+  if (strippedRequest === null) {
+    const cleanUrl = request.nextUrl.clone();
+    cleanUrl.search = "";
+    const response = withSecurityHeaders(NextResponse.redirect(cleanUrl));
+    metrics.increment("security.blocked", { reason: "credentials_in_url", route: pathname });
+    return response;
+  }
 
   if (
     pathname.startsWith("/_next") ||
@@ -46,11 +75,16 @@ export async function proxy(request: NextRequest) {
   if (pathname === ADMIN_LOGIN_ROUTE) {
     const sessionToken = request.cookies.get("admin_session")?.value;
     if (sessionToken) {
-      const ipAddress = request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0].trim() || undefined;
+      const ipAddress =
+        request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0].trim() || undefined;
       const userAgent = request.headers.get("user-agent") ?? undefined;
       const session = await getAdminSessionFromToken(sessionToken, ipAddress, userAgent);
       if (session) {
-        const adminRecord = await db.select().from(admin).where(eq(admin.id, session.adminId)).limit(1);
+        const adminRecord = await db
+          .select()
+          .from(admin)
+          .where(eq(admin.id, session.adminId))
+          .limit(1);
         if (adminRecord.length > 0 && adminRecord[0].isActive) {
           const response = withSecurityHeaders(NextResponse.redirect(new URL("/admin", request.url)));
           metrics.increment("api.request", { method, route: pathname, status: "redirect" });
@@ -72,7 +106,9 @@ export async function proxy(request: NextRequest) {
     return response;
   }
 
-  const isAdminRoute = ADMIN_ROUTES.some((route) => pathname === route || (pathname.startsWith(`${route}/`) && pathname !== ADMIN_LOGIN_ROUTE));
+  const isAdminRoute = ADMIN_ROUTES.some(
+    (route) => pathname === route || (pathname.startsWith(`${route}/`) && pathname !== ADMIN_LOGIN_ROUTE)
+  );
   if (isAdminRoute) {
     const sessionToken = request.cookies.get("admin_session")?.value;
     if (!sessionToken) {
@@ -81,7 +117,8 @@ export async function proxy(request: NextRequest) {
       return response;
     }
 
-    const ipAddress = request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0].trim() || undefined;
+    const ipAddress =
+      request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0].trim() || undefined;
     const userAgent = request.headers.get("user-agent") ?? undefined;
 
     const session = await getAdminSessionFromToken(sessionToken, ipAddress, userAgent);
@@ -103,31 +140,29 @@ export async function proxy(request: NextRequest) {
   }
 
   if (AUTH_ROUTES.includes(pathname)) {
+    // If already authenticated, redirect to dashboard
     const session = request.cookies.get("better-auth.session_token") || request.cookies.get("session");
     if (session) {
       const tokenValue = session.value;
-      if (tokenValue.length >= 32 && /^[a-zA-Z0-9]+$/.test(tokenValue)) {
+      if (tokenValue.length >= 32 && /^[a-zA-Z0-9_-]+$/.test(tokenValue)) {
         const response = withSecurityHeaders(NextResponse.redirect(new URL("/dashboard", request.url)));
         metrics.increment("api.request", { method, route: pathname, status: "redirect" });
         return response;
       }
     }
+    // Allow auth routes with no/invalid session
     metrics.increment("api.request", { method, route: pathname, status: "allowed" });
     return withSecurityHeaders(NextResponse.next());
   }
 
   const session = request.cookies.get("better-auth.session_token") || request.cookies.get("session");
-  if (!session) {
-    const response = withSecurityHeaders(NextResponse.redirect(new URL("/login", request.url)));
-    metrics.increment("api.request", { method, route: pathname, status: "redirect" });
-    return response;
-  }
-
-  const userTokenValue = session.value;
-  if (userTokenValue.length < 32 || !/^[a-zA-Z0-9]+$/.test(userTokenValue)) {
-    const response = withSecurityHeaders(NextResponse.redirect(new URL("/login", request.url)));
-    metrics.increment("api.request", { method, route: pathname, status: "redirect" });
-    return response;
+  if (session) {
+    const userTokenValue = session.value;
+    if (userTokenValue.length < 32 || !/^[a-zA-Z0-9_-]+$/.test(userTokenValue)) {
+      const response = withSecurityHeaders(NextResponse.redirect(new URL("/login", request.url)));
+      metrics.increment("api.request", { method, route: pathname, status: "redirect" });
+      return response;
+    }
   }
 
   metrics.increment("api.request", { method, route: pathname, status: "allowed" });
