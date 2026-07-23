@@ -1,6 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { loginAdmin } from "@/core/admin/login";
 import { checkRateLimit, getClientIdentifier } from "@/core/security/rate-limit";
+import { logAdminAction } from "@/core/audit/audit.service";
 
 export async function POST(request: NextRequest) {
   try {
@@ -42,6 +44,13 @@ export async function POST(request: NextRequest) {
         sameSite: "lax",
         path: "/",
         maxAge: 60 * 60 * 24,
+      });
+    }
+
+    if (result.session?.adminId) {
+      await logAdminAction("admin.login", result.session.adminId, {
+        ipAddress: request.headers.get("x-forwarded-for") || identifier,
+        userAgent: request.headers.get("user-agent") || undefined,
       });
     }
 

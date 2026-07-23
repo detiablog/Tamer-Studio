@@ -1,12 +1,11 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { metrics } from "@/core/observability/metrics";
-import { jobStore } from "@/core/jobs/job-store";
+import { logAdminAction } from "@/core/audit/audit.service";
 import type { RequestContext } from "@/core/middleware/types";
 import { runMiddleware } from "@/core/middleware/compose";
-import { adminAuthentication, requireAdminPermission } from "@/core/middleware";
+import { adminAuthentication } from "@/core/middleware";
 
-export async function GET(request: NextRequest) {
+export async function POST(request: NextRequest) {
   const ctx: RequestContext = {
     request,
     params: {},
@@ -21,26 +20,29 @@ export async function GET(request: NextRequest) {
       rateLimitError: undefined,
       auditContext: undefined,
     },
-    method: "GET",
+    method: "POST",
     pathname: request.nextUrl.pathname,
     ip: request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0].trim() || undefined,
   };
 
   const errorResponse = await runMiddleware([
     adminAuthentication(),
-    requireAdminPermission("admin:stats"),
   ], ctx);
 
   if (errorResponse) {
     return errorResponse;
   }
 
-  const systemMetrics = metrics.getSystemMetrics();
-  const jobStats = jobStore.getStats();
+  const response = NextResponse.json({ success: true });
 
-  return NextResponse.json({
-    metrics: systemMetrics,
-    jobs: jobStats,
-    timestamp: new Date().toISOString(),
-  });
+  response.cookies.delete("admin_session");
+
+  if (ctx.state.adminSession?.adminId) {
+    await logAdminAction("admin.logout", ctx.state.adminSession.adminId, {
+      ipAddress: request.headers.get("x-forwarded-for") || undefined,
+      userAgent: request.headers.get("user-agent") || undefined,
+    });
+  }
+
+  return response;
 }

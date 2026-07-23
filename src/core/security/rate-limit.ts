@@ -41,8 +41,45 @@ export function resetRateLimit(identifier: string): void {
 }
 
 export function getClientIdentifier(request: Request): string {
+  const trustedProxies = getTrustedProxies();
   const forwarded = request.headers.get("x-forwarded-for");
   const realIp = request.headers.get("x-real-ip");
-  const ip = forwarded ? forwarded.split(",")[0].trim() : realIp || "unknown";
-  return ip;
+  const vercelForwardedFor = request.headers.get("x-vercel-forwarded-for");
+  const cfConnectingIp = request.headers.get("cf-connecting-ip");
+
+  const connectionIp = request.headers.get("x-real-ip") || forwarded?.split(",").pop()?.trim() || "unknown";
+  const trusted = isTrustedProxy(connectionIp === "unknown" ? null : connectionIp, trustedProxies);
+
+  if (cfConnectingIp) {
+    return cfConnectingIp.split(",")[0].trim();
+  }
+
+  if (trusted) {
+    if (vercelForwardedFor) {
+      return vercelForwardedFor.split(",")[0].trim();
+    }
+    if (forwarded) {
+      return forwarded.split(",")[0].trim();
+    }
+  }
+
+  if (realIp) {
+    return realIp;
+  }
+
+  if (forwarded) {
+    return forwarded.split(",")[0].trim();
+  }
+
+  return "unknown";
+}
+
+function getTrustedProxies(): string[] {
+  const proxies = process.env.TRUSTED_PROXIES || "";
+  return proxies.split(",").map((p) => p.trim()).filter(Boolean);
+}
+
+function isTrustedProxy(ip: string | null, trustedProxies: string[]): boolean {
+  if (!ip) return false;
+  return trustedProxies.some((proxy) => ip === proxy || ip.startsWith(proxy + "/") || ip.endsWith("/" + proxy));
 }
