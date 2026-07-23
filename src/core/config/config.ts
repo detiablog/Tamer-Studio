@@ -9,7 +9,7 @@ export interface AppConfig {
     url: string;
   };
   admin: {
-    masterKey: string;
+    masterKeyHash: string;
   };
   app: {
     url: string;
@@ -35,7 +35,7 @@ export function loadConfig(): AppConfig {
 
   const nodeEnv = process.env.NODE_ENV ?? "development";
   const appUrl = getOptionalEnv("NEXT_PUBLIC_APP_URL", "http://localhost:3000");
-  const adminMasterKey = getEnv("ADMIN_MASTER_KEY");
+  const adminMasterKey = getOptionalEnv("ADMIN_MASTER_KEY_HASH", "");
 
   cachedConfig = {
     database: {
@@ -46,8 +46,8 @@ export function loadConfig(): AppConfig {
       url: appUrl,
     },
     admin: {
-      masterKey: adminMasterKey,
-    },
+    masterKeyHash: adminMasterKey,
+  },
     app: {
       url: appUrl,
       env: nodeEnv as AppConfig["app"]["env"],

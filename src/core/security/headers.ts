@@ -1,5 +1,5 @@
 export const SECURITY_HEADERS = {
-  "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none';",
+  "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.r2.cloudflarestorage.com; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none';",
   "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
   "X-Content-Type-Options": "nosniff",
   "X-Frame-Options": "DENY",
@@ -12,5 +12,10 @@ export const SECURITY_HEADERS = {
 } as const;
 
 export function getSecurityHeaders(): Record<string, string> {
-  return { ...SECURITY_HEADERS };
+  const headers = { ...SECURITY_HEADERS };
+  if (process.env.NODE_ENV === "production") {
+    // Enforce stricter CSP in production
+    headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.r2.cloudflarestorage.com; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self';";
+  }
+  return headers;
 }

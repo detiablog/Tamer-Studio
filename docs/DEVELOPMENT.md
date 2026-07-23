@@ -1635,3 +1635,161 @@ Predictable
 Every line of code should make the project easier to evolve, not harder.
 
 The quality of the platform is measured not only by what it can do today, but by how confidently it can be changed tomorrow.
+
+---
+
+# Part 5 — Navigation & Module Coding Standards
+
+This section defines the coding standards for Navigation and Module implementation.
+
+Implementation must comply with ADR-013 and the Engineering Playbook.
+
+---
+
+# 41. Navigation Registry Standards
+
+Navigation Registry is the Single Source of Truth.
+
+The following must never be hardcoded:
+
+- Sidebar
+- Breadcrumb
+- Route
+- Navigation Cards
+- Module Registration
+
+Every navigation item must originate from the Navigation Registry.
+
+---
+
+# 42. Module Folder Standards
+
+Every module should follow this structure:
+
+module/
+
+├── layout.tsx
+
+├── page.tsx
+
+├── loading.tsx
+
+├── error.tsx
+
+├── components/
+
+├── hooks/
+
+├── services/
+
+├── repositories/
+
+├── actions/
+
+├── schemas/
+
+├── constants/
+
+├── types/
+
+├── tests/
+
+├── README.md
+
+└── module.json
+
+---
+
+# 43. Route Standards
+
+Routes must follow module hierarchy.
+
+Correct
+
+/admin/wallet
+
+/admin/wallet/history
+
+/admin/wallet/settings
+
+Incorrect
+
+/admin/history
+
+/admin/settings
+
+when History and Settings belong to Wallet.
+
+---
+
+# 44. Dashboard Standards
+
+Every Parent Module must expose:
+
+- Overview
+- Summary
+- Statistics
+- Navigation Cards
+- Quick Actions
+- Recent Activity
+
+Dashboard components should remain reusable.
+
+---
+
+# 45. Breadcrumb Standards
+
+Breadcrumbs must be generated from the Navigation Registry.
+
+Hardcoded breadcrumbs are prohibited.
+
+---
+
+# 46. Metadata Standards
+
+Each route must define:
+
+- title
+- description
+- keywords
+- icon
+- category
+
+Metadata should remain consistent with Navigation Registry.
+
+---
+
+# 47. Navigation Components
+
+Reusable navigation components include:
+
+- Sidebar
+- Top Navigation
+- Navigation Card
+- Breadcrumb
+- Module Header
+- Search Bar
+
+Avoid duplicate navigation implementations.
+
+---
+
+# 48. Navigation Testing Standards
+
+Navigation testing should include:
+
+✓ Route Resolution
+
+✓ Permission Validation
+
+✓ Breadcrumb Generation
+
+✓ Sidebar Rendering
+
+✓ Responsive Navigation
+
+✓ Accessibility
+
+Every navigation change should include automated tests where practical.
+
+---

@@ -14,8 +14,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 export function LoginForm() {
+  const router = useRouter();
   const [submitting, setSubmitting] = React.useState(false);
   const [showPassword, setShowPassword] = React.useState(false);
 
@@ -57,6 +59,7 @@ export function LoginForm() {
       }
 
       toast.success("Signed in");
+      router.push("/dashboard");
     } catch (err) {
       if (err instanceof Error) {
         logger.error("Unexpected login error", err);

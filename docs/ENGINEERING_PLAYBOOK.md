@@ -815,3 +815,284 @@ AI models may improve.
 Engineering principles should remain stable.
 
 The objective is not only to build software that works today, but to build a platform that can confidently evolve for many years.
+
+---
+
+# Part 2 — Navigation & Module Engineering
+
+This section extends the Engineering Workflow by defining how every business capability is transformed into a production-ready module.
+
+The Navigation Registry is the Single Source of Truth for every module.
+
+No implementation may bypass the Navigation Registry.
+
+---
+
+# 31. Navigation Workflow
+
+Every new feature starts as a Module.
+
+Business Requirement
+
+↓
+
+Architecture Validation
+
+↓
+
+Navigation Registration
+
+↓
+
+Module Manifest
+
+↓
+
+Folder Generation
+
+↓
+
+Route Generation
+
+↓
+
+Dashboard Generation
+
+↓
+
+Child Module Generation
+
+↓
+
+Permission Registration
+
+↓
+
+Testing
+
+↓
+
+Documentation
+
+↓
+
+Review
+
+↓
+
+Production
+
+Rules
+
+- Never create pages before registering the module.
+- Parent modules must exist before child modules.
+- Navigation Registry is always updated first.
+- Every generated route must originate from the Navigation Registry.
+- Dashboard generation is mandatory for Parent Modules.
+
+---
+
+# 32. Module Lifecycle
+
+Each module follows a predictable lifecycle.
+
+Idea
+
+↓
+
+Planning
+
+↓
+
+Navigation Registration
+
+↓
+
+Manifest Definition
+
+↓
+
+Implementation
+
+↓
+
+Testing
+
+↓
+
+Documentation
+
+↓
+
+Release
+
+↓
+
+Maintenance
+
+↓
+
+Deprecation
+
+Modules should never skip lifecycle stages.
+
+---
+
+# 33. Navigation Registry Workflow
+
+Navigation Registry is the authoritative source for:
+
+- Sidebar
+- Breadcrumb
+- Route
+- Metadata
+- Permission
+- Dashboard
+- Search
+- Feature Flags
+
+Developers and AI assistants must modify the Navigation Registry before creating new pages.
+
+---
+
+# 34. Parent Module Workflow
+
+Parent Modules define business capabilities.
+
+Every Parent Module must provide:
+
+- Overview Dashboard
+- Navigation Cards
+- Statistics
+- Recent Activity
+- Quick Actions
+
+Example
+
+Wallet
+
+├── Dashboard
+
+├── Transactions
+
+├── Deposit
+
+├── Withdraw
+
+└── Settings
+
+---
+
+# 35. Child Module Workflow
+
+Child Modules inherit the Parent Module.
+
+Every Child Module must include:
+
+- Route
+- Permission
+- Metadata
+- Loading UI
+- Error UI
+- Tests
+- Documentation
+
+---
+
+# 36. Module Generation Workflow
+
+AI-generated modules must follow:
+
+Navigation Registry
+
+↓
+
+Manifest
+
+↓
+
+Folder Structure
+
+↓
+
+Routes
+
+↓
+
+Layouts
+
+↓
+
+Dashboard
+
+↓
+
+Components
+
+↓
+
+Services
+
+↓
+
+Repositories
+
+↓
+
+Tests
+
+↓
+
+Documentation
+
+Manual generation outside this workflow is prohibited.
+
+---
+
+# 37. Navigation Review Checklist
+
+Before merge:
+
+□ Navigation Registry updated
+
+□ Module Manifest updated
+
+□ Parent Module exists
+
+□ Dashboard generated
+
+□ Child Routes generated
+
+□ Permission mapped
+
+□ Breadcrumb generated
+
+□ Metadata completed
+
+□ Tests completed
+
+□ Documentation updated
+
+---
+
+# 38. Navigation Definition of Done
+
+A module is complete only if:
+
+✓ Registered in Navigation Registry
+
+✓ Accessible through Sidebar
+
+✓ Permission configured
+
+✓ Dashboard available
+
+✓ Metadata complete
+
+✓ Tests passing
+
+✓ Documentation updated
+
+✓ Compliant with ADR-013
+
+---

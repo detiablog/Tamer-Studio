@@ -106,7 +106,7 @@ export async function proxy(request: NextRequest) {
     const session = request.cookies.get("better-auth.session_token") || request.cookies.get("session");
     if (session) {
       const tokenValue = session.value;
-      if (tokenValue.length >= 32 && /^[a-zA-Z0-9]+$/.test(tokenValue)) {
+      if (tokenValue.length >= 32 && /^[a-zA-Z0-9_-]+$/.test(tokenValue)) {
         const response = withSecurityHeaders(NextResponse.redirect(new URL("/dashboard", request.url)));
         metrics.increment("api.request", { method, route: pathname, status: "redirect" });
         return response;
@@ -117,17 +117,13 @@ export async function proxy(request: NextRequest) {
   }
 
   const session = request.cookies.get("better-auth.session_token") || request.cookies.get("session");
-  if (!session) {
-    const response = withSecurityHeaders(NextResponse.redirect(new URL("/login", request.url)));
-    metrics.increment("api.request", { method, route: pathname, status: "redirect" });
-    return response;
-  }
-
-  const userTokenValue = session.value;
-  if (userTokenValue.length < 32 || !/^[a-zA-Z0-9]+$/.test(userTokenValue)) {
-    const response = withSecurityHeaders(NextResponse.redirect(new URL("/login", request.url)));
-    metrics.increment("api.request", { method, route: pathname, status: "redirect" });
-    return response;
+  if (session) {
+    const userTokenValue = session.value;
+    if (userTokenValue.length < 32 || !/^[a-zA-Z0-9_-]+$/.test(userTokenValue)) {
+      const response = withSecurityHeaders(NextResponse.redirect(new URL("/login", request.url)));
+      metrics.increment("api.request", { method, route: pathname, status: "redirect" });
+      return response;
+    }
   }
 
   metrics.increment("api.request", { method, route: pathname, status: "allowed" });
