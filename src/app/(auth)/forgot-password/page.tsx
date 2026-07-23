@@ -1,13 +1,21 @@
-import { EmptyState } from "@/components/ui/EmptyState";
+"use client";
+
+import { ForgotPasswordForm } from "@/features/auth/components/forgot-password-form";
+import Link from "next/link";
 
 export default function ForgotPasswordPage() {
   return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h1 className="text-2xl font-semibold">Forgot password?</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Enter your email and we will send you a reset link.</p>
+    <main className="min-h-screen flex flex-col">
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="w-full">
+          <div className="mb-8 text-center">
+            <Link href="/" className="inline-flex items-center gap-2 mb-6">
+              <h1 className="text-xl font-bold">← Back</h1>
+            </Link>
+          </div>
+          <ForgotPasswordForm />
+        </div>
       </div>
-      <EmptyState title="Coming soon" description="Password reset will be available shortly." />
-    </div>
+    </main>
   );
 }

@@ -1,13 +1,21 @@
-import { EmptyState } from "@/components/ui/EmptyState";
+"use client";
+
+import { ResetPasswordForm } from "@/features/auth/components/reset-password-form";
+import Link from "next/link";
 
 export default function ResetPasswordPage() {
   return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h1 className="text-2xl font-semibold">Reset password</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Set a new password for your account.</p>
+    <main className="min-h-screen flex flex-col">
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="w-full">
+          <div className="mb-8 text-center">
+            <Link href="/" className="inline-flex items-center gap-2 mb-6">
+              <h1 className="text-xl font-bold">← Back</h1>
+            </Link>
+          </div>
+          <ResetPasswordForm />
+        </div>
       </div>
-      <EmptyState title="Coming soon" description="Password reset will be available shortly." />
-    </div>
+    </main>
   );
 }

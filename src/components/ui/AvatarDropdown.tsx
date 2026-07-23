@@ -17,6 +17,7 @@ import {
   Shield,
   Crown,
 } from "lucide-react"
+import { logger } from "@/core/logger"
 
 export function AvatarDropdown() {
   const [open, setOpen] = React.useState(false)
@@ -25,12 +26,31 @@ export function AvatarDropdown() {
 
   const handleSignOut = async () => {
     try {
-      await authService.signOut()
-      toast.success("Signed out")
-      router.push("/login")
+      setOpen(false)
+      
+      // Call clean sign-out API
+      const response = await fetch("/api/auth/sign-out", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      })
+
+      if (!response.ok) {
+        throw new Error("Sign-out failed")
+      }
+
+      toast.success("Signed out successfully")
+      
+      // Use replace to prevent back button
+      router.replace("/login")
+      
+      // Refresh page to ensure clean state
+      await new Promise(resolve => setTimeout(resolve, 500))
+      router.refresh()
+      
     } catch (err: unknown) {
-      console.error(err)
-      toast.error(String(err ?? "Failed to sign out"))
+      const error = err instanceof Error ? err.message : String(err)
+      logger.error("Sign-out error", new Error(error))
+      toast.error(error || "Failed to sign out")
     }
   }
 
@@ -131,7 +151,6 @@ export function AvatarDropdown() {
             <div className="py-1">
               <button
                 onClick={() => {
-                  setOpen(false)
                   handleSignOut()
                 }}
                 className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
