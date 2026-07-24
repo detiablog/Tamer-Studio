@@ -13,6 +13,12 @@ import { NotificationCenter } from "./NotificationCenter";
 export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
   const { theme, setTheme } = useTheme()
   const [notifOpen, setNotifOpen] = React.useState(false)
+  const [mounted, setMounted] = React.useState(false)
+
+  // Only render theme toggle after hydration
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
 
   return (
     <header className="relative flex items-center gap-4 border-b py-3 px-4">
@@ -45,9 +51,20 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
           <NotificationCenter open={notifOpen} onClose={() => setNotifOpen(false)} />
         </div>
 
-        <Button variant="outline" size="icon" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label="Toggle theme">
-          {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
-        </Button>
+        {mounted ? (
+          <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")} 
+            aria-label="Toggle theme"
+          >
+            {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
+          </Button>
+        ) : (
+          <Button variant="outline" size="icon" disabled aria-label="Toggle theme">
+            <Sun className="size-4" />
+          </Button>
+        )}
         <AvatarDropdown />
       </div>
     </header>

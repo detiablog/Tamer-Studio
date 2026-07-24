@@ -50,6 +50,8 @@ export function AdminLoginForm({ error, csrfToken }: AdminLoginFormProps) {
     const password = String(formData.get("password") || "");
     const adminKey = String(formData.get("adminKey") || "");
 
+    console.log("[AdminLoginForm] Submitting with:", { email, passwordLength: password.length, adminKeyLength: adminKey.length });
+
     // Validate on client
     if (!email || !password || !adminKey) {
       setFormError(ERROR_MESSAGES.missing_fields);
@@ -64,17 +66,20 @@ export function AdminLoginForm({ error, csrfToken }: AdminLoginFormProps) {
     }
 
     try {
+      console.log("[AdminLoginForm] Calling /api/admin/auth/login...");
       const response = await fetch("/api/admin/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "x-csrf-token": csrfToken,
         },
-        // CRITICAL: Do NOT include password/email in URL - use request body only
+        credentials: "include",
         body: JSON.stringify({ email, password, adminKey }),
       });
 
+      console.log("[AdminLoginForm] Response status:", response.status);
       const result = (await response.json()) as AdminLoginApiResponse;
+      console.log("[AdminLoginForm] Response body:", result);
 
       if (!result.success) {
         const reason = result.reason ?? "unexpected_error";
@@ -87,12 +92,33 @@ export function AdminLoginForm({ error, csrfToken }: AdminLoginFormProps) {
       }
 
       // Success
+      console.log("[AdminLoginForm] Login successful!");
+      console.log("[AdminLoginForm] Session token:", result.session?.token);
+      console.log("[AdminLoginForm] Document cookies before storing:", document.cookie);
+      
+      // Store session token in localStorage
+      if (result.session?.token) {
+        try {
+          localStorage.setItem("admin_session_token", result.session.token);
+          console.log("[AdminLoginForm] Stored admin_session_token in localStorage");
+          
+          // ALSO manually set cookie via document.cookie for server access
+          document.cookie = `admin_session=${result.session.token}; path=/; max-age=${60*60*24}`;
+          console.log("[AdminLoginForm] Manually set admin_session cookie via document.cookie");
+          console.log("[AdminLoginForm] Document cookies after manual set:", document.cookie);
+        } catch (storageErr) {
+          console.error("[AdminLoginForm] Failed to store:", storageErr);
+        }
+      } else {
+        console.warn("[AdminLoginForm] No session token in response!");
+      }
+      
       toast.success("Admin signed in successfully");
       
-      // Small delay to ensure cookies are set
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Small delay to ensure cookies/storage are set
+      await new Promise(resolve => setTimeout(resolve, 300));
       
-      // Use replace instead of push to prevent back button
+      console.log("[AdminLoginForm] About to redirect to /admin");
       router.replace("/admin");
       
       // Also refresh to ensure server validates session
@@ -100,6 +126,7 @@ export function AdminLoginForm({ error, csrfToken }: AdminLoginFormProps) {
       router.refresh();
       
     } catch (err) {
+      console.error("[AdminLoginForm] Catch error:", err);
       if (err instanceof Error) {
         logger.error("Admin login error", err);
         setFormError(err.message || ERROR_MESSAGES.unexpected_error);

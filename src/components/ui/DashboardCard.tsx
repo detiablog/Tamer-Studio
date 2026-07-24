@@ -8,16 +8,18 @@ export function DashboardCard({
   description,
   children,
 }: {
-  title: string;
+  title?: string;
   description?: string;
   children?: React.ReactNode;
 }) {
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        {description ? <CardDescription>{description}</CardDescription> : null}
-      </CardHeader>
+      {title && (
+        <CardHeader>
+          <CardTitle>{title}</CardTitle>
+          {description ? <CardDescription>{description}</CardDescription> : null}
+        </CardHeader>
+      )}
       <CardContent>{children}</CardContent>
     </Card>
   );
