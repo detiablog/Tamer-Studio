@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/Badge"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { Pause, RotateCcw, Play } from "lucide-react"
+import { useLocalizationContext } from "@/providers/localization"
 
 export const metadata = { title: "Production - Tamer Studio", description: "Manage production pipelines, queues and job history." }
 
@@ -20,9 +21,11 @@ const JOBS = [
 ]
 
 export default function ProductionPage() {
+  const { t } = useLocalizationContext();
+
   return (
     <AppShell>
-      <PageLayout title={"Production"} description={"Production pipeline and queues."} breadcrumb={[{ label: "Production" }]} actions={<ActionButton>New Job</ActionButton>}>
+      <PageLayout title={t("dashboard.production")} description={t("dashboard.productionPipelineDesc")} breadcrumb={[{ label: t("dashboard.production") }]} actions={<ActionButton>{t("dashboard.newJob")}</ActionButton>}>
         <div className="space-y-6">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard title="Total Jobs" value={24} delta="+3 today" />
@@ -31,7 +34,7 @@ export default function ProductionPage() {
             <StatCard title="Failed" value={2} delta="Retry available" />
           </div>
 
-          <DashboardCard title="Production Queue" description="Monitor and manage your production jobs">
+          <DashboardCard title={t("dashboard.productionPipeline")} description="Monitor and manage your production jobs">
             <div className="space-y-3">
               {JOBS.map((job) => (
                 <div key={job.id} className="flex items-center justify-between rounded-xl border border-border bg-muted/20 p-4">
@@ -71,7 +74,7 @@ export default function ProductionPage() {
                         <Play className="size-4" />
                       </Button>
                     )}
-                    <Link href={`/production/${job.id}`} className="text-sm text-primary hover:underline">Details</Link>
+                    <Link href={`/production/${job.id}`} className="text-sm text-primary hover:underline">{t("common.view")}</Link>
                   </div>
                 </div>
               ))}

@@ -17,9 +17,11 @@ import {
   PanelLeft,
   ChevronRight,
 } from "lucide-react";
+import { useLocalizationContext } from "@/providers/localization";
 
 export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
   const pathname = usePathname();
+  const { t } = useLocalizationContext();
   const [isCollapsed, setIsCollapsed] = React.useState(collapsed);
 
   const isActive = (href: string) => {
@@ -28,14 +30,14 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
   };
 
   const navItems = [
-    { icon: Home, label: "Dashboard", href: "/dashboard", shortcut: "⌘D" },
-    { icon: Grid, label: "Workspace", href: "/workspace", shortcut: "⌘W" },
-    { icon: Folder, label: "Projects", href: "/projects", shortcut: "⌘P" },
-    { icon: ImageIcon, label: "Media", href: "/media", shortcut: "⌘M" },
-    { icon: Film, label: "Production", href: "/production", shortcut: "⌘R" },
-    { icon: Cpu, label: "AI Platform", href: "/ai", shortcut: "⌘A" },
-    { icon: FileText, label: "Publishing", href: "/publishing", shortcut: "⌘U" },
-    { icon: Settings, label: "Settings", href: "/settings", shortcut: "⌘S" },
+    { icon: Home, labelKey: "dashboard.dashboard", href: "/dashboard", shortcut: "⌘D" },
+    { icon: Grid, labelKey: "dashboard.workspace", href: "/workspace", shortcut: "⌘W" },
+    { icon: Folder, labelKey: "dashboard.projects", href: "/projects", shortcut: "⌘P" },
+    { icon: ImageIcon, labelKey: "dashboard.media", href: "/media", shortcut: "⌘M" },
+    { icon: Film, labelKey: "dashboard.production", href: "/production", shortcut: "⌘R" },
+    { icon: Cpu, labelKey: "dashboard.ai", href: "/ai", shortcut: "⌘A" },
+    { icon: FileText, labelKey: "dashboard.publishing", href: "/publishing", shortcut: "⌘U" },
+    { icon: Settings, labelKey: "dashboard.settings", href: "/settings", shortcut: "⌘S" },
   ];
 
   return (
@@ -51,7 +53,7 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex flex-col border-r bg-sidebar transition-all duration-300 ease-in-out sm:relative sm:translate-x-0",
+          "fixed inset-y-0 left-0 z-40 flex flex-col border-r border-[#E5E7EB] bg-white transition-all duration-300 ease-in-out sm:relative sm:translate-x-0 dark:bg-sidebar dark:border-border",
           isCollapsed ? "w-[72px] -translate-x-full sm:translate-x-0 sm:w-[72px]" : "w-72 translate-x-0"
         )}
       >
@@ -75,8 +77,15 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto px-3 py-4">
-          <div className="mb-2 px-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
+        <nav className="sidebar-nav flex-1 overflow-y-auto px-3 py-4">
+          <style>{`
+            .sidebar-nav::-webkit-scrollbar { width: 6px; }
+            .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+            .sidebar-nav::-webkit-scrollbar-thumb { background: transparent; border-radius: 3px; }
+            .sidebar-nav:hover::-webkit-scrollbar-thumb { background: #D1D5DB; }
+            .dark .sidebar-nav:hover::-webkit-scrollbar-thumb { background: #4B5563; }
+          `}</style>
+          <div className="mb-2 px-2 text-[11px] font-medium uppercase tracking-wider text-[#9CA3AF] dark:text-muted-foreground/70">
             {isCollapsed ? "" : "Main"}
           </div>
           <div className="flex flex-col gap-1">
@@ -84,7 +93,7 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
               <SidebarItem
                 key={item.href}
                 icon={item.icon}
-                label={isCollapsed ? "" : item.label}
+                label={isCollapsed ? "" : t(item.labelKey)}
                 href={item.href}
                 active={isActive(item.href)}
                 shortcut={isCollapsed ? undefined : item.shortcut}
@@ -92,13 +101,13 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
             ))}
           </div>
 
-          <div className="mt-6 mb-2 px-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
+          <div className="mt-6 mb-2 px-2 text-[11px] font-medium uppercase tracking-wider text-[#9CA3AF] dark:text-muted-foreground/70">
             {isCollapsed ? "" : "Manage"}
           </div>
           <div className="flex flex-col gap-1">
             <SidebarItem
               icon={Settings}
-              label={isCollapsed ? "" : "Settings"}
+              label={isCollapsed ? "" : t("dashboard.settings")}
               href="/settings"
               active={isActive("/settings")}
               shortcut={isCollapsed ? undefined : "⌘S"}

@@ -80,6 +80,11 @@ export const user = pgTable("user", {
 	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow().notNull(),
 	role: varchar({ length: 50 }).default('user').notNull(),
 	status: varchar({ length: 50 }).default('pending').notNull(),
+	preferredLanguage: varchar("preferred_language", { length: 10 }).default('en').notNull(),
+	preferredCurrency: varchar("preferred_currency", { length: 10 }).default('USD').notNull(),
+	preferredCountry: varchar("preferred_country", { length: 10 }),
+	preferredTimezone: varchar("preferred_timezone", { length: 100 }),
+	autoDetectLocale: boolean("auto_detect_locale").default(true).notNull(),
 }, (table) => [
 	unique("user_email_unique").on(table.email),
 ]);

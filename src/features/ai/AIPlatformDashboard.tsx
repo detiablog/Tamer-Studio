@@ -8,8 +8,10 @@ import { AIProviderCard } from "@/components/ai/AIProviderCard";
 import { PromptTemplateCard } from "@/components/ai/PromptTemplateCard";
 import { aiPlatformStore, type AIProvider, type AIModel, type PromptTemplate, type AIUsageSummary } from "./ai.store";
 import { toast } from "sonner";
+import { useCurrencyContext } from "@/providers/currency";
 
 export function AIPlatformDashboard() {
+  const { formatCurrency } = useCurrencyContext();
   const [providers, setProviders] = React.useState<AIProvider[]>([]);
   const [marketplace, setMarketplace] = React.useState<AIProvider[]>([]);
   const [models, setModels] = React.useState<AIModel[]>([]);
@@ -72,8 +74,6 @@ export function AIPlatformDashboard() {
   const handleGeneratePreview = () => {
     toast.success("AI preview is a placeholder UI. This experience is ready for future integration.");
   };
-
-  const formatCurrency = (value: number) => `$${value.toFixed(2)}`;
 
   return (
     <div className="space-y-8">

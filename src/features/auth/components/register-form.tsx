@@ -14,8 +14,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { useLocalizationContext } from "@/providers/localization";
 
 export function RegisterForm() {
+  const { t } = useLocalizationContext();
   const [submitting, setSubmitting] = React.useState(false);
   const [showPassword, setShowPassword] = React.useState(false);
 
@@ -37,24 +39,24 @@ export function RegisterForm() {
 
       if (hasAuthError(result) && result.error?.message) {
         logger.error("Registration failed", new Error(result.error.message));
-        toast.error("Unable to create account. Please check your information and try again.");
+        toast.error(t("auth.invalidCredentials"));
         return;
       }
 
       if (hasAuthError(result)) {
         logger.error("Registration failed with unknown auth error", new Error(result.error?.message ?? "Unknown auth error"));
-        toast.error("Unable to create account. Please try again later.");
+        toast.error(t("common.genericError"));
         return;
       }
 
-      toast.success("Account created");
+      toast.success(t("auth.accountCreated"));
     } catch (err) {
       if (err instanceof Error) {
         logger.error("Unexpected registration error", err);
       } else {
         logger.error("Unexpected registration error", new Error(String(err)));
       }
-      toast.error("Unable to create account. Please try again later.");
+      toast.error(t("common.genericError"));
     } finally {
       setSubmitting(false);
     }
@@ -63,30 +65,30 @@ export function RegisterForm() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
-        <CardTitle>Create your account</CardTitle>
+        <CardTitle>{t("auth.signUpTitle")}</CardTitle>
       </CardHeader>
 
       <CardContent className="space-y-4">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
+            <Label htmlFor="name">{t("auth.nameLabel")}</Label>
             <Input id="name" type="text" placeholder="John Doe" {...register("name")} autoComplete="name" aria-invalid={!!errors.name} />
             {errors.name ? <p className="text-sm text-destructive">{errors.name.message}</p> : null}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t("auth.emailLabel")}</Label>
             <Input id="email" type="email" placeholder="you@company.com" {...register("email")} autoComplete="email" aria-invalid={!!errors.email} />
             {errors.email ? <p className="text-sm text-destructive">{errors.email.message}</p> : null}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{t("auth.passwordLabel")}</Label>
             <div className="relative">
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
-                placeholder="Create a strong password"
+                placeholder={t("auth.passwordLabel")}
                 {...register("password")}
                 autoComplete="new-password"
                 aria-invalid={!!errors.password}
@@ -104,7 +106,7 @@ export function RegisterForm() {
           </div>
 
           <Button className="w-full" type="submit" disabled={submitting}>
-            {submitting ? "Creating account..." : "Create Account"}
+            {submitting ? t("auth.creatingAccount") : t("auth.signUpButton")}
           </Button>
         </form>
       </CardContent>

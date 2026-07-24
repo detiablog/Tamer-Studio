@@ -9,6 +9,11 @@ export const user = pgTable("user", {
   image: text("image"),
   role: varchar("role", { length: 50 }).default("user").notNull(),
   status: varchar("status", { length: 50 }).default("pending").notNull(),
+  preferredLanguage: varchar("preferred_language", { length: 10 }).default("en").notNull(),
+  preferredCurrency: varchar("preferred_currency", { length: 10 }).default("USD").notNull(),
+  preferredCountry: varchar("preferred_country", { length: 10 }),
+  preferredTimezone: varchar("preferred_timezone", { length: 100 }),
+  autoDetectLocale: boolean("auto_detect_locale").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()

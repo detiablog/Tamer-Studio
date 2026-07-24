@@ -2,6 +2,7 @@ import { AppShell } from "@/components/ui/AppShell";
 import { PageLayout } from "@/components/ui/PageLayout";
 import { requireUser } from "@/core/auth";
 import { redirect } from "next/navigation";
+import { useLocalizationContext } from "@/providers/localization";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   try {
