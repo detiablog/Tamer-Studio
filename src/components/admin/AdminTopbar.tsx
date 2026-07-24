@@ -13,11 +13,40 @@ export function AdminTopbar({ onMenuClick }: { onMenuClick?: () => void }) {
   const { theme, setTheme } = useTheme()
   const [notifOpen, setNotifOpen] = React.useState(false)
   const [mounted, setMounted] = React.useState(false)
+  const [searchQuery, setSearchQuery] = React.useState("")
 
-  // Only render theme toggle after hydration
   React.useEffect(() => {
     setMounted(true)
   }, [])
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query)
+    if (!query.trim()) return
+    const q = query.toLowerCase()
+    const routes: Record<string, string> = {
+      users: "/admin/users",
+      organizations: "/admin/organizations",
+      workspaces: "/admin/workspaces",
+      jobs: "/admin/jobs",
+      queues: "/admin/queues",
+      coupons: "/admin/coupons",
+      billing: "/admin/billing",
+      settings: "/admin/settings",
+      analytics: "/admin/analytics",
+      flags: "/admin/feature-flags",
+      providers: "/admin/ai-providers",
+      keys: "/admin/api-keys",
+      logs: "/admin/audit-logs",
+      profile: "/admin/profile",
+      subscriptions: "/admin/subscriptions",
+    }
+    const matchedRoute = Object.entries(routes).find(([key]) => q.includes(key))
+    if (matchedRoute) {
+      window.location.href = matchedRoute[1]
+    } else {
+      toast.info(`No results found for "${query}"`)
+    }
+  }
 
   return (
     <header className="relative flex items-center gap-4 border-b py-3 px-4">
@@ -35,7 +64,7 @@ export function AdminTopbar({ onMenuClick }: { onMenuClick?: () => void }) {
 
       <div className="ml-4 flex flex-1 items-center">
         <div className="flex-1">
-          <SearchInput placeholder="Search projects, media, actions..." />
+          <SearchInput placeholder="Search users, organizations, jobs, queues..." onSearch={handleSearch} />
         </div>
       </div>
 

@@ -1,9 +1,10 @@
 "use client"
 
 import * as React from "react"
-import { Bell, CheckCheck, Settings } from "lucide-react"
+import { Bell, CheckCheck, Settings, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
 
 type Notification = {
   id: string
@@ -14,7 +15,7 @@ type Notification = {
   type: "info" | "success" | "warning" | "error"
 }
 
-const NOTIFICATIONS: Notification[] = [
+let NOTIFICATIONS: Notification[] = [
   { id: "1", title: "Production job completed", description: "Hero Video Render finished successfully.", time: "2 minutes ago", read: false, type: "success" },
   { id: "2", title: "New team member invited", description: "Carol White accepted the invite.", time: "1 hour ago", read: false, type: "info" },
   { id: "3", title: "AI provider rate limit warning", description: "OpenAI usage reached 80% of daily limit.", time: "3 hours ago", read: false, type: "warning" },
@@ -30,7 +31,22 @@ const typeConfig = {
 }
 
 export function NotificationCenter({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const unreadCount = NOTIFICATIONS.filter((n) => !n.read).length
+  const [notifications, setNotifications] = React.useState(NOTIFICATIONS)
+  const unreadCount = notifications.filter((n) => !n.read).length
+
+  const markAllRead = () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+    toast.success("All notifications marked as read")
+  }
+
+  const handleViewAll = () => {
+    onClose()
+    toast.info("Opening notification center — TODO: Navigate to full notification page")
+  }
+
+  const markAsRead = (id: string) => {
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)))
+  }
 
   if (!open) return null
 
@@ -51,11 +67,14 @@ export function NotificationCenter({ open, onClose }: { open: boolean; onClose: 
           )}
         </div>
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" className="size-7" aria-label="Mark all as read">
+          <Button variant="ghost" size="icon" className="size-7" aria-label="Mark all as read" onClick={markAllRead}>
             <CheckCheck className="size-3.5" />
           </Button>
           <Button variant="ghost" size="icon" className="size-7" aria-label="Notification settings">
             <Settings className="size-3.5" />
+          </Button>
+          <Button variant="ghost" size="icon" className="size-7" aria-label="Close notifications" onClick={onClose}>
+            <X className="size-3.5" />
           </Button>
         </div>
       </div>
@@ -63,40 +82,48 @@ export function NotificationCenter({ open, onClose }: { open: boolean; onClose: 
       <div className="mx-3 my-1 h-px bg-border/60" />
 
       <div className="max-h-80 overflow-y-auto px-1.5 py-1">
-        {NOTIFICATIONS.map((notification) => {
-          const config = typeConfig[notification.type]
-          const Icon = config.icon
-          return (
-            <div
-              key={notification.id}
-              className={cn(
-                "flex gap-3 rounded-lg p-3 transition-colors",
-                notification.read ? "bg-transparent" : "bg-muted/20"
-              )}
-            >
-              <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg", config.bg)}>
-                <Icon className={cn("size-4", config.color)} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2">
-                  <p className={cn("text-sm leading-tight", !notification.read && "font-medium")}>
-                    {notification.title}
-                  </p>
-                  {!notification.read && <div className="size-2 shrink-0 rounded-full bg-primary mt-1" />}
+        {notifications.length === 0 ? (
+          <div className="text-center py-8 text-sm text-muted-foreground">No notifications</div>
+        ) : (
+          notifications.map((notification) => {
+            const config = typeConfig[notification.type]
+            const Icon = config.icon
+            return (
+              <div
+                key={notification.id}
+                className={cn(
+                  "flex gap-3 rounded-lg p-3 transition-colors cursor-pointer",
+                  notification.read ? "bg-transparent hover:bg-muted/20" : "bg-muted/20 hover:bg-muted/30"
+                )}
+                onClick={() => markAsRead(notification.id)}
+              >
+                <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg", config.bg)}>
+                  <Icon className={cn("size-4", config.color)} />
                 </div>
-                <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{notification.description}</p>
-                <p className="text-[10px] text-muted-foreground/70 mt-1">{notification.time}</p>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className={cn("text-sm leading-tight", !notification.read && "font-medium")}>
+                      {notification.title}
+                    </p>
+                    {!notification.read && <div className="size-2 shrink-0 rounded-full bg-primary mt-1" />}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{notification.description}</p>
+                  <p className="text-[10px] text-muted-foreground/70 mt-1">{notification.time}</p>
+                </div>
               </div>
-            </div>
-          )
-        })}
+            )
+          })
+        )}
       </div>
 
       <div className="mx-3 my-1 h-px bg-border/60" />
 
-      <div className="px-1.5 py-1">
-        <Button variant="ghost" size="sm" className="w-full text-xs" onClick={onClose}>
+      <div className="px-1.5 py-1 flex gap-1">
+        <Button variant="ghost" size="sm" className="flex-1 text-xs" onClick={handleViewAll}>
           View all notifications
+        </Button>
+        <Button variant="ghost" size="sm" className="text-xs" onClick={markAllRead}>
+          Mark all read
         </Button>
       </div>
     </div>

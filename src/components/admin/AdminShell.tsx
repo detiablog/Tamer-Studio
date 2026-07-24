@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
 import { AdminTopbar } from "./AdminTopbar";
 import { AdminSidebar } from "./AdminSidebar";
 
@@ -11,11 +12,30 @@ type AdminShellProps = {
 
 export function AdminShell({ children }: AdminShellProps) {
   const pathname = usePathname();
+  const [collapsed, setCollapsed] = React.useState(false);
+
+  React.useEffect(() => {
+    const saved = localStorage.getItem("admin.sidebar.collapsed");
+    if (saved !== null) {
+      setCollapsed(saved === "true");
+    }
+  }, []);
+
+  React.useEffect(() => {
+    localStorage.setItem("admin.sidebar.collapsed", String(collapsed));
+  }, [collapsed]);
+
+  const toggleCollapsed = React.useCallback(() => {
+    setCollapsed(prev => !prev);
+  }, []);
 
   return (
     <div className="min-h-screen flex bg-background text-foreground">
-      <div className="hidden w-72 border-r bg-sidebar p-3 dark:block sm:block">
-        <AdminSidebar pathname={pathname} />
+      <div className={cn(
+        "hidden border-r bg-sidebar p-3 dark:block sm:block transition-all duration-300 ease-in-out",
+        collapsed ? "w-20" : "w-72"
+      )}>
+        <AdminSidebar pathname={pathname} collapsed={collapsed} onToggle={toggleCollapsed} />
       </div>
 
       <div className="flex flex-1 flex-col">

@@ -1,15 +1,11 @@
 import { db } from "@/lib/db";
-import { admin } from "@/lib/db/schema";
+import { admin } from "@/lib/db/schema/admin";
 import { hashPassword } from "@/core/admin/login";
 import { randomUUID } from "crypto";
 
-/**
- * Create a development admin user
- * Run with: npx ts-node scripts/create-admin.ts
- */
 async function createAdminUser() {
   try {
-    const adminId = randomUUID();
+    const adminId = `admin_${randomUUID()}`;
     const passwordHash = await hashPassword("SecureAdminPassword123!");
     
     console.log("Creating admin user...");

@@ -12,42 +12,40 @@ import {
   Key,
   LogOut,
   ChevronRight,
+  AlertTriangle,
 } from "lucide-react"
 import { logger } from "@/core/logger"
 
 export function AdminAvatarDropdown() {
   const [open, setOpen] = React.useState(false)
+  const [logoutDialog, setLogoutDialog] = React.useState(false)
   const router = useRouter()
 
   const handleSignOut = async () => {
     try {
+      setLogoutDialog(false)
       setOpen(false)
-      
-      // Clear localStorage first
+
       localStorage.removeItem("admin_session_token");
       console.log("[AdminAvatarDropdown] Cleared localStorage");
-      
-      // Call clean sign-out API to clear admin_session cookie
+
       const response = await fetch("/api/admin/auth/logout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       })
 
       if (!response.ok) {
-        // Fallback: clear manually
         document.cookie = "admin_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
       }
 
       console.log("[AdminAvatarDropdown] Logged out successfully")
       toast.success("Signed out successfully")
-      
-      // Redirect to admin login
+
       router.replace("/admin/login")
-      
-      // Refresh to ensure clean state
+
       await new Promise(resolve => setTimeout(resolve, 500))
       router.refresh()
-      
+
     } catch (err: unknown) {
       const error = err instanceof Error ? err.message : String(err)
       logger.error("Admin sign-out error", new Error(error))
@@ -82,7 +80,6 @@ export function AdminAvatarDropdown() {
             role="menu"
             aria-orientation="vertical"
           >
-            {/* User info header */}
             <div className="flex items-center gap-3 rounded-lg p-3">
               <Avatar name="A" size={40} />
               <div className="flex flex-col">
@@ -136,16 +133,34 @@ export function AdminAvatarDropdown() {
 
             <div className="py-1">
               <button
-                onClick={() => {
-                  setOpen(false)
-                  handleSignOut()
-                }}
+                onClick={() => { setOpen(false); setLogoutDialog(true); }}
                 className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
                 role="menuitem"
               >
                 <LogOut className="size-4" />
                 <span>Sign out</span>
               </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {logoutDialog && (
+        <>
+          <div className="fixed inset-0 z-50 bg-black/50" onClick={() => setLogoutDialog(false)} />
+          <div className="fixed left-1/2 top-1/2 z-50 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-xl border border-border bg-card p-6 shadow-lg animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-500/10">
+                <AlertTriangle className="size-5 text-amber-500" />
+              </div>
+              <div>
+                <h3 className="font-semibold">Confirm Sign Out</h3>
+                <p className="text-sm text-muted-foreground">Are you sure you want to sign out?</p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setLogoutDialog(false)} className="flex-1">Cancel</Button>
+              <Button variant="destructive" onClick={handleSignOut} className="flex-1">Sign Out</Button>
             </div>
           </div>
         </>

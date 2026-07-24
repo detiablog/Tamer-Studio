@@ -5,62 +5,91 @@ import { StatCard } from "@/components/ui/StatCard";
 import { DashboardCard } from "@/components/ui/DashboardCard";
 import { Badge } from "@/components/ui/Badge";
 import Link from "next/link";
-import { TrendingUp, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { TrendingUp, ArrowUpRight, ArrowDownRight, RefreshCw, Clock, Activity } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 export default function AdminDashboardPage() {
-  // Mock data for development
-  const metrics = {
+  const [metrics, setMetrics] = React.useState({
     totalUsers: 1234,
     activeWorkspaces: 45,
     revenue: "$12,500",
     revenueToday: "$850",
     revenueWeek: "$5,200",
     revenueMonth: "$12,500",
+  });
+
+  const [jobs, setJobs] = React.useState({ processing: 8 });
+  const [autoRefresh, setAutoRefresh] = React.useState(false);
+  const [lastRefresh, setLastRefresh] = React.useState(Date.now());
+
+  React.useEffect(() => {
+    if (!autoRefresh) return;
+    const interval = setInterval(() => {
+      setMetrics((prev) => ({
+        ...prev,
+        totalUsers: prev.totalUsers + Math.floor(Math.random() * 5) - 1,
+        revenueToday: `$${(850 + Math.floor(Math.random() * 100)).toLocaleString()}`,
+      }));
+      setLastRefresh(Date.now());
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [autoRefresh]);
+
+  const handleRefresh = () => {
+    toast.success("Dashboard refreshed");
+    setLastRefresh(Date.now());
   };
 
-  const jobs = {
-    processing: 8,
+  const handleCardClick = (title: string) => {
+    const routes: Record<string, string> = {
+      "Total Users": "/admin/users",
+      "Active Workspaces": "/admin/workspaces",
+      "Active Jobs": "/admin/jobs",
+      "Revenue": "/admin/billing",
+    };
+    const route = routes[title];
+    if (route) {
+      window.location.href = route;
+    } else {
+      toast.info(`Opening ${title} details`);
+    }
   };
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+          <p className="text-muted-foreground text-sm mt-1">Platform overview and recent activity</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Clock className="size-3" />
+            {Math.round((Date.now() - lastRefresh) / 1000)}s ago
+          </div>
+          <Button variant="outline" size="sm" onClick={() => setAutoRefresh(!autoRefresh)} className={autoRefresh ? "bg-primary/10 text-primary" : ""}>
+            <Activity className="mr-2 size-4" />
+            {autoRefresh ? "Auto ON" : "Auto OFF"}
+          </Button>
+          <Button size="sm" onClick={handleRefresh}>
+            <RefreshCw className="mr-2 size-4" />
+            Refresh
+          </Button>
+        </div>
+      </div>
+
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          title="Total Users"
-          value={metrics.totalUsers ?? 0}
-          delta={
-            <span className="flex items-center gap-1 text-xs text-muted-foreground">
-              <ArrowUpRight className="size-3" /> +12% this week
-            </span>
-          }
-        />
-        <StatCard
-          title="Active Workspaces"
-          value={metrics.activeWorkspaces ?? 0}
-          delta={
-            <span className="flex items-center gap-1 text-xs text-muted-foreground">
-              <ArrowUpRight className="size-3" /> +5 this week
-            </span>
-          }
-        />
-        <StatCard
-          title="Active Jobs"
-          value={jobs.processing ?? 0}
-          delta={
-            <span className="flex items-center gap-1 text-xs text-muted-foreground">
-              <ArrowDownRight className="size-3" /> -3 from yesterday
-            </span>
-          }
-        />
-        <StatCard
-          title="Revenue"
-          value={metrics.revenue ?? "$0"}
-          delta={
-            <span className="flex items-center gap-1 text-xs text-muted-foreground">
-              <ArrowUpRight className="size-3" /> +8.2% vs last month
-            </span>
-          }
-        />
+        {[
+          { title: "Total Users", value: metrics.totalUsers ?? 0, delta: <span className="flex items-center gap-1 text-xs text-muted-foreground"><ArrowUpRight className="size-3" /> +12% this week</span>, href: "/admin/users" },
+          { title: "Active Workspaces", value: metrics.activeWorkspaces ?? 0, delta: <span className="flex items-center gap-1 text-xs text-muted-foreground"><ArrowUpRight className="size-3" /> +5 this week</span>, href: "/admin/workspaces" },
+          { title: "Active Jobs", value: jobs.processing ?? 0, delta: <span className="flex items-center gap-1 text-xs text-muted-foreground"><ArrowDownRight className="size-3" /> -3 from yesterday</span>, href: "/admin/jobs" },
+          { title: "Revenue", value: metrics.revenue ?? "$0", delta: <span className="flex items-center gap-1 text-xs text-muted-foreground"><ArrowUpRight className="size-3" /> +8.2% vs last month</span>, href: "/admin/billing" },
+        ].map((stat) => (
+          <div key={stat.title} className="cursor-pointer" onClick={() => handleCardClick(stat.title)}>
+            <StatCard title={stat.title} value={stat.value} delta={stat.delta} />
+          </div>
+        ))}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -71,7 +100,7 @@ export default function AdminDashboardPage() {
               { label: "This Week", value: metrics.revenueWeek ?? "$0", change: "+12.1%" },
               { label: "This Month", value: metrics.revenueMonth ?? "$0", change: "+8.2%" },
             ].map((stat) => (
-              <div key={stat.label} className="rounded-xl border border-border bg-muted/20 p-4">
+              <div key={stat.label} className="rounded-xl border border-border bg-muted/20 p-4 cursor-pointer hover:bg-muted/30 transition-colors" onClick={() => handleCardClick(stat.label)}>
                 <p className="text-xs text-muted-foreground">{stat.label}</p>
                 <p className="mt-2 text-2xl font-semibold">{stat.value}</p>
                 <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1 mt-1">
@@ -90,7 +119,7 @@ export default function AdminDashboardPage() {
               { name: "Product Image Batch", status: "Queued", progress: 0, owner: "Bob Smith" },
               { name: "Voiceover Generation", status: "Running", progress: 45, owner: "Carol White" },
             ].map((job) => (
-              <div key={job.name} className="flex items-center justify-between rounded-xl border border-border bg-muted/20 p-4">
+              <div key={job.name} className="flex items-center justify-between rounded-xl border border-border bg-muted/20 p-4 cursor-pointer hover:bg-muted/30 transition-colors" onClick={() => handleCardClick(job.name)}>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <h4 className="font-medium">{job.name}</h4>
@@ -113,7 +142,7 @@ export default function AdminDashboardPage() {
                     <div className="h-1.5 rounded-full bg-primary transition-all" style={{ width: `${job.progress}%` }} />
                   </div>
                 </div>
-                <Link href="/admin/jobs" className="text-sm text-primary hover:underline">
+                <Link href="/admin/jobs" className="text-sm text-primary hover:underline" onClick={(e) => e.stopPropagation()}>
                   Details
                 </Link>
               </div>
