@@ -1,29 +1,31 @@
+"use client";
+
+import * as React from "react";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { PageLayout } from "@/components/ui/PageLayout";
 import { TrendingUp, Users, Zap, Activity } from "lucide-react";
-
-export const dynamic = "force-dynamic";
+import { useLocalizationContext } from "@/providers/localization";
 
 export default function AdminDashboardRootPage() {
+  const { t } = useLocalizationContext();
+
   return (
     <AdminShell>
-      <PageLayout title="Admin Dashboard" breadcrumb={[{ label: "Dashboard" }]}>
+      <PageLayout title={t("admin.dashboard")} breadcrumb={[{ label: t("admin.dashboard") }]}>
         <div className="space-y-8">
-          {/* Welcome Section */}
           <div className="rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-8">
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold">Welcome back, Admin</h2>
-              <p className="text-muted-foreground">Here's what's happening with your platform today.</p>
+              <h2 className="text-3xl font-bold">{t("admin.dashboard")}</h2>
+              <p className="text-muted-foreground">{t("admin.description")}</p>
             </div>
           </div>
 
-          {/* Key Metrics */}
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             <div className="group relative overflow-hidden rounded-xl border border-border/50 bg-card p-6 transition hover:border-primary/30 hover:shadow-lg">
               <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-transparent opacity-0 transition group-hover:opacity-100" />
               <div className="relative space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-muted-foreground">Total Users</span>
+                  <span className="text-sm font-medium text-muted-foreground">{t("admin.users")}</span>
                   <div className="rounded-lg bg-primary/10 p-2">
                     <Users className="size-4 text-primary" />
                   </div>
@@ -42,7 +44,7 @@ export default function AdminDashboardRootPage() {
               <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-transparent opacity-0 transition group-hover:opacity-100" />
               <div className="relative space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-muted-foreground">Active Workspaces</span>
+                  <span className="text-sm font-medium text-muted-foreground">{t("admin.workspaces")}</span>
                   <div className="rounded-lg bg-blue-600/10 p-2">
                     <Activity className="size-4 text-blue-600 dark:text-blue-400" />
                   </div>
@@ -58,7 +60,7 @@ export default function AdminDashboardRootPage() {
               <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-transparent opacity-0 transition group-hover:opacity-100" />
               <div className="relative space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-muted-foreground">Active Jobs</span>
+                  <span className="text-sm font-medium text-muted-foreground">{t("admin.jobs")}</span>
                   <div className="rounded-lg bg-amber-600/10 p-2">
                     <Zap className="size-4 text-amber-600 dark:text-amber-400" />
                   </div>
@@ -74,7 +76,7 @@ export default function AdminDashboardRootPage() {
               <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-transparent opacity-0 transition group-hover:opacity-100" />
               <div className="relative space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-muted-foreground">Monthly Revenue</span>
+                  <span className="text-sm font-medium text-muted-foreground">{t("admin.revenue")}</span>
                   <div className="rounded-lg bg-green-600/10 p-2">
                     <TrendingUp className="size-4 text-green-600 dark:text-green-400" />
                   </div>
@@ -90,12 +92,11 @@ export default function AdminDashboardRootPage() {
             </div>
           </div>
 
-          {/* System Health */}
           <div className="grid gap-6 lg:grid-cols-3">
             <div className="rounded-xl border border-border/50 bg-card p-6">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-semibold">System Health</h3>
+                  <h3 className="font-semibold">{t("admin.jobs")}</h3>
                   <div className="flex gap-1">
                     <div className="size-2 rounded-full bg-green-600" />
                     <span className="text-xs text-green-600 font-medium">Healthy</span>
@@ -135,22 +136,22 @@ export default function AdminDashboardRootPage() {
 
             <div className="rounded-xl border border-border/50 bg-card p-6">
               <div className="space-y-4">
-                <h3 className="font-semibold">Quick Stats</h3>
+                <h3 className="font-semibold">{t("admin.analytics")}</h3>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Active Sessions</span>
+                    <span className="text-sm text-muted-foreground">{t("admin.users")}</span>
                     <span className="text-sm font-semibold">234</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">API Requests</span>
+                    <span className="text-sm text-muted-foreground">{t("admin.apiRateLimit")}</span>
                     <span className="text-sm font-semibold">45.2K/day</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Failed Logins</span>
+                    <span className="text-sm text-muted-foreground">{t("admin.errors")}</span>
                     <span className="text-sm font-semibold text-amber-600">12</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Avg Response</span>
+                    <span className="text-sm text-muted-foreground">{t("admin.performance")}</span>
                     <span className="text-sm font-semibold">245ms</span>
                   </div>
                 </div>
@@ -159,26 +160,26 @@ export default function AdminDashboardRootPage() {
 
             <div className="rounded-xl border border-border/50 bg-card p-6">
               <div className="space-y-4">
-                <h3 className="font-semibold">Recent Activity</h3>
+                <h3 className="font-semibold">{t("admin.auditLogs")}</h3>
                 <div className="space-y-3">
                   <div className="flex items-start gap-3">
                     <div className="size-2 rounded-full bg-blue-600 mt-1.5 shrink-0" />
                     <div className="space-y-0.5 min-w-0">
-                      <p className="text-sm font-medium">New user registration</p>
+                      <p className="text-sm font-medium">{t("admin.newUser")}</p>
                       <p className="text-xs text-muted-foreground">5 minutes ago</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <div className="size-2 rounded-full bg-green-600 mt-1.5 shrink-0" />
                     <div className="space-y-0.5 min-w-0">
-                      <p className="text-sm font-medium">Workspace created</p>
+                      <p className="text-sm font-medium">{t("admin.workspaceCreated")}</p>
                       <p className="text-xs text-muted-foreground">15 minutes ago</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <div className="size-2 rounded-full bg-amber-600 mt-1.5 shrink-0" />
                     <div className="space-y-0.5 min-w-0">
-                      <p className="text-sm font-medium">Job failed - retry queued</p>
+                      <p className="text-sm font-medium">{t("admin.jobFailed")}</p>
                       <p className="text-xs text-muted-foreground">32 minutes ago</p>
                     </div>
                   </div>

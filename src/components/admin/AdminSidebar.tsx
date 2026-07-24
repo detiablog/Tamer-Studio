@@ -22,6 +22,7 @@ import {
   PanelLeftClose,
   PanelLeft,
 } from "lucide-react"
+import { useLocalizationContext } from "@/providers/localization"
 
 type AdminSidebarProps = {
   pathname?: string;
@@ -44,6 +45,7 @@ export function AdminSidebar({ pathname, collapsed, onToggle }: AdminSidebarProp
   const currentPath = pathname ?? (typeof window !== "undefined" ? window.location.pathname : "");
   const { hasPermission, mounted, isAdmin } = useAdminPermissions();
   const [forceRefresh, setForceRefresh] = React.useState(0);
+  const { t } = useLocalizationContext();
 
   React.useEffect(() => {
     if (mounted) {
@@ -79,117 +81,117 @@ export function AdminSidebar({ pathname, collapsed, onToggle }: AdminSidebarProp
         </button>
 
         {!collapsed && (
-          <div className="mb-2 px-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">Admin</div>
+          <div className="mb-2 px-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">{t("admin.dashboard")}</div>
         )}
 
         {collapsed ? (
-          <SidebarTooltip label="Dashboard">
+          <SidebarTooltip label={t("admin.dashboard")}>
             <SidebarItem icon={LayoutDashboard} label="" href="/admin" active={isActive("/admin")} />
           </SidebarTooltip>
         ) : (
-          <SidebarItem icon={LayoutDashboard} label="Dashboard" href="/admin" active={isActive("/admin")} />
+          <SidebarItem icon={LayoutDashboard} label={t("admin.dashboard")} href="/admin" active={isActive("/admin")} />
         )}
 
         {mounted ? (
           <>
             {hasPermission("admin:users") && (collapsed ? (
-              <SidebarTooltip label="Users">
+              <SidebarTooltip label={t("admin.users")}>
                 <SidebarItem icon={Users} label="" href="/admin/users" active={isActive("/admin/users")} />
               </SidebarTooltip>
             ) : (
-              <SidebarItem icon={Users} label="Users" href="/admin/users" active={isActive("/admin/users")} />
+              <SidebarItem icon={Users} label={t("admin.users")} href="/admin/users" active={isActive("/admin/users")} />
             ))}
             {hasPermission("admin:organizations") && (collapsed ? (
-              <SidebarTooltip label="Organizations">
+              <SidebarTooltip label={t("admin.organizations")}>
                 <SidebarItem icon={Building2} label="" href="/admin/organizations" active={isActive("/admin/organizations")} />
               </SidebarTooltip>
             ) : (
-              <SidebarItem icon={Building2} label="Organizations" href="/admin/organizations" active={isActive("/admin/organizations")} />
+              <SidebarItem icon={Building2} label={t("admin.organizations")} href="/admin/organizations" active={isActive("/admin/organizations")} />
             ))}
             {hasPermission("admin:workspaces") && (collapsed ? (
-              <SidebarTooltip label="Workspaces">
+              <SidebarTooltip label={t("admin.workspaces")}>
                 <SidebarItem icon={Workflow} label="" href="/admin/workspaces" active={isActive("/admin/workspaces")} />
               </SidebarTooltip>
             ) : (
-              <SidebarItem icon={Workflow} label="Workspaces" href="/admin/workspaces" active={isActive("/admin/workspaces")} />
+              <SidebarItem icon={Workflow} label={t("admin.workspaces")} href="/admin/workspaces" active={isActive("/admin/workspaces")} />
             ))}
             {hasPermission("admin:ai_providers") && (collapsed ? (
-              <SidebarTooltip label="AI Providers">
+              <SidebarTooltip label={t("admin.aiProviders")}>
                 <SidebarItem icon={Cpu} label="" href="/admin/ai-providers" active={isActive("/admin/ai-providers")} />
               </SidebarTooltip>
             ) : (
-              <SidebarItem icon={Cpu} label="AI Providers" href="/admin/ai-providers" active={isActive("/admin/ai-providers")} />
+              <SidebarItem icon={Cpu} label={t("admin.aiProviders")} href="/admin/ai-providers" active={isActive("/admin/ai-providers")} />
             ))}
             {hasPermission("admin:jobs") && (collapsed ? (
-              <SidebarTooltip label="Jobs">
+              <SidebarTooltip label={t("admin.jobs")}>
                 <SidebarItem icon={Rocket} label="" href="/admin/jobs" active={isActive("/admin/jobs")} />
               </SidebarTooltip>
             ) : (
-              <SidebarItem icon={Rocket} label="Jobs" href="/admin/jobs" active={isActive("/admin/jobs")} />
+              <SidebarItem icon={Rocket} label={t("admin.jobs")} href="/admin/jobs" active={isActive("/admin/jobs")} />
             ))}
             {hasPermission("admin:queues") && (collapsed ? (
-              <SidebarTooltip label="Queues">
+              <SidebarTooltip label={t("admin.queues")}>
                 <SidebarItem icon={BarChart3} label="" href="/admin/queues" active={isActive("/admin/queues")} />
               </SidebarTooltip>
             ) : (
-              <SidebarItem icon={BarChart3} label="Queues" href="/admin/queues" active={isActive("/admin/queues")} />
+              <SidebarItem icon={BarChart3} label={t("admin.queues")} href="/admin/queues" active={isActive("/admin/queues")} />
             ))}
             {hasPermission("admin:billing") && (collapsed ? (
-              <SidebarTooltip label="Billing">
+              <SidebarTooltip label={t("admin.billing")}>
                 <SidebarItem icon={CreditCard} label="" href="/admin/billing" active={isActive("/admin/billing")} />
               </SidebarTooltip>
             ) : (
-              <SidebarItem icon={CreditCard} label="Billing" href="/admin/billing" active={isActive("/admin/billing")} />
+              <SidebarItem icon={CreditCard} label={t("admin.billing")} href="/admin/billing" active={isActive("/admin/billing")} />
             ))}
             {hasPermission("admin:subscriptions") && (collapsed ? (
-              <SidebarTooltip label="Subscriptions">
+              <SidebarTooltip label={t("admin.subscriptions")}>
                 <SidebarItem icon={Ticket} label="" href="/admin/subscriptions" active={isActive("/admin/subscriptions")} />
               </SidebarTooltip>
             ) : (
-              <SidebarItem icon={Ticket} label="Subscriptions" href="/admin/subscriptions" active={isActive("/admin/subscriptions")} />
+              <SidebarItem icon={Ticket} label={t("admin.subscriptions")} href="/admin/subscriptions" active={isActive("/admin/subscriptions")} />
             ))}
             {hasPermission("admin:coupons") && (collapsed ? (
-              <SidebarTooltip label="Coupons">
+              <SidebarTooltip label={t("admin.coupons")}>
                 <SidebarItem icon={Ticket} label="" href="/admin/coupons" active={isActive("/admin/coupons")} />
               </SidebarTooltip>
             ) : (
-              <SidebarItem icon={Ticket} label="Coupons" href="/admin/coupons" active={isActive("/admin/coupons")} />
+              <SidebarItem icon={Ticket} label={t("admin.coupons")} href="/admin/coupons" active={isActive("/admin/coupons")} />
             ))}
 
             {!collapsed && (
-              <div className="mt-6 mb-2 px-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">Insights</div>
+              <div className="mt-6 mb-2 px-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">{t("admin.analytics")}</div>
             )}
             {hasPermission("admin:analytics") && (collapsed ? (
-              <SidebarTooltip label="Analytics">
+              <SidebarTooltip label={t("admin.analytics")}>
                 <SidebarItem icon={LineChart} label="" href="/admin/analytics" active={isActive("/admin/analytics")} />
               </SidebarTooltip>
             ) : (
-              <SidebarItem icon={LineChart} label="Analytics" href="/admin/analytics" active={isActive("/admin/analytics")} />
+              <SidebarItem icon={LineChart} label={t("admin.analytics")} href="/admin/analytics" active={isActive("/admin/analytics")} />
             ))}
             {hasPermission("admin:audit_logs") && (collapsed ? (
-              <SidebarTooltip label="Audit Logs">
+              <SidebarTooltip label={t("admin.auditLogs")}>
                 <SidebarItem icon={ScrollText} label="" href="/admin/audit-logs" active={isActive("/admin/audit-logs")} />
               </SidebarTooltip>
             ) : (
-              <SidebarItem icon={ScrollText} label="Audit Logs" href="/admin/audit-logs" active={isActive("/admin/audit-logs")} />
+              <SidebarItem icon={ScrollText} label={t("admin.auditLogs")} href="/admin/audit-logs" active={isActive("/admin/audit-logs")} />
             ))}
             {hasPermission("admin:feature_flags") && (collapsed ? (
-              <SidebarTooltip label="Feature Flags">
+              <SidebarTooltip label={t("admin.featureFlags")}>
                 <SidebarItem icon={Flag} label="" href="/admin/feature-flags" active={isActive("/admin/feature-flags")} />
               </SidebarTooltip>
             ) : (
-              <SidebarItem icon={Flag} label="Feature Flags" href="/admin/feature-flags" active={isActive("/admin/feature-flags")} />
+              <SidebarItem icon={Flag} label={t("admin.featureFlags")} href="/admin/feature-flags" active={isActive("/admin/feature-flags")} />
             ))}
 
             {!collapsed && (
-              <div className="mt-6 mb-2 px-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">System</div>
+              <div className="mt-6 mb-2 px-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">{t("admin.settings")}</div>
             )}
             {hasPermission("admin:system") && (collapsed ? (
-              <SidebarTooltip label="Settings">
+              <SidebarTooltip label={t("admin.settings")}>
                 <SidebarItem icon={Settings} label="" href="/admin/settings" active={isActive("/admin/settings")} />
               </SidebarTooltip>
             ) : (
-              <SidebarItem icon={Settings} label="Settings" href="/admin/settings" active={isActive("/admin/settings")} />
+              <SidebarItem icon={Settings} label={t("admin.settings")} href="/admin/settings" active={isActive("/admin/settings")} />
             ))}
           </>
         ) : (

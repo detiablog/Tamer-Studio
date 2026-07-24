@@ -9,18 +9,20 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/Avatar";
 import { Mail, MapPin, Briefcase, Shield, Key, Bell, Globe } from "lucide-react";
+import { useLocalizationContext } from "@/providers/localization";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 export default function ProfilePage() {
+  const { t } = useLocalizationContext();
   const { data, error, isLoading } = useSWR("/api/profile", fetcher);
   const [saving, setSaving] = React.useState(false);
 
   if (isLoading) {
     return (
       <AppShell>
-        <PageLayout title={"Profile"} description={"Your account information and preferences."} breadcrumb={[{ label: "Profile" }]}>
-          <div className="flex items-center justify-center p-8">Loading...</div>
+        <PageLayout title={t("profile.title")} description={t("profile.description")} breadcrumb={[{ label: t("profile.title") }]}>
+          <div className="flex items-center justify-center p-8">{t("common.loading")}</div>
         </PageLayout>
       </AppShell>
     );
@@ -29,8 +31,8 @@ export default function ProfilePage() {
   if (error || !data) {
     return (
       <AppShell>
-        <PageLayout title={"Profile"} description={"Your account information and preferences."} breadcrumb={[{ label: "Profile" }]}>
-          <div className="text-destructive p-8">Failed to load profile</div>
+        <PageLayout title={t("profile.title")} description={t("profile.description")} breadcrumb={[{ label: t("profile.title") }]}>
+          <div className="text-destructive p-8">{t("common.failedToLoad")}</div>
         </PageLayout>
       </AppShell>
     );
@@ -54,16 +56,16 @@ export default function ProfilePage() {
   return (
     <AppShell>
       <PageLayout
-        title={"Profile"}
-        description={"Your account information and preferences."}
-        breadcrumb={[{ label: "Profile" }]}
+        title={t("profile.title")}
+        description={t("profile.description")}
+        breadcrumb={[{ label: t("profile.title") }]}
         actions={
-          <Button onClick={handleSave} disabled={saving}>{saving ? "Saving..." : "Save Changes"}</Button>
+          <Button onClick={handleSave} disabled={saving}>{saving ? t("profile.saving") : t("settings.saveChanges")}</Button>
         }
       >
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-1">
-            <DashboardCard title="Profile">
+            <DashboardCard title={t("profile.title")}>
               <div className="flex flex-col items-center text-center">
                 <Avatar name={profile.avatar} size={80} />
                 <h3 className="mt-4 text-lg font-semibold">{profile.name}</h3>
@@ -83,7 +85,7 @@ export default function ProfilePage() {
                   </div>
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Globe className="size-4" />
-                    <span>Joined {profile.joined}</span>
+                    <span>{t("profile.joined")} {profile.joined}</span>
                   </div>
                 </div>
               </div>
@@ -91,15 +93,15 @@ export default function ProfilePage() {
           </div>
 
           <div className="lg:col-span-2 space-y-6">
-            <DashboardCard title="Account Settings" description="Update your account information">
+            <DashboardCard title={t("profile.accountSettings")} description={t("profile.accountSettingsDesc")}>
               <div className="space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Full Name</label>
+                    <label className="text-sm font-medium">{t("profile.fullName")}</label>
                     <input type="text" defaultValue={profile.name} className="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50" />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Email</label>
+                    <label className="text-sm font-medium">{t("profile.email")}</label>
                     <div className="flex items-center gap-2">
                       <Mail className="size-4 text-muted-foreground" />
                       <input type="email" defaultValue={profile.email} className="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50" />
@@ -109,23 +111,23 @@ export default function ProfilePage() {
               </div>
             </DashboardCard>
 
-            <DashboardCard title="Preferences" description="Customize your experience">
+            <DashboardCard title={t("profile.preferences")} description={t("profile.preferencesDesc")}>
               <div className="space-y-4">
                 {[
-                  { label: "Email Notifications", description: "Receive email updates about your account activity", icon: Bell },
-                  { label: "Two-Factor Authentication", description: "Add an extra layer of security to your account", icon: Shield },
-                  { label: "Public Profile", description: "Make your profile visible to other team members", icon: Globe },
-                  { label: "API Access", description: "Generate API keys for programmatic access", icon: Key },
+                  { labelKey: "profile.emailNotifications", descriptionKey: "profile.emailNotificationsDesc", icon: Bell },
+                  { labelKey: "profile.twoFactorAuth", descriptionKey: "profile.twoFactorAuthDesc", icon: Shield },
+                  { labelKey: "profile.publicProfile", descriptionKey: "profile.publicProfileDesc", icon: Globe },
+                  { labelKey: "profile.apiAccess", descriptionKey: "profile.apiAccessDesc", icon: Key },
                 ].map((pref) => (
-                  <div key={pref.label} className="flex items-center justify-between rounded-xl border border-border bg-muted/20 p-4">
+                  <div key={pref.labelKey} className="flex items-center justify-between rounded-xl border border-border bg-muted/20 p-4">
                     <div className="flex items-center gap-3">
                       <pref.icon className="size-5 text-muted-foreground" />
                       <div>
-                        <h4 className="font-medium">{pref.label}</h4>
-                        <p className="text-xs text-muted-foreground">{pref.description}</p>
+                        <h4 className="font-medium">{t(pref.labelKey)}</h4>
+                        <p className="text-xs text-muted-foreground">{t(pref.descriptionKey)}</p>
                       </div>
                     </div>
-                    <Button variant="ghost" size="sm">Configure</Button>
+                    <Button variant="ghost" size="sm">{t("profile.configure")}</Button>
                   </div>
                 ))}
               </div>

@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { useLocalizationContext } from "@/providers/localization";
 
 interface LoginFormData extends LoginSchema {
   remember?: boolean;
@@ -22,6 +23,7 @@ interface LoginFormData extends LoginSchema {
 
 export function LoginForm() {
   const router = useRouter();
+  const { t } = useLocalizationContext();
   const [submitting, setSubmitting] = React.useState(false);
   const [showPassword, setShowPassword] = React.useState(false);
 
@@ -39,7 +41,6 @@ export function LoginForm() {
     },
   });
 
-  // Load remembered email on mount (not password!)
   React.useEffect(() => {
     const remembered = localStorage.getItem("tamer.rememberEmail");
     if (remembered) {
@@ -52,42 +53,36 @@ export function LoginForm() {
     try {
       setSubmitting(true);
 
-      // Save or clear remembered email (NEVER save password)
       if (values.remember) {
         localStorage.setItem("tamer.rememberEmail", values.email);
       } else {
         localStorage.removeItem("tamer.rememberEmail");
       }
 
-      // Call sign in WITHOUT including callbackURL in parameters
-      // This prevents email/password from appearing in URL
       const result = await authClient.signIn.email({
         email: values.email,
         password: values.password,
       });
 
-      // Check for errors
       if (result.error) {
-        const errorMessage = result.error.message || "Unable to sign in. Please check your credentials and try again.";
+        const errorMessage = result.error.message || t("auth.invalidCredentials");
         logger.error("Login failed", new Error(errorMessage));
         toast.error(errorMessage);
         return;
       }
 
-      // Success - redirect to dashboard
-      toast.success("Signed in successfully");
+      toast.success(t("auth.signedIn"));
       
-      // Use replace instead of push to prevent back button returning to login
       await new Promise(resolve => setTimeout(resolve, 100));
       router.replace("/dashboard");
       
     } catch (err) {
       if (err instanceof Error) {
         logger.error("Unexpected login error", err);
-        toast.error(err.message || "Unable to sign in. Please try again later.");
+        toast.error(err.message || t("common.genericError"));
       } else {
         logger.error("Unexpected login error", new Error(String(err)));
-        toast.error("Unable to sign in. Please try again later.");
+        toast.error(t("common.genericError"));
       }
     } finally {
       setSubmitting(false);
@@ -97,14 +92,13 @@ export function LoginForm() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
-        <CardTitle>Sign in to Tamer Studio</CardTitle>
+        <CardTitle>{t("auth.signInTitle")}</CardTitle>
       </CardHeader>
 
       <CardContent className="space-y-4">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {/* Email Field */}
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t("auth.emailLabel")}</Label>
             <Input
               id="email"
               type="email"
@@ -117,14 +111,13 @@ export function LoginForm() {
             {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
           </div>
 
-          {/* Password Field */}
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{t("auth.passwordLabel")}</Label>
             <div className="relative">
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
-                placeholder="Your password"
+                placeholder={t("auth.passwordLabel")}
                 {...register("password")}
                 autoComplete="current-password"
                 aria-invalid={!!errors.password}
@@ -143,7 +136,6 @@ export function LoginForm() {
             {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
           </div>
 
-          {/* Remember Me & Forgot Password */}
           <div className="flex items-center justify-between">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
@@ -153,18 +145,17 @@ export function LoginForm() {
                 disabled={submitting}
               />
               <span className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                Remember me
+                {t("auth.rememberMe")}
               </span>
             </label>
             <a
               href="/forgot-password"
               className="text-sm text-primary hover:underline transition-colors"
             >
-              Forgot password?
+              {t("common.forgotPassword")}
             </a>
           </div>
 
-          {/* Sign In Button */}
           <Button
             className="w-full"
             type="submit"
@@ -174,10 +165,10 @@ export function LoginForm() {
             {submitting ? (
               <>
                 <span className="inline-block animate-spin mr-2">⏳</span>
-                Signing in...
+                {t("auth.signingIn")}
               </>
             ) : (
-              "Sign in"
+              t("auth.signInButton")
             )}
           </Button>
         </form>

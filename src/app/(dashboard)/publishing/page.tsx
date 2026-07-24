@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/Badge"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { BarChart3, ExternalLink } from "lucide-react"
+import { useLocalizationContext } from "@/providers/localization"
 
 export const metadata = { title: "Publishing - Tamer Studio", description: "Schedule and publish content to external platforms." }
 
@@ -19,9 +20,11 @@ const PUBLICATIONS = [
 ]
 
 export default function PublishingPage() {
+  const { t } = useLocalizationContext();
+
   return (
     <AppShell>
-      <PageLayout title={"Publishing"} description={"Schedule and publish content to external platforms."} breadcrumb={[{ label: "Publishing" }]} actions={<ActionButton>New Publication</ActionButton>}>
+      <PageLayout title={t("dashboard.publishing")} description={t("dashboard.publishingDesc")} breadcrumb={[{ label: t("dashboard.publishing") }]} actions={<ActionButton>{t("dashboard.newPublication")}</ActionButton>}>
         <div className="space-y-6">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard title="Total Publications" value={24} delta="+3 this month" />
@@ -30,7 +33,7 @@ export default function PublishingPage() {
             <StatCard title="Total Views" value="45.2K" delta="+12% vs last month" />
           </div>
 
-          <DashboardCard title="Publications" description="Manage your scheduled and published content">
+          <DashboardCard title={t("dashboard.publishing")} description="Manage your scheduled and published content">
             <div className="space-y-3">
               {PUBLICATIONS.map((pub) => (
                 <div key={pub.id} className="flex items-center justify-between rounded-xl border border-border bg-muted/20 p-4">
@@ -55,7 +58,7 @@ export default function PublishingPage() {
                     </Button>
                     <Link href={pub.platform === "YouTube" ? "https://youtube.com" : pub.platform === "TikTok" ? "https://tiktok.com" : "https://instagram.com"} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm text-primary hover:underline">
                       <ExternalLink className="mr-1 size-4" />
-                      View
+                      {t("common.view")}
                     </Link>
                   </div>
                 </div>

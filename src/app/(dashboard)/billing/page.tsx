@@ -10,17 +10,21 @@ import { ActionButton } from "@/components/ui/ActionButton";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/button";
 import { CreditCard, Download, Receipt } from "lucide-react";
+import { useLocalizationContext } from "@/providers/localization";
+import { useCurrencyContext } from "@/providers/currency";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 export default function BillingPage() {
+  const { t } = useLocalizationContext();
+  const { formatCurrency } = useCurrencyContext();
   const { data, error, isLoading } = useSWR("/api/billing", fetcher);
 
   if (isLoading) {
     return (
       <AppShell>
-        <PageLayout title={"Billing"} description={"Invoices, payment methods, and billing history."} breadcrumb={[{ label: "Billing" }]}>
-          <div className="flex items-center justify-center p-8">Loading...</div>
+        <PageLayout title={t("billing.title")} description={t("billing.description")} breadcrumb={[{ label: t("billing.title") }]}>
+          <div className="flex items-center justify-center p-8">{t("common.loading")}</div>
         </PageLayout>
       </AppShell>
     );
@@ -29,8 +33,8 @@ export default function BillingPage() {
   if (error || !data) {
     return (
       <AppShell>
-        <PageLayout title={"Billing"} description={"Invoices, payment methods, and billing history."} breadcrumb={[{ label: "Billing" }]}>
-          <div className="text-destructive p-8">Failed to load billing data</div>
+        <PageLayout title={t("billing.title")} description={t("billing.description")} breadcrumb={[{ label: t("billing.title") }]}>
+          <div className="text-destructive p-8">{t("billing.failedToLoad")}</div>
         </PageLayout>
       </AppShell>
     );
@@ -41,22 +45,22 @@ export default function BillingPage() {
   return (
     <AppShell>
       <PageLayout
-        title={"Billing"}
-        description={"Invoices, payment methods, and billing history."}
-        breadcrumb={[{ label: "Billing" }]}
-        actions={<ActionButton>Upgrade Plan</ActionButton>}
+        title={t("billing.title")}
+        description={t("billing.description")}
+        breadcrumb={[{ label: t("billing.title") }]}
+        actions={<ActionButton>{t("billing.upgradePlan")}</ActionButton>}
       >
         <div className="space-y-6">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <StatCard title="Current Plan" value={data.plan} delta={data.nextInvoice ? `$${data.nextInvoice.replace("$", "")}/month` : undefined} />
-            <StatCard title="Next Invoice" value={data.nextInvoice ?? "$0"} delta={data.nextInvoiceDate ?? ""} />
-            <StatCard title="Payment Method" value={data.paymentMethod ?? ""} delta={data.paymentExpiry ? `Expires ${data.paymentExpiry}` : undefined} />
-            <StatCard title="Credits Remaining" value={data.creditsRemaining ?? 0} delta={data.creditsValue ? `$${data.creditsValue.replace("$", "")} value` : undefined} />
+            <StatCard title={t("billing.currentPlan")} value={data.plan} delta={data.nextInvoice ? `${formatCurrency(parseFloat(data.nextInvoice.replace("$", "") || 0))}/month` : undefined} />
+            <StatCard title={t("billing.nextInvoice")} value={data.nextInvoice ?? formatCurrency(0)} delta={data.nextInvoiceDate ?? ""} />
+            <StatCard title={t("billing.paymentMethod")} value={data.paymentMethod ?? ""} delta={data.paymentExpiry ? `Expires ${data.paymentExpiry}` : undefined} />
+            <StatCard title={t("billing.creditsRemaining")} value={data.creditsRemaining ?? 0} delta={data.creditsValue ? `${formatCurrency(parseFloat(data.creditsValue.replace("$", "") || 0))} value` : undefined} />
           </div>
 
           <div className="grid gap-6 lg:grid-cols-3">
             <div className="lg:col-span-2">
-              <DashboardCard title="Billing History" description="Your recent invoices and payments">
+              <DashboardCard title={t("billing.billingHistory")} description={t("billing.billingHistoryDesc")}>
                 <div className="space-y-3">
                   {invoices.map((invoice: any) => (
                     <div key={invoice.id} className="flex items-center justify-between rounded-xl border border-border bg-muted/20 p-4">
@@ -87,21 +91,21 @@ export default function BillingPage() {
             </div>
 
             <div className="space-y-6">
-              <DashboardCard title="Payment Method">
+              <DashboardCard title={t("billing.paymentMethod")}>
                 <div className="space-y-4">
                   <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/20 p-4">
                     <CreditCard className="size-8 text-muted-foreground" />
                     <div>
-                      <h4 className="font-medium">Visa ending in 4242</h4>
-                      <p className="text-xs text-muted-foreground">Expires 12/2027</p>
+                      <h4 className="font-medium">{t("billing.paymentMethodCard")}</h4>
+                      <p className="text-xs text-muted-foreground">{t("billing.paymentExpiry")}</p>
                     </div>
-                    <Badge tone="success">Default</Badge>
+                    <Badge tone="success">{t("billing.default")}</Badge>
                   </div>
-                  <Button variant="outline" className="w-full">Add Payment Method</Button>
+                  <Button variant="outline" className="w-full">{t("billing.addPaymentMethod")}</Button>
                 </div>
               </DashboardCard>
 
-              <DashboardCard title="Usage This Month">
+              <DashboardCard title={t("billing.usageThisMonth")}>
                 <div className="space-y-3">
                   {data.usage && Object.entries(data.usage).map(([key, value]: [string, any]) => (
                     <div key={key}>

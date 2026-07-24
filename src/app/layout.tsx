@@ -4,6 +4,9 @@ import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
+import { LocalizationProvider } from "@/providers/localization";
+import { CurrencyProvider } from "@/providers/currency";
+import { HtmlLangUpdater } from "@/components/providers/HtmlLangUpdater";
 import { config } from "@/core/config";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
@@ -60,8 +63,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en" className={cn("font-sans", geist.variable)} suppressHydrationWarning>
       <body>
         <ThemeProvider>
-          {children}
-          <Toaster />
+          <LocalizationProvider>
+            <CurrencyProvider>
+              <HtmlLangUpdater />
+              {children}
+              <Toaster />
+            </CurrencyProvider>
+          </LocalizationProvider>
         </ThemeProvider>
       </body>
     </html>

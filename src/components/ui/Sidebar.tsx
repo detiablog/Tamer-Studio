@@ -17,9 +17,11 @@ import {
   PanelLeft,
   ChevronRight,
 } from "lucide-react";
+import { useLocalizationContext } from "@/providers/localization";
 
 export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
   const pathname = usePathname();
+  const { t } = useLocalizationContext();
   const [isCollapsed, setIsCollapsed] = React.useState(collapsed);
 
   const isActive = (href: string) => {
@@ -28,14 +30,14 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
   };
 
   const navItems = [
-    { icon: Home, label: "Dashboard", href: "/dashboard", shortcut: "⌘D" },
-    { icon: Grid, label: "Workspace", href: "/workspace", shortcut: "⌘W" },
-    { icon: Folder, label: "Projects", href: "/projects", shortcut: "⌘P" },
-    { icon: ImageIcon, label: "Media", href: "/media", shortcut: "⌘M" },
-    { icon: Film, label: "Production", href: "/production", shortcut: "⌘R" },
-    { icon: Cpu, label: "AI Platform", href: "/ai", shortcut: "⌘A" },
-    { icon: FileText, label: "Publishing", href: "/publishing", shortcut: "⌘U" },
-    { icon: Settings, label: "Settings", href: "/settings", shortcut: "⌘S" },
+    { icon: Home, labelKey: "dashboard.dashboard", href: "/dashboard", shortcut: "⌘D" },
+    { icon: Grid, labelKey: "dashboard.workspace", href: "/workspace", shortcut: "⌘W" },
+    { icon: Folder, labelKey: "dashboard.projects", href: "/projects", shortcut: "⌘P" },
+    { icon: ImageIcon, labelKey: "dashboard.media", href: "/media", shortcut: "⌘M" },
+    { icon: Film, labelKey: "dashboard.production", href: "/production", shortcut: "⌘R" },
+    { icon: Cpu, labelKey: "dashboard.ai", href: "/ai", shortcut: "⌘A" },
+    { icon: FileText, labelKey: "dashboard.publishing", href: "/publishing", shortcut: "⌘U" },
+    { icon: Settings, labelKey: "dashboard.settings", href: "/settings", shortcut: "⌘S" },
   ];
 
   return (
@@ -84,7 +86,7 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
               <SidebarItem
                 key={item.href}
                 icon={item.icon}
-                label={isCollapsed ? "" : item.label}
+                label={isCollapsed ? "" : t(item.labelKey)}
                 href={item.href}
                 active={isActive(item.href)}
                 shortcut={isCollapsed ? undefined : item.shortcut}
@@ -98,7 +100,7 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
           <div className="flex flex-col gap-1">
             <SidebarItem
               icon={Settings}
-              label={isCollapsed ? "" : "Settings"}
+              label={isCollapsed ? "" : t("dashboard.settings")}
               href="/settings"
               active={isActive("/settings")}
               shortcut={isCollapsed ? undefined : "⌘S"}

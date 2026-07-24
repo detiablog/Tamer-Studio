@@ -7,6 +7,7 @@ import { ActionButton } from "@/components/ui/ActionButton"
 import { Badge } from "@/components/ui/Badge"
 import { Button } from "@/components/ui/button"
 import { ImageIcon, Film, Music, FileText, Search, Filter } from "lucide-react"
+import { useLocalizationContext } from "@/providers/localization"
 
 export const metadata = { title: "Media Library - Tamer Studio", description: "Manage images, video, audio, and generated assets." }
 
@@ -20,9 +21,11 @@ const MEDIA_ITEMS = [
 ]
 
 export default function MediaPage() {
+  const { t } = useLocalizationContext();
+
   return (
     <AppShell>
-      <PageLayout title={"Media Library"} description={"Store and manage images, audio and video."} breadcrumb={[{ label: "Media" }]} actions={<ActionButton>Upload Media</ActionButton>}>
+      <PageLayout title={t("dashboard.mediaLibrary")} description={t("dashboard.mediaLibraryDesc")} breadcrumb={[{ label: t("dashboard.media") }]} actions={<ActionButton>{t("dashboard.uploadMedia")}</ActionButton>}>
         <div className="space-y-6">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard title="Total Assets" value={48} delta="+6 this week" />
@@ -31,7 +34,7 @@ export default function MediaPage() {
             <StatCard title="Audio" value={12} delta="8 MB avg" />
           </div>
 
-          <DashboardCard title="Media Library" description="Browse and manage your media assets">
+          <DashboardCard title={t("dashboard.mediaLibrary")} description="Browse and manage your media assets">
             <div className="flex items-center gap-2 pb-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
@@ -44,7 +47,7 @@ export default function MediaPage() {
               </div>
               <Button variant="outline" size="sm">
                 <Filter className="mr-2 size-4" />
-                Filter
+                {t("common.filter")}
               </Button>
             </div>
 
@@ -67,7 +70,7 @@ export default function MediaPage() {
                     <Badge tone={item.type === "image" ? "info" : item.type === "video" ? "warning" : item.type === "audio" ? "success" : "muted"}>
                       {item.type}
                     </Badge>
-                    <Button variant="ghost" size="sm">Download</Button>
+                    <Button variant="ghost" size="sm">{t("common.download")}</Button>
                   </div>
                 </div>
               ))}
@@ -76,8 +79,8 @@ export default function MediaPage() {
             <div className="mt-4 flex items-center justify-between">
               <p className="text-sm text-muted-foreground">Showing {MEDIA_ITEMS.length} of 48 assets</p>
               <div className="flex gap-2">
-                <Button variant="ghost" size="sm" disabled>Previous</Button>
-                <Button variant="ghost" size="sm">Next</Button>
+                <Button variant="ghost" size="sm" disabled>{t("common.previous")}</Button>
+                <Button variant="ghost" size="sm">{t("common.next")}</Button>
               </div>
             </div>
           </DashboardCard>

@@ -1,7 +1,12 @@
+"use client";
+
 import * as React from "react";
 import Link from "next/link";
+import { useLocalizationContext } from "@/providers/localization";
 
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {
+  const { t } = useLocalizationContext();
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="border-b">
@@ -11,22 +16,22 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
             Tamer Studio
           </Link>
           <nav className="flex items-center gap-6 text-sm">
-            <Link href="/pricing" className="text-muted-foreground hover:text-foreground">Pricing</Link>
-            <Link href="/about" className="text-muted-foreground hover:text-foreground">About</Link>
-            <Link href="/contact" className="text-muted-foreground hover:text-foreground">Contact</Link>
-            <Link href="/login" className="text-muted-foreground hover:text-foreground">Sign in</Link>
-            <Link href="/register" className="inline-flex items-center rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition hover:bg-primary/80">Get started</Link>
+            <Link href="/pricing" className="text-muted-foreground hover:text-foreground">{t("common.pricing")}</Link>
+            <Link href="/about" className="text-muted-foreground hover:text-foreground">{t("common.about")}</Link>
+            <Link href="/contact" className="text-muted-foreground hover:text-foreground">{t("common.contact")}</Link>
+            <Link href="/login" className="text-muted-foreground hover:text-foreground">{t("common.signIn")}</Link>
+            <Link href="/register" className="inline-flex items-center rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition hover:bg-primary/80">{t("common.getStarted")}</Link>
           </nav>
         </div>
       </header>
       <main>{children}</main>
       <footer className="border-t mt-20">
         <div className="mx-auto max-w-6xl px-6 py-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-muted-foreground">Tamer Studio. From intent to production.</p>
+          <p className="text-sm text-muted-foreground">{t("marketing.footerTagline")}</p>
           <div className="flex gap-6 text-sm text-muted-foreground">
-            <Link href="/legal/privacy" className="hover:text-foreground">Privacy</Link>
-            <Link href="/legal/terms" className="hover:text-foreground">Terms</Link>
-            <Link href="/docs" className="hover:text-foreground">Docs</Link>
+            <Link href="/legal/privacy" className="hover:text-foreground">{t("common.privacy")}</Link>
+            <Link href="/legal/terms" className="hover:text-foreground">{t("common.terms")}</Link>
+            <Link href="/docs" className="hover:text-foreground">{t("common.docs")}</Link>
           </div>
         </div>
       </footer>
