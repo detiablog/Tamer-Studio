@@ -132,6 +132,7 @@ export const workspace = pgTable(
     id: text("id").primaryKey(),
     name: text("name").notNull(),
     slug: text("slug").notNull().unique(),
+    description: text("description"),
     type: text("type").notNull().default("personal"),
     ownerId: text("owner_id").notNull().references(() => user.id),
     organizationId: text("organization_id").references(() => organization.id),

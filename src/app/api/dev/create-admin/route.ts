@@ -1,29 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { admin } from "@/lib/db/schema";
+import { admin } from "@/lib/db/schema/admin";
+import { eq } from "drizzle-orm";
 import { hashPassword } from "@/core/admin/login";
 import { randomUUID } from "crypto";
 
-/**
- * POST /api/dev/create-admin
- * 
- * DEVELOPMENT ONLY - Creates an admin user
- * Remove this endpoint in production!
- */
 export async function POST(request: NextRequest) {
-  // Only allow in development
   if (process.env.NODE_ENV !== "development") {
     return NextResponse.json({ error: "Not available in production" }, { status: 403 });
   }
 
   try {
-    const adminId = randomUUID();
+    const adminId = `admin_${randomUUID()}`;
     const passwordHash = await hashPassword("SecureAdminPassword123!");
 
-    // Check if admin already exists
     const existingAdmin = await db
       .select()
       .from(admin)
+      .where(eq(admin.email, "admin@tamer.studio"))
       .limit(1);
 
     if (existingAdmin.length > 0) {
@@ -33,7 +27,6 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Create admin
     await db.insert(admin).values({
       id: adminId,
       email: "admin@tamer.studio",
