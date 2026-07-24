@@ -3,11 +3,133 @@
 import * as React from "react";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { PageLayout } from "@/components/ui/PageLayout";
-import { TrendingUp, Users, Zap, Activity } from "lucide-react";
+import { TrendingUp, Users, Zap, Activity, Loader } from "lucide-react";
 import { useLocalizationContext } from "@/providers/localization";
+
+const fetcher = (url: string) =>
+  fetch(url)
+    .then((r) => {
+      if (!r.ok) throw new Error(`API error: ${r.status}`);
+      return r.json();
+    })
+    .catch((error) => {
+      console.error(`[Fetcher] Failed to fetch ${url}:`, error);
+      throw error;
+    });
 
 export default function AdminDashboardRootPage() {
   const { t } = useLocalizationContext();
+  const [stats, setStats] = React.useState<any>(null);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    let mounted = true;
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch("/api/admin/stats", { cache: "no-store" });
+        if (!res.ok) throw new Error(`API error: ${res.status}`);
+        const data = await res.json();
+        if (mounted) {
+          setStats(data);
+          setError(null);
+        }
+      } catch (err) {
+        if (mounted) {
+          setError(err instanceof Error ? err.message : "Failed to load stats");
+        }
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    }, 30000);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        fetch("/api/admin/stats", { cache: "no-store" })
+          .then((r) => {
+            if (!r.ok) throw new Error(`API error: ${r.status}`);
+            return r.json();
+          })
+          .then((data) => {
+            if (mounted) {
+              setStats(data);
+              setError(null);
+            }
+          })
+          .catch((err) => {
+            if (mounted) setError(err instanceof Error ? err.message : "Failed to load stats");
+          })
+          .finally(() => {
+            if (mounted) setLoading(false);
+          });
+      }
+    };
+
+    fetch("/api/admin/stats", { cache: "no-store" })
+      .then((r) => {
+        if (!r.ok) throw new Error(`API error: ${r.status}`);
+        return r.json();
+      })
+      .then((data) => {
+        if (mounted) {
+          setStats(data);
+          setError(null);
+        }
+      })
+      .catch((err) => {
+        if (mounted) setError(err instanceof Error ? err.message : "Failed to load stats");
+      })
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
+
+  const formatCurrency = (value: number) => {
+    if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
+    if (value >= 1000) return `$${(value / 1000).toFixed(1)}K`;
+    return `$${value.toFixed(0)}`;
+  };
+
+  const formatNumber = (value: number) => {
+    if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
+    if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
+    return value.toLocaleString();
+  };
+
+  if (loading) {
+    return (
+      <AdminShell>
+        <PageLayout title={t("admin.dashboard")} breadcrumb={[{ label: t("admin.dashboard") }]}>
+          <div className="flex items-center justify-center py-20">
+            <Loader className="size-8 animate-spin text-muted-foreground" />
+          </div>
+        </PageLayout>
+      </AdminShell>
+    );
+  }
+
+  if (error) {
+    return (
+      <AdminShell>
+        <PageLayout title={t("admin.dashboard")} breadcrumb={[{ label: t("admin.dashboard") }]}>
+          <div className="text-center py-20">
+            <p className="text-destructive">{error}</p>
+            <button onClick={() => window.location.reload()} className="mt-4 text-sm text-primary hover:underline">
+              Retry
+            </button>
+          </div>
+        </PageLayout>
+      </AdminShell>
+    );
+  }
 
   return (
     <AdminShell>
@@ -31,10 +153,10 @@ export default function AdminDashboardRootPage() {
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-3xl font-bold">1,234</p>
+                  <p className="text-3xl font-bold">{formatNumber(stats?.users?.total ?? 0)}</p>
                   <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
                     <TrendingUp className="size-3" />
-                    +12% this week
+                    +{stats?.users?.growth ?? 0}% this month
                   </p>
                 </div>
               </div>
@@ -50,8 +172,8 @@ export default function AdminDashboardRootPage() {
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-3xl font-bold">45</p>
-                  <p className="text-xs text-muted-foreground">71% of total capacity</p>
+                  <p className="text-3xl font-bold">{formatNumber(stats?.workspaces?.total ?? 0)}</p>
+                  <p className="text-xs text-muted-foreground">{stats?.workspaces?.active ?? 0} active</p>
                 </div>
               </div>
             </div>
@@ -66,8 +188,8 @@ export default function AdminDashboardRootPage() {
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-3xl font-bold">8</p>
-                  <p className="text-xs text-muted-foreground">Processing in queue</p>
+                  <p className="text-3xl font-bold">{formatNumber(stats?.jobs?.total ?? 0)}</p>
+                  <p className="text-xs text-muted-foreground">{stats?.jobs?.queued ?? 0} queued, {stats?.jobs?.running ?? 0} running</p>
                 </div>
               </div>
             </div>
@@ -82,10 +204,10 @@ export default function AdminDashboardRootPage() {
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-3xl font-bold">$12,500</p>
+                  <p className="text-3xl font-bold">{formatCurrency(stats?.revenue?.total ?? 0)}</p>
                   <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
                     <TrendingUp className="size-3" />
-                    +8.2% vs last month
+                    +{stats?.users?.growth ?? 0}% vs last month
                   </p>
                 </div>
               </div>
@@ -98,24 +220,24 @@ export default function AdminDashboardRootPage() {
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold">{t("admin.jobs")}</h3>
                   <div className="flex gap-1">
-                    <div className="size-2 rounded-full bg-green-600" />
-                    <span className="text-xs text-green-600 font-medium">Healthy</span>
+                    <div className={`size-2 rounded-full ${stats?.jobs?.failed ?? 0 > 0 ? "bg-amber-600" : "bg-green-600"}`} />
+                    <span className="text-xs text-green-600 font-medium">{stats?.jobs?.failed ?? 0 === 0 ? "Healthy" : "Issues"}</span>
                   </div>
                 </div>
                 <div className="space-y-3">
                   <div>
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xs text-muted-foreground">API Uptime</span>
-                      <span className="text-xs font-semibold">99.98%</span>
+                      <span className="text-xs font-semibold">{stats?.system?.uptime ?? "99.9%"}</span>
                     </div>
                     <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                      <div className="h-full w-[99.98%] bg-green-600" />
+                      <div className="h-full w-[99.9%] bg-green-600" />
                     </div>
                   </div>
                   <div>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-muted-foreground">Database</span>
-                      <span className="text-xs font-semibold">Online</span>
+                      <span className="text-xs text-muted-foreground">{t("admin.system")}</span>
+                      <span className="text-xs font-semibold">{stats?.system?.database ?? "Online"}</span>
                     </div>
                     <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
                       <div className="h-full w-full bg-green-600" />
@@ -123,11 +245,11 @@ export default function AdminDashboardRootPage() {
                   </div>
                   <div>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-muted-foreground">Cache</span>
-                      <span className="text-xs font-semibold">94%</span>
+                      <span className="text-xs text-muted-foreground">{t("admin.apiRateLimit")}</span>
+                      <span className="text-xs font-semibold">{stats?.system?.api ?? "Online"}</span>
                     </div>
                     <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                      <div className="h-full w-[94%] bg-green-600" />
+                      <div className="h-full w-full bg-green-600" />
                     </div>
                   </div>
                 </div>
@@ -140,19 +262,19 @@ export default function AdminDashboardRootPage() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">{t("admin.users")}</span>
-                    <span className="text-sm font-semibold">234</span>
+                    <span className="text-sm font-semibold">{formatNumber(stats?.analytics?.newRegistrations ?? 0)}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">{t("admin.apiRateLimit")}</span>
-                    <span className="text-sm font-semibold">45.2K/day</span>
+                    <span className="text-sm font-semibold">{formatNumber(stats?.analytics?.creditsUsed ?? 0)}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">{t("admin.errors")}</span>
-                    <span className="text-sm font-semibold text-amber-600">12</span>
+                    <span className="text-sm font-semibold text-amber-600">{stats?.jobs?.failed ?? 0}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">{t("admin.performance")}</span>
-                    <span className="text-sm font-semibold">245ms</span>
+                    <span className="text-sm font-semibold">{stats?.analytics?.avgJobTime ?? 0}ms</span>
                   </div>
                 </div>
               </div>
@@ -162,27 +284,23 @@ export default function AdminDashboardRootPage() {
               <div className="space-y-4">
                 <h3 className="font-semibold">{t("admin.auditLogs")}</h3>
                 <div className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <div className="size-2 rounded-full bg-blue-600 mt-1.5 shrink-0" />
-                    <div className="space-y-0.5 min-w-0">
-                      <p className="text-sm font-medium">{t("admin.newUser")}</p>
-                      <p className="text-xs text-muted-foreground">5 minutes ago</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="size-2 rounded-full bg-green-600 mt-1.5 shrink-0" />
-                    <div className="space-y-0.5 min-w-0">
-                      <p className="text-sm font-medium">{t("admin.workspaceCreated")}</p>
-                      <p className="text-xs text-muted-foreground">15 minutes ago</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="size-2 rounded-full bg-amber-600 mt-1.5 shrink-0" />
-                    <div className="space-y-0.5 min-w-0">
-                      <p className="text-sm font-medium">{t("admin.jobFailed")}</p>
-                      <p className="text-xs text-muted-foreground">32 minutes ago</p>
-                    </div>
-                  </div>
+                  {stats?.auditLogs?.length > 0 ? (
+                    stats.auditLogs.map((log: any) => (
+                      <div key={log.id} className="flex items-start gap-3">
+                        <div className={`size-2 rounded-full mt-1.5 shrink-0 ${
+                          log.action?.includes("create") || log.action?.includes("new") ? "bg-blue-600" :
+                          log.action?.includes("delete") || log.action?.includes("fail") ? "bg-red-600" :
+                          "bg-green-600"
+                        }`} />
+                        <div className="space-y-0.5 min-w-0">
+                          <p className="text-sm font-medium truncate">{log.action}</p>
+                          <p className="text-xs text-muted-foreground">{log.createdAt}</p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No recent activity</p>
+                  )}
                 </div>
               </div>
             </div>

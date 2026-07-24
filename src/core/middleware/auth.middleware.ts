@@ -49,8 +49,8 @@ export function adminAuthentication(allowAnonymous = false): Middleware {
     ctx.state.adminSession = {
       id: session.id,
       adminId: session.adminId,
+      role: session.role,
       expiresAt: session.expiresAt,
-      role: session.adminId,
     };
     ctx.state.auditContext = {
       actorId: session.adminId,

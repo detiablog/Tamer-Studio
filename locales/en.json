@@ -329,6 +329,7 @@
     "storage": "Storage",
     "ai": "AI",
     "api": "API",
+    "system": "System",
     "advanced": "Advanced",
     "siteName": "Site Name",
     "timezone": "Timezone",
