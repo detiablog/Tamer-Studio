@@ -11,12 +11,6 @@ import { Search, Filter, UserPlus, Loader, X, Trash2, Edit } from "lucide-react"
 import { toast } from "sonner";
 import { Breadcrumbs } from "@/components/admin/Breadcrumbs";
 
-const MOCK_USERS = [
-  { id: "1", name: "Alice Johnson", email: "alice@example.com", role: "Admin", status: "Active", joined: "Oct 20, 2026", lastActive: "2 minutes ago", emailVerified: true },
-  { id: "2", name: "Bob Smith", email: "bob@example.com", role: "User", status: "Active", joined: "Oct 19, 2026", lastActive: "1 hour ago", emailVerified: true },
-  { id: "3", name: "Carol White", email: "carol@example.com", role: "User", status: "Pending", joined: "Oct 18, 2026", lastActive: "Never", emailVerified: false },
-];
-
 const fetcher = (url: string) => 
   fetch(url)
     .then((r) => {
@@ -35,7 +29,6 @@ export default function AdminUsersPage() {
     dedupingInterval: 0,
   });
   
-  const [users, setUsers] = React.useState<any[]>([]);
   const [search, setSearch] = React.useState("");
   const [filterOpen, setFilterOpen] = React.useState(false);
   const [statusFilter, setStatusFilter] = React.useState<string>("all");
@@ -47,29 +40,40 @@ export default function AdminUsersPage() {
   const [formLoading, setFormLoading] = React.useState(false);
   const [formData, setFormData] = React.useState({ name: "", email: "", password: "", role: "user", status: "active" });
 
-  React.useEffect(() => {
-    if (data?.data && data.success) {
-      setUsers(data.data);
-    } else if (error && users.length === 0) {
-      setUsers(MOCK_USERS);
+  const dbUsers = React.useMemo(() => {
+    if (data?.success && Array.isArray(data.data)) {
+      return data.data;
     }
+    if (error) {
+      return [];
+    }
+    return [];
   }, [data, error]);
 
   const isUsingMockData = !data && error;
 
-  const filtered = (users || []).filter((u: any) => {
-    const matchesSearch = u.name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter === "all" || u.status.toLowerCase() === statusFilter.toLowerCase();
-    const matchesRole = roleFilter === "all" || u.role.toLowerCase() === roleFilter.toLowerCase();
-    return matchesSearch && matchesStatus && matchesRole;
-  });
+  const filtered = React.useMemo(() => {
+    return dbUsers.filter((u: any) => {
+      const matchesSearch = u.name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase());
+      const matchesStatus = statusFilter === "all" || u.status.toLowerCase() === statusFilter.toLowerCase();
+      const matchesRole = roleFilter === "all" || u.role.toLowerCase() === roleFilter.toLowerCase();
+      return matchesSearch && matchesStatus && matchesRole;
+    });
+  }, [dbUsers, search, statusFilter, roleFilter]);
+
+  const resetFilters = () => {
+    setSearch("");
+    setStatusFilter("all");
+    setRoleFilter("all");
+  };
+
+  const hasActiveFilters = search.trim() || statusFilter !== "all" || roleFilter !== "all";
 
   const openEditModal = (user: any) => {
-    console.log("[openEditModal] User data:", user);
     setEditingUser(user);
     
-    const roleValue = (user.role || "user").toLowerCase();
-    const statusValue = (user.status || "active").toLowerCase();
+    const roleValue = user.role || "user";
+    const statusValue = user.status || "active";
     
     const data = { 
       name: user.name || "", 
@@ -121,71 +125,46 @@ export default function AdminUsersPage() {
       return;
     }
 
+    if (!formData.name?.trim()) {
+      toast.error("Name cannot be empty");
+      return;
+    }
+    if (!formData.email?.trim()) {
+      toast.error("Email cannot be empty");
+      return;
+    }
+
+    const changedFields: Record<string, unknown> = {};
+
+    if (formData.name.trim() !== originalData?.name) {
+      changedFields.name = formData.name.trim();
+    }
+    if (formData.email.trim() !== originalData?.email) {
+      changedFields.email = formData.email.trim();
+    }
+    if (formData.role !== originalData?.role) {
+      changedFields.role = formData.role;
+    }
+    if (formData.status !== originalData?.status) {
+      changedFields.status = formData.status;
+    }
+
+    if (Object.keys(changedFields).length === 0) {
+      toast.info("No changes made");
+      return;
+    }
+
+    const userId = String(editingUser.id);
     setFormLoading(true);
 
     try {
-      const changedFields: any = {};
+      const response = await fetch(`/api/admin/users/${userId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(changedFields),
+      });
 
-      if (formData.name && formData.name !== originalData?.name) {
-        changedFields.name = formData.name.trim();
-      }
-      if (formData.email && formData.email !== originalData?.email) {
-        changedFields.email = formData.email.trim();
-      }
-      if (formData.role && formData.role !== originalData?.role) {
-        changedFields.role = formData.role.toLowerCase();
-      }
-      if (formData.status && formData.status !== originalData?.status) {
-        changedFields.status = formData.status.toLowerCase();
-      }
-
-      if (!formData.name?.trim()) {
-        toast.error("Name cannot be empty");
-        return;
-      }
-      if (!formData.email?.trim()) {
-        toast.error("Email cannot be empty");
-        return;
-      }
-
-      if (Object.keys(changedFields).length === 0) {
-        toast.info("No changes made");
-        return;
-      }
-
-      const userId = String(editingUser.id);
-      
-      if (!userId || userId === "null" || userId === "undefined") {
-        toast.error("Invalid user ID");
-        return;
-      }
-      
-      console.log("[handleEditUser] Sending to /api/admin/users/" + userId);
-      console.log("[handleEditUser] Changed fields:", changedFields);
-
-      let response;
-      try {
-        response = await fetch(`/api/admin/users/${userId}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(changedFields),
-        });
-      } catch (fetchErr) {
-        console.error("[handleEditUser] Fetch error:", fetchErr);
-        toast.error("Network error: " + String(fetchErr));
-        return;
-      }
-
-      let result;
-      try {
-        result = await response.json();
-      } catch (parseErr) {
-        console.error("[handleEditUser] Parse error:", parseErr);
-        toast.error("Invalid response from server");
-        return;
-      }
-      
-      console.log("[handleEditUser] Response:", result);
+      const result = await response.json();
       if (!response.ok) {
         toast.error(result.error || "Failed to update user");
         return;
@@ -257,6 +236,7 @@ export default function AdminUsersPage() {
             >
               <Filter className="mr-2 size-4" />
               Filter
+              {hasActiveFilters && <span className="ml-1.5 size-1.5 rounded-full bg-primary" />}
             </Button>
             
             {filterOpen && (
@@ -298,7 +278,7 @@ export default function AdminUsersPage() {
           </Button>
         </div>
 
-        {isLoading && users.length === 0 ? (
+        {isLoading && dbUsers.length === 0 ? (
           <div className="flex items-center justify-center py-12">
             <Loader className="size-6 animate-spin text-muted-foreground" />
             <p className="ml-2 text-muted-foreground">Loading users...</p>
@@ -307,15 +287,21 @@ export default function AdminUsersPage() {
           <>
             {isUsingMockData && (
               <div className="mb-4 rounded-lg border border-amber-200/50 bg-amber-50/50 dark:bg-amber-950/20 p-3 text-xs text-amber-700 dark:text-amber-300">
-                ℹ️ Database connection failed, showing mock data
+                Database connection failed. Please check your connection and try again.
               </div>
             )}
-            {users.length === 0 ? (
+            {dbUsers.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-muted-foreground">No users found</p>
+                {hasActiveFilters && (
+                  <Button variant="ghost" size="sm" onClick={resetFilters} className="mt-2">
+                    Clear filters
+                  </Button>
+                )}
               </div>
             ) : (
               <AdminDataTable
+                key={`${search}-${statusFilter}-${roleFilter}`}
                 data={filtered}
                 keyExtractor={(u) => u.id}
                 columns={[
