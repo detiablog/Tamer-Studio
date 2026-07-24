@@ -1,0 +1,220 @@
+/* Dashboard Animations & Micro-interactions */
+@layer components {
+  /* Smooth fade in animation */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  /* Smooth slide up animation */
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Subtle scale animation for cards */
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  /* Skeleton loading animation */
+  @keyframes skeleton-loading {
+    0% {
+      background-color: hsl(var(--muted) / 0.4);
+    }
+    50% {
+      background-color: hsl(var(--muted) / 0.6);
+    }
+    100% {
+      background-color: hsl(var(--muted) / 0.4);
+    }
+  }
+
+  /* Smooth number counter animation */
+  @keyframes counterUp {
+    from {
+      opacity: 0.6;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  /* Utility classes */
+  .animate-fadeIn {
+    animation: fadeIn 300ms ease-out;
+  }
+
+  .animate-slideUp {
+    animation: slideUp 400ms ease-out;
+  }
+
+  .animate-scaleIn {
+    animation: scaleIn 300ms ease-out;
+  }
+
+  .animate-skeleton {
+    animation: skeleton-loading 2s infinite;
+  }
+
+  .animate-counterUp {
+    animation: counterUp 300ms ease-out;
+  }
+
+  /* Hover elevation effect */
+  .hover-lift {
+    @apply transition-all duration-300 hover:shadow-md hover:-translate-y-0.5;
+  }
+
+  /* Smooth card transitions */
+  .card-transition {
+    @apply transition-all duration-200;
+  }
+
+  /* Focus ring for accessibility */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 dark:focus:ring-offset-background;
+  }
+
+  /* Badge variants */
+  .badge-success {
+    @apply bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30;
+  }
+
+  .badge-warning {
+    @apply bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30;
+  }
+
+  .badge-critical {
+    @apply bg-red-500/15 text-red-600 dark:text-red-400 border-red-500/30;
+  }
+
+  .badge-info {
+    @apply bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30;
+  }
+
+  /* Status indicators */
+  .status-dot-success {
+    @apply size-2 rounded-full bg-emerald-500;
+  }
+
+  .status-dot-warning {
+    @apply size-2 rounded-full bg-amber-500;
+  }
+
+  .status-dot-critical {
+    @apply size-2 rounded-full bg-red-500;
+  }
+
+  /* Typography hierarchy */
+  .text-hero {
+    @apply text-4xl font-bold tracking-tight;
+  }
+
+  .text-section {
+    @apply text-base font-semibold;
+  }
+
+  .text-stat {
+    @apply text-3xl font-bold tracking-tight;
+  }
+
+  /* Grid layouts */
+  .grid-dashboard-stats {
+    @apply grid gap-4 md:gap-6 sm:grid-cols-2 lg:grid-cols-4;
+  }
+
+  .grid-dashboard-panels {
+    @apply grid gap-4 md:gap-6 lg:grid-cols-3;
+  }
+
+  /* Card base styles */
+  .card-base {
+    @apply rounded-xl border border-border/50 bg-card/40 backdrop-blur-sm p-6 transition-all hover:border-border/80 hover:shadow-sm;
+  }
+
+  .card-elevated {
+    @apply rounded-xl border border-border/50 bg-card/60 backdrop-blur-sm p-6 shadow-sm transition-all hover:border-border/80 hover:shadow-md;
+  }
+
+  /* Responsive spacing utilities */
+  .p-dashboard {
+    @apply p-4 md:p-6 lg:p-8;
+  }
+
+  .gap-dashboard {
+    @apply gap-4 md:gap-6 lg:gap-8;
+  }
+
+  /* Container utilities */
+  .container-dashboard {
+    @apply w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8;
+  }
+
+  /* Text truncation utilities */
+  .line-clamp-1 {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Accessibility: Skip to content */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  /* Print styles */
+  @media print {
+    .no-print {
+      display: none !important;
+    }
+  }
+}
+
+/* Responsive media query helpers */
+@layer utilities {
+  @media (max-width: 640px) {
+    .sm-hidden {
+      display: none;
+    }
+  }
+
+  @media (min-width: 641px) {
+    .sm-show {
+      display: block;
+    }
+  }
+}
