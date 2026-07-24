@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { usePathname } from "next/navigation";
-import { Topbar } from "@/components/ui/Topbar";
+import { AdminTopbar } from "./AdminTopbar";
 import { AdminSidebar } from "./AdminSidebar";
 
 type AdminShellProps = {
@@ -19,7 +19,7 @@ export function AdminShell({ children }: AdminShellProps) {
       </div>
 
       <div className="flex flex-1 flex-col">
-        <Topbar />
+        <AdminTopbar />
         <main className="flex-1 p-6">{children}</main>
       </div>
     </div>

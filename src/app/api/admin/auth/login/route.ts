@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { loginAdmin } from "@/core/admin/login";
 import { checkRateLimit, getClientIdentifier } from "@/core/security/rate-limit";
 import { logAdminAction } from "@/core/audit/audit.service";
+import { logger } from "@/core/logger";
 
 export async function POST(request: NextRequest) {
   try {
@@ -32,6 +33,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!email || !password || !adminKey) {
+      logger.warn("Admin login: missing fields", { email, hasPassword: !!password, hasAdminKey: !!adminKey });
       return NextResponse.json({ success: false, reason: "missing_fields" }, { status: 400 });
     }
 
@@ -44,30 +46,43 @@ export async function POST(request: NextRequest) {
     });
 
     if (!result.success) {
+      logger.warn("Admin login failed", { reason: result.reason, email });
       return NextResponse.json({ success: false, reason: result.reason }, { status: 401 });
     }
 
     const response = NextResponse.json({ success: true, session: result.session });
 
     if (result.session?.token) {
+      // In development, be very lenient with cookie settings for easier debugging
+      const isDev = process.env.NODE_ENV === "development";
+      
       response.cookies.set("admin_session", result.session.token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
+        httpOnly: isDev ? false : true, // Allow client JS access in dev
+        secure: isDev ? false : true, // Allow http in dev
+        sameSite: isDev ? "none" : "lax", // More lenient in dev
         path: "/",
         maxAge: 60 * 60 * 24,
       });
+      console.log("[ADMIN LOGIN] Set admin_session cookie with token:", result.session.token.substring(0, 20) + "...");
     }
 
     if (result.session?.adminId) {
-      await logAdminAction("admin.login", result.session.adminId, {
-        ipAddress: request.headers.get("x-forwarded-for") || identifier,
-        userAgent: request.headers.get("user-agent") || undefined,
-      });
+      try {
+        await logAdminAction("admin.login", result.session.adminId, {
+          ipAddress: request.headers.get("x-forwarded-for") || identifier,
+          userAgent: request.headers.get("user-agent") || undefined,
+        });
+      } catch (err) {
+        logger.warn("Could not log admin action", { error: String(err) });
+      }
     }
 
+    logger.info("Admin login successful", { email, adminId: result.session?.adminId });
     return response;
-  } catch {
-    return NextResponse.json({ success: false, reason: "unexpected_error" }, { status: 500 });
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    logger.error("Admin login API error", new Error(errorMessage));
+    console.error("[ADMIN LOGIN ERROR]", err);
+    return NextResponse.json({ success: false, reason: "unexpected_error", error: errorMessage }, { status: 500 });
   }
 }

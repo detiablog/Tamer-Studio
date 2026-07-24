@@ -7,10 +7,19 @@ import { recordFailedLogin } from "@/lib/auth/events";
 import { randomUUID } from "crypto";
 import { eq } from "drizzle-orm";
 
-export async function loginAdmin(credentials: { email: string; password: string; adminKey: string; ipAddress?: string; userAgent?: string }) {
+export async function loginAdmin(credentials: {
+  email: string;
+  password: string;
+  adminKey: string;
+  ipAddress?: string;
+  userAgent?: string;
+}) {
+  // Step 1: Verify master key
   const isValidMasterKey = await verifyMasterKey(credentials.adminKey);
   if (!isValidMasterKey) {
-    logger.security("Admin login attempt with invalid master key", { email: credentials.email });
+    logger.security("Admin login attempt with invalid master key", {
+      email: credentials.email,
+    });
     await recordFailedLogin({
       email: credentials.email,
       identifier: credentials.ipAddress ?? "unknown",
@@ -21,8 +30,11 @@ export async function loginAdmin(credentials: { email: string; password: string;
     return { success: false, reason: "invalid_master_key" as const };
   }
 
+  // Step 2: Validate password length
   if (credentials.password.length < 12) {
-    logger.security("Admin login attempt with weak password", { email: credentials.email });
+    logger.security("Admin login attempt with weak password", {
+      email: credentials.email,
+    });
     await recordFailedLogin({
       email: credentials.email,
       identifier: credentials.ipAddress ?? "unknown",
@@ -33,75 +45,165 @@ export async function loginAdmin(credentials: { email: string; password: string;
     return { success: false, reason: "invalid_credentials" as const };
   }
 
-  const existingAdmin = await db.select().from(admin).where(eq(admin.email, credentials.email)).limit(1);
+  // Step 3: In development, allow env-based credentials
+  if (process.env.NODE_ENV === "development") {
+    const envEmail = process.env.ADMIN_EMAIL;
+    const envPassword = process.env.ADMIN_PASSWORD;
 
-  if (existingAdmin.length === 0) {
-    logger.security("Admin login attempt with non-existent email", { email: credentials.email });
-    await recordFailedLogin({
-      email: credentials.email,
-      identifier: credentials.ipAddress ?? "unknown",
-      reason: "email_not_found",
-      userAgent: credentials.userAgent,
-      ipAddress: credentials.ipAddress,
-    });
-    return { success: false, reason: "invalid_credentials" as const };
+    if (
+      envEmail &&
+      envPassword &&
+      credentials.email === envEmail &&
+      credentials.password === envPassword
+    ) {
+      logger.info("[DEV] Admin login via environment credentials", {
+        email: credentials.email,
+      });
+
+      const token = randomUUID();
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+      return {
+        success: true,
+        reason: undefined,
+        session: {
+          id: token,
+          token,
+          adminId: randomUUID(),
+          expiresAt,
+          createdAt: new Date(),
+        },
+      };
+    }
   }
 
-  const adminRecord = existingAdmin[0];
+  // Step 4: Try database lookup (production or if env creds don't match)
+  try {
+    const existingAdmin = await db
+      .select()
+      .from(admin)
+      .where(eq(admin.email, credentials.email))
+      .limit(1);
 
-  if (!adminRecord.isActive) {
-    logger.security("Admin login attempt for inactive account", { adminId: adminRecord.id });
-    await recordFailedLogin({
-      email: credentials.email,
-      identifier: credentials.ipAddress ?? "unknown",
-      reason: "account_inactive",
-      userAgent: credentials.userAgent,
-      ipAddress: credentials.ipAddress,
-    });
-    return { success: false, reason: "account_inactive" as const };
-  }
+    if (existingAdmin.length === 0) {
+      logger.security("Admin login attempt with non-existent email", {
+        email: credentials.email,
+      });
+      await recordFailedLogin({
+        email: credentials.email,
+        identifier: credentials.ipAddress ?? "unknown",
+        reason: "email_not_found",
+        userAgent: credentials.userAgent,
+        ipAddress: credentials.ipAddress,
+      });
+      return { success: false, reason: "invalid_credentials" as const };
+    }
 
-  const isValid = await verifyPassword(credentials.password, adminRecord.passwordHash);
+    const adminRecord = existingAdmin[0];
 
-  if (!isValid) {
-    logger.security("Admin login attempt with invalid password", { adminId: adminRecord.id });
-    await recordFailedLogin({
-      email: credentials.email,
-      identifier: credentials.ipAddress ?? "unknown",
-      reason: "invalid_password",
-      userAgent: credentials.userAgent,
-      ipAddress: credentials.ipAddress,
-    });
-    return { success: false, reason: "invalid_credentials" as const };
-  }
+    if (!adminRecord.isActive) {
+      logger.security("Admin login attempt for inactive account", {
+        adminId: adminRecord.id,
+      });
+      await recordFailedLogin({
+        email: credentials.email,
+        identifier: credentials.ipAddress ?? "unknown",
+        reason: "account_inactive",
+        userAgent: credentials.userAgent,
+        ipAddress: credentials.ipAddress,
+      });
+      return { success: false, reason: "account_inactive" as const };
+    }
 
-  const token = randomUUID();
-  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const isValid = await verifyPassword(
+      credentials.password,
+      adminRecord.passwordHash
+    );
 
-  await db.delete(adminSession).where(eq(adminSession.adminId, adminRecord.id));
+    if (!isValid) {
+      logger.security("Admin login attempt with invalid password", {
+        adminId: adminRecord.id,
+      });
+      await recordFailedLogin({
+        email: credentials.email,
+        identifier: credentials.ipAddress ?? "unknown",
+        reason: "invalid_password",
+        userAgent: credentials.userAgent,
+        ipAddress: credentials.ipAddress,
+      });
+      return { success: false, reason: "invalid_credentials" as const };
+    }
 
-  await db.insert(adminSession).values({
-    id: randomUUID(),
-    token,
-    adminId: adminRecord.id,
-    expiresAt,
-  });
+    const token = randomUUID();
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-  await db.update(admin).set({ lastLoginAt: new Date() }).where(eq(admin.id, adminRecord.id));
+    await db.delete(adminSession).where(eq(adminSession.adminId, adminRecord.id));
 
-  logger.audit("Admin logged in", { adminId: adminRecord.id, email: adminRecord.email });
-
-  return {
-    success: true,
-    reason: undefined,
-    session: {
-      id: token,
+    await db.insert(adminSession).values({
+      id: randomUUID(),
       token,
       adminId: adminRecord.id,
       expiresAt,
-      createdAt: new Date(),
-    },
-  };
+    });
+
+    await db
+      .update(admin)
+      .set({ lastLoginAt: new Date() })
+      .where(eq(admin.id, adminRecord.id));
+
+    logger.audit("Admin logged in", {
+      adminId: adminRecord.id,
+      email: adminRecord.email,
+    });
+
+    return {
+      success: true,
+      reason: undefined,
+      session: {
+        id: token,
+        token,
+        adminId: adminRecord.id,
+        expiresAt,
+        createdAt: new Date(),
+      },
+    };
+  } catch (err) {
+    // Database error - log it but allow env-based login to work in dev
+    logger.error("Database error during admin login", err instanceof Error ? err : new Error(String(err)));
+
+    if (process.env.NODE_ENV === "development") {
+      logger.warn(
+        "[DEV] Database unavailable, falling back to environment credentials"
+      );
+
+      const envEmail = process.env.ADMIN_EMAIL;
+      const envPassword = process.env.ADMIN_PASSWORD;
+
+      if (
+        envEmail &&
+        envPassword &&
+        credentials.email === envEmail &&
+        credentials.password === envPassword
+      ) {
+        const token = randomUUID();
+        const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+        return {
+          success: true,
+          reason: undefined,
+          session: {
+            id: token,
+            token,
+            adminId: randomUUID(),
+            expiresAt,
+            createdAt: new Date(),
+          },
+        };
+      }
+    }
+
+    throw err;
+  }
 }
 
 export { hashPassword };
