@@ -5,6 +5,12 @@ const nextConfig: NextConfig = {
 
   typedRoutes: true,
 
+  poweredByHeader: false,
+
+  compress: true,
+
+  devIndicators: false,
+
   images: {
     remotePatterns: [
       {
@@ -17,10 +23,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-
-  poweredByHeader: false,
-
-  compress: true,
 };
 
 export default nextConfig;

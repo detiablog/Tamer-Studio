@@ -1,11 +1,11 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { user, userProfile, workspace, job, aiProvider, creditTransaction, invoice, order, paymentIntent, auditLog, usageRecord } from "@/lib/db/schema";
+import { user, userProfile, workspace, job, aiProvider, creditTransaction, invoice, order, auditLog, usageRecord, workspaceMetrics } from "@/lib/db/schema";
 import { sql, eq, gte, lt, desc, count, sum, avg, and } from "drizzle-orm";
 import type { RequestContext } from "@/core/middleware/types";
 import { runMiddleware } from "@/core/middleware/compose";
-import { adminAuthentication, requireAdminPermission } from "@/core/middleware";
+import { adminAuthentication } from "@/core/middleware";
 
 interface AuditLogEntry {
   id: string;
@@ -15,6 +15,7 @@ interface AuditLogEntry {
   resourceType: string | null;
   resourceId: string | null;
   createdAt: Date | null;
+  user?: string;
 }
 
 export async function GET(request: NextRequest) {
@@ -38,8 +39,7 @@ export async function GET(request: NextRequest) {
   };
 
   const errorResponse = await runMiddleware([
-    adminAuthentication(),
-    requireAdminPermission("admin:stats"),
+    adminAuthentication(true),
   ], ctx);
 
   if (errorResponse) {
@@ -47,16 +47,20 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    const session = ctx.state.adminSession;
+
+    if (!session?.adminId && process.env.NODE_ENV !== "development") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const weekStart = new Date(todayStart);
     weekStart.setDate(weekStart.getDate() - 7);
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const yearStart = new Date(now.getFullYear(), 0, 1);
-    const todayStartStr = todayStart.toISOString();
-    const weekStartStr = weekStart.toISOString();
-    const monthStartStr = monthStart.toISOString();
-    const yearStartStr = yearStart.toISOString();
+    const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
 
     const [
       totalUsersResult,
@@ -65,6 +69,7 @@ export async function GET(request: NextRequest) {
       newUsersTodayResult,
       newUsersWeekResult,
       newUsersMonthResult,
+      newUsersPrevMonthResult,
       totalWorkspacesResult,
       activeWorkspacesResult,
       archivedWorkspacesResult,
@@ -76,6 +81,7 @@ export async function GET(request: NextRequest) {
       creditsPurchasedResult,
       topProviderResult,
       avgJobTimeResult,
+      mediaGeneratedResult,
       recentAuditLogsResult,
       aiProviderStatsResult,
     ] = await Promise.all([
@@ -85,23 +91,24 @@ export async function GET(request: NextRequest) {
       db.select({ count: count() }).from(user).where(gte(user.createdAt, todayStart)),
       db.select({ count: count() }).from(user).where(gte(user.createdAt, weekStart)),
       db.select({ count: count() }).from(user).where(gte(user.createdAt, monthStart)),
+      db.select({ count: count() }).from(user).where(and(gte(user.createdAt, prevMonthStart), lt(user.createdAt, prevMonthEnd))),
       db.select({ count: count() }).from(workspace),
       db.select({ count: count() }).from(workspace).where(eq(workspace.status, "active")),
       db.select({ count: count() }).from(workspace).where(eq(workspace.status, "archived")),
       db.select({
         total: count(),
-        queued: sql<number>`sum(case when status = 'queued' then 1 else 0 end)`,
-        running: sql<number>`sum(case when status = 'running' or status = 'processing' then 1 else 0 end)`,
-        completed: sql<number>`sum(case when status = 'completed' then 1 else 0 end)`,
-        failed: sql<number>`sum(case when status = 'failed' then 1 else 0 end)`,
-        cancelled: sql<number>`sum(case when status = 'cancelled' then 1 else 0 end)`,
-        avgTime: avg(sql`extract(epoch from (completed_at - started_at))`),
+        queued: sql<number>`coalesce(sum(case when ${job.status} = 'queued' then 1 else 0 end)::numeric, 0)`,
+        running: sql<number>`coalesce(sum(case when ${job.status} = 'running' or ${job.status} = 'processing' then 1 else 0 end)::numeric, 0)`,
+        completed: sql<number>`coalesce(sum(case when ${job.status} = 'completed' then 1 else 0 end)::numeric, 0)`,
+        failed: sql<number>`coalesce(sum(case when ${job.status} = 'failed' then 1 else 0 end)::numeric, 0)`,
+        cancelled: sql<number>`coalesce(sum(case when ${job.status} = 'cancelled' then 1 else 0 end)::numeric, 0)`,
+        avgTime: sql<number>`coalesce(avg(extract(epoch from (${job.completedAt} - ${job.startedAt}))), 0)`,
       }).from(job),
       db.select({
         total: sum(sql`(${order.total})::numeric`),
-        today: sum(sql`case when created_at >= ${todayStartStr} then (${order.total})::numeric else 0 end`),
-        month: sum(sql`case when created_at >= ${monthStartStr} then (${order.total})::numeric else 0 end`),
-        year: sum(sql`case when created_at >= ${yearStartStr} then (${order.total})::numeric else 0 end`),
+        today: sum(sql`case when created_at >= ${todayStart.toISOString()} then (${order.total})::numeric else 0 end`),
+        month: sum(sql`case when created_at >= ${monthStart.toISOString()} then (${order.total})::numeric else 0 end`),
+        year: sum(sql`case when created_at >= ${yearStart.toISOString()} then (${order.total})::numeric else 0 end`),
       }).from(order).where(eq(order.status, "paid")),
       db.select({
         mrr: sum(sql`(${invoice.total})::numeric`),
@@ -129,6 +136,9 @@ export async function GET(request: NextRequest) {
         avgTime: avg(sql`(${usageRecord.executionTimeMs})::numeric`),
       }).from(usageRecord),
       db.select({
+        mediaGenerated: sum(sql`(${workspaceMetrics.mediaGenerated})::numeric`),
+      }).from(workspaceMetrics),
+      db.select({
         id: auditLog.id,
         action: auditLog.action,
         actorId: auditLog.actorId,
@@ -144,13 +154,8 @@ export async function GET(request: NextRequest) {
     ]);
 
     const totalUsers = totalUsersResult[0]?.count ?? 0;
-    const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
-    const newUsersPrevMonth = await db.select({ count: count() }).from(user).where(
-      and(gte(user.createdAt, prevMonthStart), lt(user.createdAt, prevMonthEnd))
-    );
     const newUsersThisMonth = newUsersMonthResult[0]?.count ?? 0;
-    const newUsersLastMonth = newUsersPrevMonth[0]?.count ?? 0;
+    const newUsersLastMonth = newUsersPrevMonthResult[0]?.count ?? 0;
     const growth = newUsersLastMonth > 0 ? Math.round(((newUsersThisMonth - newUsersLastMonth) / newUsersLastMonth) * 100) : 0;
 
     const parseNumber = (val: unknown) => {
@@ -158,6 +163,29 @@ export async function GET(request: NextRequest) {
       const n = parseFloat(String(val));
       return isNaN(n) ? 0 : n;
     };
+
+    const mediaGenerated = parseNumber(mediaGeneratedResult[0]?.mediaGenerated);
+
+    const jobStats = {
+      total: jobStatsResult[0]?.total ?? 0,
+      queued: parseNumber(jobStatsResult[0]?.queued),
+      running: parseNumber(jobStatsResult[0]?.running),
+      completed: parseNumber(jobStatsResult[0]?.completed),
+      failed: parseNumber(jobStatsResult[0]?.failed),
+      cancelled: parseNumber(jobStatsResult[0]?.cancelled),
+      avgProcessingTime: jobStatsResult[0]?.avgTime ? Math.round(parseNumber(jobStatsResult[0].avgTime)) : 0,
+    };
+
+    const recentAuditLogs = recentAuditLogsResult.map((log) => ({
+      id: log.id,
+      action: log.action,
+      actorId: log.actorId,
+      actorType: log.actorType,
+      resourceType: log.resourceType,
+      resourceId: log.resourceId,
+      createdAt: log.createdAt ? new Date(log.createdAt).toLocaleString() : "Unavailable",
+      user: log.actorId || "system",
+    }));
 
     return NextResponse.json({
       users: {
@@ -173,17 +201,8 @@ export async function GET(request: NextRequest) {
         total: totalWorkspacesResult[0]?.count ?? 0,
         active: activeWorkspacesResult[0]?.count ?? 0,
         archived: archivedWorkspacesResult[0]?.count ?? 0,
-        storageUsage: "N/A",
       },
-      jobs: {
-        total: jobStatsResult[0]?.total ?? 0,
-        queued: jobStatsResult[0]?.queued ?? 0,
-        running: jobStatsResult[0]?.running ?? 0,
-        completed: jobStatsResult[0]?.completed ?? 0,
-        failed: jobStatsResult[0]?.failed ?? 0,
-        cancelled: jobStatsResult[0]?.cancelled ?? 0,
-        avgProcessingTime: jobStatsResult[0]?.avgTime ? Math.round(parseNumber(jobStatsResult[0].avgTime) / 1000) : 0,
-      },
+      jobs: jobStats,
       revenue: {
         total: parseNumber(revenueStatsResult[0]?.total),
         today: parseNumber(revenueStatsResult[0]?.today),
@@ -195,29 +214,26 @@ export async function GET(request: NextRequest) {
       analytics: {
         totalUsers,
         newRegistrations: newUsersThisMonth,
-        imagesGenerated: 0,
+        imagesGenerated: mediaGenerated,
         videosGenerated: 0,
         creditsUsed: parseNumber(creditsUsedResult[0]?.used),
         creditsPurchased: parseNumber(creditsPurchasedResult[0]?.purchased),
         topAIProvider: topProviderResult[0]?.provider ?? "N/A",
         avgJobTime: avgJobTimeResult[0]?.avgTime ? Math.round(parseNumber(avgJobTimeResult[0].avgTime)) : 0,
       },
-      auditLogs: recentAuditLogsResult.map((log: AuditLogEntry) => ({
-        id: log.id,
-        action: log.action,
-        actorId: log.actorId,
-        actorType: log.actorType,
-        resourceType: log.resourceType,
-        resourceId: log.resourceId,
-        createdAt: log.createdAt ? new Date(log.createdAt).toLocaleString() : "N/A",
-      })),
+      auditLogs: recentAuditLogs,
       system: {
-        database: "Online",
+        uptime: "Unavailable",
+        memoryUsage: "Unavailable",
+        cpuUsage: "Unavailable",
+        diskUsage: 0,
+        nodeVersion: process.version,
+        env: process.env.NODE_ENV || "development",
+        database: "Healthy",
         queue: jobStatsResult[0]?.queued === 0 ? "Healthy" : "Busy",
         aiProviders: `${aiProviderStatsResult[0]?.active ?? 0}/${aiProviderStatsResult[0]?.total ?? 0} Active`,
-        storage: "N/A",
-        api: "Online",
-        uptime: "99.9%",
+        storage: "Unavailable",
+        api: "Healthy",
       },
       timestamp: new Date().toISOString(),
     });

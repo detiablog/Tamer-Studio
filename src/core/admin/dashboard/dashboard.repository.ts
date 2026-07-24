@@ -1,8 +1,8 @@
 import { db } from "@/lib/db";
-import { userProfile, workspace, invoice, wallet, usageRecord, creditTransaction } from "@/lib/db/schema";
-import { sql, count, eq, and } from "drizzle-orm";
+import { userProfile, workspace, invoice, wallet, usageRecord, creditTransaction, job, auditLog, aiProvider } from "@/lib/db/schema";
+import { sql, count, eq, and, desc } from "drizzle-orm";
 import type { AIProvider } from "../providers/providers.types";
-import type { Alert } from "./dashboard.types";
+import type { Alert, AuditLogEntry } from "./dashboard.types";
 
 export interface DashboardRepository {
   getUserStats(): Promise<{
@@ -38,6 +38,24 @@ export interface DashboardRepository {
     monthlyRevenue: number;
     pendingPayments: number;
     failedPayments: number;
+  }>;
+  getJobStats(): Promise<{
+    totalJobs: number;
+    queuedJobs: number;
+    runningJobs: number;
+    completedJobs: number;
+    failedJobs: number;
+    cancelledJobs: number;
+    avgExecutionTime: number;
+  }>;
+  getAuditLogs(limit?: number): Promise<AuditLogEntry[]>;
+  getSystemHealth(): Promise<{
+    database: string;
+    queue: string;
+    aiProviders: string;
+    storage: string;
+    api: string;
+    uptime: string;
   }>;
   getAlerts(providers: AIProvider[]): Promise<{
     critical: number;
@@ -207,6 +225,109 @@ export class DefaultDashboardRepository implements DashboardRepository {
       warning: alerts.filter((a) => a.severity === "warning").length,
       info: alerts.filter((a) => a.severity === "info").length,
       recent: alerts.slice(0, 10),
+    };
+  }
+
+  async getJobStats(): Promise<{
+    totalJobs: number;
+    queuedJobs: number;
+    runningJobs: number;
+    completedJobs: number;
+    failedJobs: number;
+    cancelledJobs: number;
+    avgExecutionTime: number;
+  }> {
+    const [totalResult, statusResult, avgResult] = await Promise.all([
+      db.select({ total: count() }).from(job),
+      db.select({
+        queued: sql<number>`coalesce(sum(case when ${job.status} = 'queued' then 1 else 0 end), 0)`,
+        running: sql<number>`coalesce(sum(case when ${job.status} = 'running' then 1 else 0 end), 0)`,
+        completed: sql<number>`coalesce(sum(case when ${job.status} = 'completed' then 1 else 0 end), 0)`,
+        failed: sql<number>`coalesce(sum(case when ${job.status} = 'failed' then 1 else 0 end), 0)`,
+        cancelled: sql<number>`coalesce(sum(case when ${job.status} = 'cancelled' then 1 else 0 end), 0)`,
+      }).from(job),
+      db.select({
+        avgTime: sql<number>`coalesce(avg(extract(epoch from (${job.completedAt} - ${job.startedAt}))), 0)`,
+      }).from(job).where(and(eq(job.status, "completed"), sql`${job.startedAt} is not null`, sql`${job.completedAt} is not null`)),
+    ]);
+
+    return {
+      totalJobs: totalResult[0]?.total ?? 0,
+      queuedJobs: statusResult[0]?.queued ?? 0,
+      runningJobs: statusResult[0]?.running ?? 0,
+      completedJobs: statusResult[0]?.completed ?? 0,
+      failedJobs: statusResult[0]?.failed ?? 0,
+      cancelledJobs: statusResult[0]?.cancelled ?? 0,
+      avgExecutionTime: Math.round(avgResult[0]?.avgTime ?? 0),
+    };
+  }
+
+  async getAuditLogs(limit = 20): Promise<AuditLogEntry[]> {
+    const rows = await db
+      .select()
+      .from(auditLog)
+      .orderBy(desc(auditLog.createdAt))
+      .limit(limit);
+
+    return rows.map((entry) => ({
+      id: entry.id,
+      action: entry.action,
+      actorId: entry.actorId ?? null,
+      actorType: entry.actorType ?? null,
+      resourceType: entry.resourceType ?? null,
+      resourceId: entry.resourceId ?? null,
+      createdAt: entry.createdAt,
+    }));
+  }
+
+  async getSystemHealth(): Promise<{
+    uptime: string;
+    memoryUsage: string;
+    cpuUsage: string;
+    diskUsage: number;
+    nodeVersion: string;
+    env: string;
+    maintenanceMode?: boolean;
+    readOnlyMode?: boolean;
+    database: string;
+    queue: string;
+    aiProviders: string;
+    storage: string;
+    api: string;
+  }> {
+    try {
+      await db.select({ one: sql<number>`1` }).from(userProfile).limit(1);
+    } catch {
+      return {
+        uptime: "Unavailable",
+        memoryUsage: "Unavailable",
+        cpuUsage: "Unavailable",
+        diskUsage: 0,
+        nodeVersion: "Unavailable",
+        env: process.env.NODE_ENV || "development",
+        database: "Unavailable",
+        queue: "Unavailable",
+        aiProviders: "Unavailable",
+        storage: "Unavailable",
+        api: "Unavailable",
+      };
+    }
+
+    const providersResult = await db.select({ count: count() }).from(aiProvider);
+    const jobsQueuedResult = await db.select({ count: count() }).from(job).where(eq(job.status, "queued"));
+
+    return {
+      uptime: "Unavailable",
+      memoryUsage: "Unavailable",
+      cpuUsage: "Unavailable",
+      diskUsage: 0,
+      nodeVersion: process.version,
+      env: process.env.NODE_ENV || "development",
+      database: "Healthy",
+      queue: jobsQueuedResult[0]?.count ? "Busy" : "Healthy",
+      aiProviders: providersResult[0]?.count ? "Healthy" : "Unavailable",
+      storage: "Unavailable",
+      api: "Healthy",
     };
   }
 }

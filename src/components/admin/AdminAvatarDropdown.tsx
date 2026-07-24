@@ -5,6 +5,7 @@ import { Avatar } from "@/components/ui/Avatar"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
+import { Button } from "@/components/ui/button"
 import {
   User,
   Settings,
@@ -15,11 +16,81 @@ import {
   AlertTriangle,
 } from "lucide-react"
 import { logger } from "@/core/logger"
+import { useLocalizationContext } from "@/providers/localization"
+
+type AdminInfo = {
+  id: string
+  email: string
+  name: string
+  role: string
+  initials: string
+  isActive: boolean
+  lastLoginAt?: string
+}
 
 export function AdminAvatarDropdown() {
   const [open, setOpen] = React.useState(false)
   const [logoutDialog, setLogoutDialog] = React.useState(false)
+  const [adminInfo, setAdminInfo] = React.useState<AdminInfo | null>(null)
+  const [loading, setLoading] = React.useState(true)
   const router = useRouter()
+  const { t } = useLocalizationContext()
+
+  React.useEffect(() => {
+    let cancelled = false
+    const fetchAdmin = async () => {
+      try {
+        const res = await fetch("/api/admin/me", { cache: "no-store" })
+        if (!res.ok) {
+          if (process.env.NODE_ENV === "development") {
+            if (!cancelled) {
+              setAdminInfo({
+                id: "dev-admin",
+                email: "admin@tamer.studio",
+                name: "Admin User",
+                role: "super_admin",
+                initials: "AU",
+                isActive: true,
+                lastLoginAt: new Date().toISOString(),
+              })
+              setLoading(false)
+            }
+            return
+          }
+          throw new Error("Failed to fetch admin info")
+        }
+        const data = await res.json()
+        if (!cancelled) {
+          setAdminInfo(data)
+          setLoading(false)
+        }
+      } catch (err) {
+        if (!cancelled) {
+          if (process.env.NODE_ENV === "development") {
+            setAdminInfo({
+              id: "dev-admin",
+              email: "admin@tamer.studio",
+              name: "Admin User",
+              role: "super_admin",
+              initials: "AU",
+              isActive: true,
+              lastLoginAt: new Date().toISOString(),
+            })
+            setLoading(false)
+            return
+          }
+          logger.error("Failed to fetch admin info", err instanceof Error ? err : new Error(String(err)))
+          setLoading(false)
+        }
+      }
+    }
+    fetchAdmin()
+    return () => { cancelled = true }
+  }, [])
+
+  const displayName = adminInfo?.name || "Admin"
+  const displayRole = adminInfo?.role ? (adminInfo.role.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())) : "Admin"
+  const initials = adminInfo?.initials || displayName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
 
   const handleSignOut = async () => {
     try {
@@ -27,7 +98,6 @@ export function AdminAvatarDropdown() {
       setOpen(false)
 
       localStorage.removeItem("admin_session_token");
-      console.log("[AdminAvatarDropdown] Cleared localStorage");
 
       const response = await fetch("/api/admin/auth/logout", {
         method: "POST",
@@ -38,8 +108,7 @@ export function AdminAvatarDropdown() {
         document.cookie = "admin_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
       }
 
-      console.log("[AdminAvatarDropdown] Logged out successfully")
-      toast.success("Signed out successfully")
+      toast.success(t("common.signOut", "Signed out successfully"))
 
       router.replace("/admin/login")
 
@@ -62,13 +131,15 @@ export function AdminAvatarDropdown() {
         aria-haspopup="true"
         aria-label="Account menu"
       >
-        <Avatar name="A" size={32} />
-        <div className="hidden md:flex flex-col items-start">
-          <span className="text-sm font-medium leading-none">Account</span>
-          <span className="text-xs text-muted-foreground leading-none mt-0.5">
-            Admin
-          </span>
-        </div>
+        <Avatar name={initials} size={32} />
+        {!loading && (
+          <div className="hidden md:flex flex-col items-start">
+            <span className="text-sm font-medium leading-none">{displayName}</span>
+            <span className="text-xs text-muted-foreground leading-none mt-0.5">
+              {displayRole}
+            </span>
+          </div>
+        )}
         <ChevronRight className="size-3.5 text-muted-foreground rotate-180 hidden md:block" />
       </button>
 
@@ -81,10 +152,11 @@ export function AdminAvatarDropdown() {
             aria-orientation="vertical"
           >
             <div className="flex items-center gap-3 rounded-lg p-3">
-              <Avatar name="A" size={40} />
-              <div className="flex flex-col">
-                <span className="text-sm font-medium">Admin Account</span>
-                <span className="text-xs text-muted-foreground">admin@tamer.studio</span>
+              <Avatar name={initials} size={40} />
+              <div className="flex flex-col min-w-0">
+                <span className="text-sm font-medium truncate">{displayName}</span>
+                <span className="text-xs text-muted-foreground truncate">{adminInfo?.email}</span>
+                <span className="text-xs text-muted-foreground mt-0.5">{displayRole}</span>
               </div>
             </div>
 
@@ -98,7 +170,7 @@ export function AdminAvatarDropdown() {
                 role="menuitem"
               >
                 <User className="size-4" />
-                <span>Profile</span>
+                <span>{t("admin.profile", "Profile")}</span>
               </Link>
               <Link
                 href="/admin/settings"
@@ -107,7 +179,7 @@ export function AdminAvatarDropdown() {
                 role="menuitem"
               >
                 <Settings className="size-4" />
-                <span>Settings</span>
+                <span>{t("admin.settings", "Settings")}</span>
               </Link>
               <Link
                 href="/admin/billing"
@@ -116,7 +188,7 @@ export function AdminAvatarDropdown() {
                 role="menuitem"
               >
                 <CreditCard className="size-4" />
-                <span>Billing</span>
+                <span>{t("admin.billing", "Billing")}</span>
               </Link>
               <Link
                 href="/admin/api-keys"
@@ -125,7 +197,7 @@ export function AdminAvatarDropdown() {
                 role="menuitem"
               >
                 <Key className="size-4" />
-                <span>API Keys</span>
+                <span>{t("admin.apiKeys", "API Keys")}</span>
               </Link>
             </div>
 
@@ -138,7 +210,7 @@ export function AdminAvatarDropdown() {
                 role="menuitem"
               >
                 <LogOut className="size-4" />
-                <span>Sign out</span>
+                <span>{t("common.signOut", "Sign out")}</span>
               </button>
             </div>
           </div>
@@ -154,13 +226,13 @@ export function AdminAvatarDropdown() {
                 <AlertTriangle className="size-5 text-amber-500" />
               </div>
               <div>
-                <h3 className="font-semibold">Confirm Sign Out</h3>
-                <p className="text-sm text-muted-foreground">Are you sure you want to sign out?</p>
+                <h3 className="font-semibold">{t("admin.confirm", "Confirm Sign Out")}</h3>
+                <p className="text-sm text-muted-foreground">{t("admin.confirmSignOut", "Are you sure you want to sign out?")}</p>
               </div>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setLogoutDialog(false)} className="flex-1">Cancel</Button>
-              <Button variant="destructive" onClick={handleSignOut} className="flex-1">Sign Out</Button>
+              <Button variant="outline" onClick={() => setLogoutDialog(false)} className="flex-1">{t("common.cancel", "Cancel")}</Button>
+              <Button variant="destructive" onClick={handleSignOut} className="flex-1">{t("common.signOut", "Sign Out")}</Button>
             </div>
           </div>
         </>

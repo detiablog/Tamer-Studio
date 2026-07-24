@@ -19,6 +19,17 @@ const fetcher = (url: string) =>
 
 export default function AdminDashboardRootPage() {
   const { t } = useLocalizationContext();
+
+  const formatAuditAction = (action: string, user?: string) => {
+    if (!action) return "—";
+    const key = action.replace(/\./g, "");
+    const translated = t(`admin.auditLogs.${key}`, action);
+    if (action === "user.login" && user) {
+      return `${user} - ${translated}`;
+    }
+    return translated;
+  };
+
   const [stats, setStats] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -138,7 +149,7 @@ export default function AdminDashboardRootPage() {
           <div className="rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-8">
             <div className="space-y-2">
               <h2 className="text-3xl font-bold">{t("admin.dashboard")}</h2>
-              <p className="text-muted-foreground">{t("admin.description")}</p>
+              <p className="text-muted-foreground">{t("admin.dashboardDescription", "Platform overview and recent activity")}</p>
             </div>
           </div>
 
@@ -220,14 +231,14 @@ export default function AdminDashboardRootPage() {
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold">{t("admin.jobs")}</h3>
                   <div className="flex gap-1">
-                    <div className={`size-2 rounded-full ${stats?.jobs?.failed ?? 0 > 0 ? "bg-amber-600" : "bg-green-600"}`} />
-                    <span className="text-xs text-green-600 font-medium">{stats?.jobs?.failed ?? 0 === 0 ? "Healthy" : "Issues"}</span>
+                    <div className={`size-2 rounded-full ${(stats?.jobs?.failed ?? 0) > 0 ? "bg-amber-600" : "bg-green-600"}`} />
+                    <span className="text-xs text-green-600 font-medium">{(stats?.jobs?.failed ?? 0) === 0 ? "Healthy" : "Issues"}</span>
                   </div>
                 </div>
                 <div className="space-y-3">
                   <div>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-muted-foreground">API Uptime</span>
+                      <span className="text-xs text-muted-foreground">{t("admin.apiUptime", "API Uptime")}</span>
                       <span className="text-xs font-semibold">{stats?.system?.uptime ?? "99.9%"}</span>
                     </div>
                     <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
@@ -258,7 +269,7 @@ export default function AdminDashboardRootPage() {
 
             <div className="rounded-xl border border-border/50 bg-card p-6">
               <div className="space-y-4">
-                <h3 className="font-semibold">{t("admin.analytics")}</h3>
+                <h3 className="font-semibold">{t("admin.analytics.label")}</h3>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">{t("admin.users")}</span>
@@ -282,7 +293,7 @@ export default function AdminDashboardRootPage() {
 
             <div className="rounded-xl border border-border/50 bg-card p-6">
               <div className="space-y-4">
-                <h3 className="font-semibold">{t("admin.auditLogs")}</h3>
+                <h3 className="font-semibold">{t("admin.auditLogs.label")}</h3>
                 <div className="space-y-3">
                   {stats?.auditLogs?.length > 0 ? (
                     stats.auditLogs.map((log: any) => (
@@ -293,13 +304,13 @@ export default function AdminDashboardRootPage() {
                           "bg-green-600"
                         }`} />
                         <div className="space-y-0.5 min-w-0">
-                          <p className="text-sm font-medium truncate">{log.action}</p>
+                          <p className="text-sm font-medium truncate">{formatAuditAction(log.action, log.user)}</p>
                           <p className="text-xs text-muted-foreground">{log.createdAt}</p>
                         </div>
                       </div>
                     ))
                   ) : (
-                    <p className="text-sm text-muted-foreground">No recent activity</p>
+                    <p className="text-sm text-muted-foreground">{t("admin.auditLogs.empty", "No recent activity")}</p>
                   )}
                 </div>
               </div>

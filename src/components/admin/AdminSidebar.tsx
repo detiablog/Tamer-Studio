@@ -137,50 +137,50 @@ export function AdminSidebar({ pathname, collapsed, onToggle }: AdminSidebarProp
               <SidebarItem icon={BarChart3} label={t("admin.queues")} href="/admin/queues" active={isActive("/admin/queues")} />
             ))}
             {hasPermission("admin:billing") && (collapsed ? (
-              <SidebarTooltip label={t("admin.billing")}>
+              <SidebarTooltip label={t("admin.billing.label")}>
                 <SidebarItem icon={CreditCard} label="" href="/admin/billing" active={isActive("/admin/billing")} />
               </SidebarTooltip>
             ) : (
-              <SidebarItem icon={CreditCard} label={t("admin.billing")} href="/admin/billing" active={isActive("/admin/billing")} />
+              <SidebarItem icon={CreditCard} label={t("admin.billing.label")} href="/admin/billing" active={isActive("/admin/billing")} />
             ))}
             {hasPermission("admin:subscriptions") && (collapsed ? (
-              <SidebarTooltip label={t("admin.subscriptions")}>
+              <SidebarTooltip label={t("admin.subscriptions.label")}>
                 <SidebarItem icon={Ticket} label="" href="/admin/subscriptions" active={isActive("/admin/subscriptions")} />
               </SidebarTooltip>
             ) : (
-              <SidebarItem icon={Ticket} label={t("admin.subscriptions")} href="/admin/subscriptions" active={isActive("/admin/subscriptions")} />
+              <SidebarItem icon={Ticket} label={t("admin.subscriptions.label")} href="/admin/subscriptions" active={isActive("/admin/subscriptions")} />
             ))}
             {hasPermission("admin:coupons") && (collapsed ? (
-              <SidebarTooltip label={t("admin.coupons")}>
+              <SidebarTooltip label={t("admin.coupons.label")}>
                 <SidebarItem icon={Ticket} label="" href="/admin/coupons" active={isActive("/admin/coupons")} />
               </SidebarTooltip>
             ) : (
-              <SidebarItem icon={Ticket} label={t("admin.coupons")} href="/admin/coupons" active={isActive("/admin/coupons")} />
+              <SidebarItem icon={Ticket} label={t("admin.coupons.label")} href="/admin/coupons" active={isActive("/admin/coupons")} />
             ))}
 
             {!collapsed && (
-              <div className="mt-6 mb-2 px-2 text-[11px] font-medium uppercase tracking-wider text-[#9CA3AF] dark:text-muted-foreground/70">{t("admin.analytics")}</div>
+              <div className="mt-6 mb-2 px-2 text-[11px] font-medium uppercase tracking-wider text-[#9CA3AF] dark:text-muted-foreground/70">{t("admin.analytics.label")}</div>
             )}
             {hasPermission("admin:analytics") && (collapsed ? (
-              <SidebarTooltip label={t("admin.analytics")}>
+              <SidebarTooltip label={t("admin.analytics.label")}>
                 <SidebarItem icon={LineChart} label="" href="/admin/analytics" active={isActive("/admin/analytics")} />
               </SidebarTooltip>
             ) : (
-              <SidebarItem icon={LineChart} label={t("admin.analytics")} href="/admin/analytics" active={isActive("/admin/analytics")} />
+              <SidebarItem icon={LineChart} label={t("admin.analytics.label")} href="/admin/analytics" active={isActive("/admin/analytics")} />
             ))}
             {hasPermission("admin:audit_logs") && (collapsed ? (
-              <SidebarTooltip label={t("admin.auditLogs")}>
+              <SidebarTooltip label={t("admin.auditLogs.label")}>
                 <SidebarItem icon={ScrollText} label="" href="/admin/audit-logs" active={isActive("/admin/audit-logs")} />
               </SidebarTooltip>
             ) : (
-              <SidebarItem icon={ScrollText} label={t("admin.auditLogs")} href="/admin/audit-logs" active={isActive("/admin/audit-logs")} />
+              <SidebarItem icon={ScrollText} label={t("admin.auditLogs.label")} href="/admin/audit-logs" active={isActive("/admin/audit-logs")} />
             ))}
             {hasPermission("admin:feature_flags") && (collapsed ? (
-              <SidebarTooltip label={t("admin.featureFlags")}>
+              <SidebarTooltip label={t("admin.featureFlags.label")}>
                 <SidebarItem icon={Flag} label="" href="/admin/feature-flags" active={isActive("/admin/feature-flags")} />
               </SidebarTooltip>
             ) : (
-              <SidebarItem icon={Flag} label={t("admin.featureFlags")} href="/admin/feature-flags" active={isActive("/admin/feature-flags")} />
+              <SidebarItem icon={Flag} label={t("admin.featureFlags.label")} href="/admin/feature-flags" active={isActive("/admin/feature-flags")} />
             ))}
 
             {!collapsed && (

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useLocalizationContext } from "@/providers/localization";
 import { cn } from "@/lib/utils";
 import { DashboardCard } from "@/components/ui/DashboardCard";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
@@ -24,6 +25,7 @@ const MOCK_PAYMENTS = [
 ];
 
 export default function BillingPage() {
+  const { t } = useLocalizationContext();
   const [activeTab, setActiveTab] = React.useState("invoices");
   const [search, setSearch] = React.useState("");
 
@@ -39,22 +41,22 @@ export default function BillingPage() {
     link.download = `billing-${activeTab}-${new Date().toISOString().split("T")[0]}.csv`;
     link.click();
     URL.revokeObjectURL(url);
-    toast.success("Billing data exported");
+    toast.success(t("admin.billing.exportSuccess", "Billing data exported"));
   };
 
   return (
     <div className="space-y-6">
-      <Breadcrumbs items={[{ label: "Billing" }]} />
+      <Breadcrumbs items={[{ label: t("admin.billing", "Billing") }]} />
       <DashboardCard>
         <div className="mb-6">
-          <h1 className="text-3xl font-bold">Billing</h1>
-          <p className="text-muted-foreground text-sm mt-1">Manage invoices, payments, and subscriptions</p>
+          <h1 className="text-3xl font-bold">{t("admin.billing", "Billing")}</h1>
+          <p className="text-muted-foreground text-sm mt-1">{t("admin.billing.description", "Manage invoices, payments, and subscriptions")}</p>
         </div>
 
         <div className="flex items-center gap-2 pb-4 border-b border-border mb-4">
-          <Button variant={activeTab === "invoices" ? "default" : "ghost"} size="sm" onClick={() => setActiveTab("invoices")}>Invoices</Button>
-          <Button variant={activeTab === "payments" ? "default" : "ghost"} size="sm" onClick={() => setActiveTab("payments")}>Payment History</Button>
-          <Button variant={activeTab === "subscriptions" ? "default" : "ghost"} size="sm" onClick={() => setActiveTab("subscriptions")}>Subscriptions</Button>
+          <Button variant={activeTab === "invoices" ? "default" : "ghost"} size="sm" onClick={() => setActiveTab("invoices")}>{t("admin.billing.tabInvoices", "Invoices")}</Button>
+          <Button variant={activeTab === "payments" ? "default" : "ghost"} size="sm" onClick={() => setActiveTab("payments")}>{t("admin.billing.paymentHistory", "Payment History")}</Button>
+          <Button variant={activeTab === "subscriptions" ? "default" : "ghost"} size="sm" onClick={() => setActiveTab("subscriptions")}>{t("admin.subscriptions", "Subscriptions")}</Button>
         </div>
 
         {activeTab === "invoices" && (
@@ -62,22 +64,22 @@ export default function BillingPage() {
             <div className="flex items-center gap-2 pb-4">
               <div className="relative flex-1 min-w-[250px]">
                 <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search invoices..." className="pl-9" />
+                <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t("admin.billing.searchInvoices", "Search invoices...")} className="pl-9" />
               </div>
-              <Button variant="outline" size="sm" onClick={handleExportCSV}><Receipt className="mr-2 size-4" />Export</Button>
+              <Button variant="outline" size="sm" onClick={handleExportCSV}><Receipt className="mr-2 size-4" />{t("common.export", "Export")}</Button>
             </div>
             <AdminDataTable
               data={MOCK_INVOICES.filter((i) => i.invoiceNo.toLowerCase().includes(search.toLowerCase()))}
               keyExtractor={(i) => i.id}
               columns={[
-                { key: "invoiceNo", header: "Invoice #", render: (i: any) => <span className="font-medium text-sm">{i.invoiceNo}</span> },
-                { key: "workspace", header: "Workspace", render: (i: any) => <span className="text-sm">{i.workspace}</span> },
-                { key: "amount", header: "Amount", render: (i: any) => <span className="font-medium text-sm">{i.amount}</span> },
-                { key: "date", header: "Date", render: (i: any) => <span className="text-sm">{i.date}</span> },
-                { key: "status", header: "Status", render: (i: any) => <Badge tone={i.status === "Paid" ? "success" : "warning"}>{i.status}</Badge> },
-                { key: "dueDate", header: "Due Date", render: (i: any) => <span className="text-sm text-muted-foreground">{i.dueDate}</span> },
+                { key: "invoiceNo", header: t("admin.billing.invoiceNo", "Invoice #"), render: (i: any) => <span className="font-medium text-sm">{i.invoiceNo}</span> },
+                { key: "workspace", header: t("admin.billing.workspace", "Workspace"), render: (i: any) => <span className="text-sm">{i.workspace}</span> },
+                { key: "amount", header: t("common.amount", "Amount"), render: (i: any) => <span className="font-medium text-sm">{i.amount}</span> },
+                { key: "date", header: t("common.date", "Date"), render: (i: any) => <span className="text-sm">{i.date}</span> },
+                { key: "status", header: t("common.status", "Status"), render: (i: any) => <Badge tone={i.status === "Paid" ? "success" : "warning"}>{i.status}</Badge> },
+                { key: "dueDate", header: t("admin.billing.dueDate", "Due Date"), render: (i: any) => <span className="text-sm text-muted-foreground">{i.dueDate}</span> },
                 { key: "actions", header: "", align: "right", render: (i: any) => (
-                  <Button variant="ghost" size="icon-xs" onClick={() => { const blob = new Blob([`Invoice ${i.invoiceNo}\nWorkspace: ${i.workspace}\nAmount: ${i.amount}\nDate: ${i.date}\nStatus: ${i.status}`], { type: "text/plain" }); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = `${i.invoiceNo}.txt`; link.click(); URL.revokeObjectURL(url); toast.success(`Invoice ${i.invoiceNo} exported`); }} aria-label="Export invoice"><Receipt className="size-3.5" /></Button>
+                  <Button variant="ghost" size="icon-xs" onClick={() => { const blob = new Blob([`Invoice ${i.invoiceNo}\nWorkspace: ${i.workspace}\nAmount: ${i.amount}\nDate: ${i.date}\nStatus: ${i.status}`], { type: "text/plain" }); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = `${i.invoiceNo}.txt`; link.click(); URL.revokeObjectURL(url); toast.success(t("admin.billing.toastInvoiceExported", "Invoice {0} exported").replace("{0}", i.invoiceNo)); }} aria-label={t("admin.billing.exportInvoice", "Export invoice")}><Receipt className="size-3.5" /></Button>
                 )},
               ]}
             />
@@ -89,10 +91,10 @@ export default function BillingPage() {
             data={MOCK_PAYMENTS}
             keyExtractor={(p) => p.id}
             columns={[
-              { key: "method", header: "Method", render: (p: any) => <span className="text-sm">{p.method} ****{p.last4}</span> },
-              { key: "amount", header: "Amount", render: (p: any) => <span className="font-medium text-sm">{p.amount}</span> },
-              { key: "date", header: "Date", render: (p: any) => <span className="text-sm">{p.date}</span> },
-              { key: "status", header: "Status", render: (p: any) => <Badge tone={p.status === "Completed" ? "success" : "warning"}>{p.status}</Badge> },
+              { key: "method", header: t("admin.billing.paymentMethod", "Method"), render: (p: any) => <span className="text-sm">{p.method} ****{p.last4}</span> },
+              { key: "amount", header: t("common.amount", "Amount"), render: (p: any) => <span className="font-medium text-sm">{p.amount}</span> },
+              { key: "date", header: t("common.date", "Date"), render: (p: any) => <span className="text-sm">{p.date}</span> },
+              { key: "status", header: t("common.status", "Status"), render: (p: any) => <Badge tone={p.status === "Completed" ? "success" : "warning"}>{p.status}</Badge> },
             ]}
           />
         )}
@@ -100,8 +102,8 @@ export default function BillingPage() {
         {activeTab === "subscriptions" && (
           <div className="text-center py-8 text-muted-foreground">
             <CreditCard className="size-8 mx-auto mb-2 opacity-40" />
-            <p>No active subscriptions found</p>
-            <Button variant="link" className="mt-2">View plans</Button>
+            <p>{t("admin.billing.noSubscriptions", "No active subscriptions found")}</p>
+            <Button variant="link" className="mt-2">{t("admin.billing.viewPlans", "View plans")}</Button>
           </div>
         )}
       </DashboardCard>

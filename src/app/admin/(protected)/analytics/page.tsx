@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useLocalizationContext } from "@/providers/localization";
 import { cn } from "@/lib/utils";
 import { DashboardCard } from "@/components/ui/DashboardCard";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
@@ -20,6 +21,7 @@ const MOCK_ANALYTICS = [
 ];
 
 export default function AnalyticsPage() {
+  const { t } = useLocalizationContext();
   const [data, setData] = React.useState(MOCK_ANALYTICS);
   const [search, setSearch] = React.useState("");
   const [loading, setLoading] = React.useState(false);
@@ -29,7 +31,7 @@ export default function AnalyticsPage() {
 
   const handleRefresh = () => {
     setLoading(true);
-    setTimeout(() => { setData(MOCK_ANALYTICS); setLoading(false); toast.success("Analytics refreshed"); }, 800);
+    setTimeout(() => { setData(MOCK_ANALYTICS); setLoading(false); toast.success(t("admin.analytics.refreshed", "Analytics refreshed")); }, 800);
   };
 
   const handleExportCSV = () => {
@@ -43,7 +45,7 @@ export default function AnalyticsPage() {
     link.download = `analytics-${dateRange}.csv`;
     link.click();
     URL.revokeObjectURL(url);
-    toast.success("CSV exported");
+    toast.success(t("admin.analytics.csvExported", "CSV exported"));
   };
 
   const handleExportJSON = () => {
@@ -55,7 +57,7 @@ export default function AnalyticsPage() {
     link.download = `analytics-${dateRange}.json`;
     link.click();
     URL.revokeObjectURL(url);
-    toast.success("JSON exported");
+    toast.success(t("admin.analytics.jsonExported", "JSON exported"));
   };
 
   const handleExportPNG = () => {
@@ -79,59 +81,59 @@ export default function AnalyticsPage() {
       link.href = url;
       link.download = `analytics-${dateRange}.png`;
       link.click();
-      toast.success("Chart exported as PNG");
+      toast.success(t("admin.analytics.pngExported", "Chart exported as PNG"));
     }
   };
 
   return (
     <div className="space-y-6">
-      <Breadcrumbs items={[{ label: "Analytics" }]} />
+      <Breadcrumbs items={[{ label: t("admin.analytics", "Analytics") }]} />
       <DashboardCard>
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Analytics</h1>
-            <p className="text-muted-foreground text-sm mt-1">View platform analytics and insights</p>
+            <h1 className="text-3xl font-bold">{t("admin.analytics", "Analytics")}</h1>
+            <p className="text-muted-foreground text-sm mt-1">{t("admin.analytics.description", "View platform analytics and insights")}</p>
           </div>
           <div className="flex items-center gap-2">
             <select value={dateRange} onChange={(e) => setDateRange(e.target.value)} className="rounded-lg border border-border bg-background px-3 py-1.5 text-sm">
-              <option value="7d">Last 7 days</option>
-              <option value="30d">Last 30 days</option>
-              <option value="90d">Last 90 days</option>
+              <option value="7d">{t("admin.analytics.last7Days", "Last 7 days")}</option>
+              <option value="30d">{t("admin.analytics.last30Days", "Last 30 days")}</option>
+              <option value="90d">{t("admin.analytics.last90Days", "Last 90 days")}</option>
             </select>
-            <Button variant="outline" size="sm" onClick={handleExportCSV}><Download className="mr-2 size-4" />CSV</Button>
-            <Button variant="outline" size="sm" onClick={handleExportJSON}><Download className="mr-2 size-4" />JSON</Button>
-            <Button variant="outline" size="sm" onClick={handleExportPNG}><Download className="mr-2 size-4" />PNG</Button>
-            <Button variant="outline" size="sm" onClick={handleRefresh} disabled={loading}><RefreshCw className={cn("mr-2 size-4", loading && "animate-spin")} />Refresh</Button>
+            <Button variant="outline" size="sm" onClick={handleExportCSV}><Download className="mr-2 size-4" />{t("common.export", "CSV")}</Button>
+            <Button variant="outline" size="sm" onClick={handleExportJSON}><Download className="mr-2 size-4" />{t("common.import", "JSON")}</Button>
+            <Button variant="outline" size="sm" onClick={handleExportPNG}><Download className="mr-2 size-4" />{t("common.export", "PNG")}</Button>
+            <Button variant="outline" size="sm" onClick={handleRefresh} disabled={loading}><RefreshCw className={cn("mr-2 size-4", loading && "animate-spin")} />{t("common.refresh", "Refresh")}</Button>
           </div>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-4 mb-6">
           <div className="rounded-xl border border-border bg-muted/20 p-4">
-            <p className="text-xs text-muted-foreground">Page Views</p>
+            <p className="text-xs text-muted-foreground">{t("admin.analytics.pageViews", "Page Views")}</p>
             <p className="mt-2 text-2xl font-semibold">{data.reduce((acc, a) => acc + a.pageViews, 0).toLocaleString()}</p>
-            <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1 mt-1"><TrendingUp className="size-3" />+12% vs last period</p>
+            <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1 mt-1"><TrendingUp className="size-3" />+12% {t("admin.analytics.thanLastPeriod", "vs last period")}</p>
           </div>
           <div className="rounded-xl border border-border bg-muted/20 p-4">
-            <p className="text-xs text-muted-foreground">Unique Visitors</p>
+            <p className="text-xs text-muted-foreground">{t("admin.analytics.uniqueVisitors", "Unique Visitors")}</p>
             <p className="mt-2 text-2xl font-semibold">{data.reduce((acc, a) => acc + a.uniqueVisitors, 0).toLocaleString()}</p>
-            <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1 mt-1"><TrendingUp className="size-3" />+8% vs last period</p>
+            <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1 mt-1"><TrendingUp className="size-3" />+8% {t("admin.analytics.thanLastPeriod", "vs last period")}</p>
           </div>
           <div className="rounded-xl border border-border bg-muted/20 p-4">
-            <p className="text-xs text-muted-foreground">Conversions</p>
+            <p className="text-xs text-muted-foreground">{t("admin.analytics.conversions", "Conversions")}</p>
             <p className="mt-2 text-2xl font-semibold">{data.reduce((acc, a) => acc + a.conversions, 0)}</p>
-            <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1 mt-1"><TrendingUp className="size-3" />+5% vs last period</p>
+            <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1 mt-1"><TrendingUp className="size-3" />+5% {t("admin.analytics.thanLastPeriod", "vs last period")}</p>
           </div>
           <div className="rounded-xl border border-border bg-muted/20 p-4">
-            <p className="text-xs text-muted-foreground">Revenue</p>
+            <p className="text-xs text-muted-foreground">{t("admin.analytics.revenue", "Revenue")}</p>
             <p className="mt-2 text-2xl font-semibold">${data.reduce((acc, a) => acc + parseInt(a.revenue.replace(/[$,]/g, "")), 0).toLocaleString()}</p>
-            <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1 mt-1"><TrendingUp className="size-3" />+15% vs last period</p>
+            <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1 mt-1"><TrendingUp className="size-3" />+15% {t("admin.analytics.thanLastPeriod", "vs last period")}</p>
           </div>
         </div>
 
         <div className="flex items-center gap-2 pb-4">
           <div className="relative flex-1 min-w-[250px]">
             <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by date..." className="pl-9" />
+            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t("admin.analytics.searchByDate", "Search by date...")} className="pl-9" />
           </div>
         </div>
 
@@ -139,13 +141,13 @@ export default function AnalyticsPage() {
           data={filtered}
           keyExtractor={(a) => a.id}
           columns={[
-            { key: "date", header: "Date", sortable: true, render: (a: any) => <span className="text-sm font-medium">{a.date}</span> },
-            { key: "pageViews", header: "Page Views", sortable: true, render: (a: any) => <span className="text-sm">{a.pageViews.toLocaleString()}</span> },
-            { key: "uniqueVisitors", header: "Visitors", sortable: true, render: (a: any) => <span className="text-sm">{a.uniqueVisitors.toLocaleString()}</span> },
-            { key: "bounceRate", header: "Bounce Rate", sortable: true, render: (a: any) => <Badge tone={parseFloat(a.bounceRate) > 35 ? "warning" : "success"}>{a.bounceRate}</Badge> },
-            { key: "avgDuration", header: "Avg Duration", render: (a: any) => <span className="text-sm">{a.avgDuration}</span> },
-            { key: "conversions", header: "Conversions", sortable: true, render: (a: any) => <span className="text-sm">{a.conversions}</span> },
-            { key: "revenue", header: "Revenue", render: (a: any) => <span className="text-sm font-medium">{a.revenue}</span> },
+            { key: "date", header: t("common.date", "Date"), sortable: true, render: (a: any) => <span className="text-sm font-medium">{a.date}</span> },
+            { key: "pageViews", header: t("admin.analytics.pageViews", "Page Views"), sortable: true, render: (a: any) => <span className="text-sm">{a.pageViews.toLocaleString()}</span> },
+            { key: "uniqueVisitors", header: t("admin.analytics.visitors", "Visitors"), sortable: true, render: (a: any) => <span className="text-sm">{a.uniqueVisitors.toLocaleString()}</span> },
+            { key: "bounceRate", header: t("admin.analytics.bounceRate", "Bounce Rate"), sortable: true, render: (a: any) => <Badge tone={parseFloat(a.bounceRate) > 35 ? "warning" : "success"}>{a.bounceRate}</Badge> },
+            { key: "avgDuration", header: t("admin.analytics.avgDuration", "Avg Duration"), render: (a: any) => <span className="text-sm">{a.avgDuration}</span> },
+            { key: "conversions", header: t("admin.analytics.conversions", "Conversions"), sortable: true, render: (a: any) => <span className="text-sm">{a.conversions}</span> },
+            { key: "revenue", header: t("admin.analytics.revenue", "Revenue"), render: (a: any) => <span className="text-sm font-medium">{a.revenue}</span> },
           ]}
         />
       </DashboardCard>
