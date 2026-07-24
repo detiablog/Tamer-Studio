@@ -53,7 +53,7 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex flex-col border-r bg-sidebar transition-all duration-300 ease-in-out sm:relative sm:translate-x-0",
+          "fixed inset-y-0 left-0 z-40 flex flex-col border-r border-[#E5E7EB] bg-white transition-all duration-300 ease-in-out sm:relative sm:translate-x-0 dark:bg-sidebar dark:border-border",
           isCollapsed ? "w-[72px] -translate-x-full sm:translate-x-0 sm:w-[72px]" : "w-72 translate-x-0"
         )}
       >
@@ -77,8 +77,15 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto px-3 py-4">
-          <div className="mb-2 px-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
+        <nav className="sidebar-nav flex-1 overflow-y-auto px-3 py-4">
+          <style>{`
+            .sidebar-nav::-webkit-scrollbar { width: 6px; }
+            .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+            .sidebar-nav::-webkit-scrollbar-thumb { background: transparent; border-radius: 3px; }
+            .sidebar-nav:hover::-webkit-scrollbar-thumb { background: #D1D5DB; }
+            .dark .sidebar-nav:hover::-webkit-scrollbar-thumb { background: #4B5563; }
+          `}</style>
+          <div className="mb-2 px-2 text-[11px] font-medium uppercase tracking-wider text-[#9CA3AF] dark:text-muted-foreground/70">
             {isCollapsed ? "" : "Main"}
           </div>
           <div className="flex flex-col gap-1">
@@ -94,7 +101,7 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
             ))}
           </div>
 
-          <div className="mt-6 mb-2 px-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
+          <div className="mt-6 mb-2 px-2 text-[11px] font-medium uppercase tracking-wider text-[#9CA3AF] dark:text-muted-foreground/70">
             {isCollapsed ? "" : "Manage"}
           </div>
           <div className="flex flex-col gap-1">

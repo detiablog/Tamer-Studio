@@ -81,7 +81,7 @@ export function AdminSidebar({ pathname, collapsed, onToggle }: AdminSidebarProp
         </button>
 
         {!collapsed && (
-          <div className="mb-2 px-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">{t("admin.dashboard")}</div>
+          <div className="mb-2 px-2 text-[11px] font-medium uppercase tracking-wider text-[#9CA3AF] dark:text-muted-foreground/70">{t("admin.dashboard")}</div>
         )}
 
         {collapsed ? (
@@ -159,7 +159,7 @@ export function AdminSidebar({ pathname, collapsed, onToggle }: AdminSidebarProp
             ))}
 
             {!collapsed && (
-              <div className="mt-6 mb-2 px-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">{t("admin.analytics")}</div>
+              <div className="mt-6 mb-2 px-2 text-[11px] font-medium uppercase tracking-wider text-[#9CA3AF] dark:text-muted-foreground/70">{t("admin.analytics")}</div>
             )}
             {hasPermission("admin:analytics") && (collapsed ? (
               <SidebarTooltip label={t("admin.analytics")}>
@@ -184,7 +184,7 @@ export function AdminSidebar({ pathname, collapsed, onToggle }: AdminSidebarProp
             ))}
 
             {!collapsed && (
-              <div className="mt-6 mb-2 px-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">{t("admin.settings")}</div>
+              <div className="mt-6 mb-2 px-2 text-[11px] font-medium uppercase tracking-wider text-[#9CA3AF] dark:text-muted-foreground/70">{t("admin.settings")}</div>
             )}
             {hasPermission("admin:system") && (collapsed ? (
               <SidebarTooltip label={t("admin.settings")}>
