@@ -65,17 +65,24 @@ export interface JobStats {
   runningJobs: number;
   completedJobs: number;
   failedJobs: number;
+  cancelledJobs: number;
+  avgExecutionTime: number;
 }
 
 export interface SystemStats {
-  uptime: number;
-  memoryUsage: number;
-  cpuUsage: number;
+  uptime: string;
+  memoryUsage: string;
+  cpuUsage: string;
   diskUsage: number;
   nodeVersion: string;
   env: string;
   maintenanceMode?: boolean;
   readOnlyMode?: boolean;
+  database: string;
+  queue: string;
+  aiProviders: string;
+  storage: string;
+  api: string;
 }
 
 export interface AlertStats {
@@ -91,4 +98,14 @@ export interface Alert {
   message: string;
   source: string;
   createdAt: Date;
+}
+
+export interface AuditLogEntry {
+  id: string;
+  action: string;
+  actorId: string | null;
+  actorType: string | null;
+  resourceType: string | null;
+  resourceId: string | null;
+  createdAt: Date | null;
 }

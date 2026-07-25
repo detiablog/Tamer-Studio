@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react"
 import { AppShell } from "@/components/ui/AppShell"
 import { PageLayout } from "@/components/ui/PageLayout"
@@ -9,8 +11,6 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { Pause, RotateCcw, Play } from "lucide-react"
 import { useLocalizationContext } from "@/providers/localization"
-
-export const metadata = { title: "Production - Tamer Studio", description: "Manage production pipelines, queues and job history." }
 
 const JOBS = [
   { id: "1", name: "Hero Video Render", workflow: "Video Generation", status: "Running", progress: 72, priority: "High", owner: "You", project: "Q4 Campaign" },

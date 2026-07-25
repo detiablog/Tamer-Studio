@@ -8,6 +8,7 @@ const ADMIN_PERMISSIONS = [
   "admin:organizations",
   "admin:workspaces",
   "admin:ai_providers",
+  "admin:landing_builder",
   "admin:jobs",
   "admin:queues",
   "admin:billing",

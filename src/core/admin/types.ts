@@ -10,6 +10,7 @@ export interface AdminSession {
   id: string;
   token: string;
   adminId: string;
+  role: AdminRole;
   expiresAt: Date;
   ipAddress?: string;
   userAgent?: string;

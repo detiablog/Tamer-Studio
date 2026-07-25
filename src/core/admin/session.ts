@@ -20,6 +20,7 @@ export async function getAdminSession(): Promise<AdminSession | null> {
       id: sessionToken,
       token: sessionToken,
       adminId: "dev-admin",
+      role: "admin",
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
       createdAt: new Date(),
     };
@@ -56,6 +57,7 @@ export async function getAdminSession(): Promise<AdminSession | null> {
       id: sessionRecord.id,
       token: sessionRecord.token,
       adminId: sessionRecord.adminId,
+      role: adminRecord[0].role as "admin" | "super_admin",
       expiresAt: sessionRecord.expiresAt,
       ipAddress: sessionRecord.ipAddress ?? undefined,
       userAgent: sessionRecord.userAgent ?? undefined,
@@ -103,6 +105,7 @@ export async function getAdminSessionFromToken(
       id: token,
       token,
       adminId: "dev-admin",
+      role: "admin",
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
       createdAt: new Date(),
     };
@@ -155,6 +158,7 @@ export async function getAdminSessionFromToken(
       id: sessionRecord.id,
       token: sessionRecord.token,
       adminId: sessionRecord.adminId,
+      role: adminRecord[0].role as "admin" | "super_admin",
       expiresAt: sessionRecord.expiresAt,
       ipAddress: sessionRecord.ipAddress ?? undefined,
       userAgent: sessionRecord.userAgent ?? undefined,

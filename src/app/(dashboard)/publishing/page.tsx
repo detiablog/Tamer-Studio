@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react"
 import { AppShell } from "@/components/ui/AppShell"
 import { PageLayout } from "@/components/ui/PageLayout"
@@ -9,8 +11,6 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { BarChart3, ExternalLink } from "lucide-react"
 import { useLocalizationContext } from "@/providers/localization"
-
-export const metadata = { title: "Publishing - Tamer Studio", description: "Schedule and publish content to external platforms." }
 
 const PUBLICATIONS = [
   { id: "1", title: "Q4 Campaign Launch", platform: "YouTube", status: "Scheduled", date: "Oct 25, 2026", views: "—" },

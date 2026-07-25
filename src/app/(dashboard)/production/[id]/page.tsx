@@ -12,7 +12,8 @@ import { Play, RotateCcw, Copy, Download, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import { estimateExecutionTime } from "@/core/production/execution";
 
-export default function ProductionDetailPage({ params }: { params: { id: string } }) {
+export default function ProductionDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const id = params.id;
   const [job, setJob] = React.useState<ReturnType<typeof productionStore.get> | null>(null);
   const [content, setContent] = React.useState("");
   const [isExecuting, setIsExecuting] = React.useState(false);
@@ -21,7 +22,7 @@ export default function ProductionDetailPage({ params }: { params: { id: string 
   const [workspaceId, setWorkspaceId] = React.useState<string>("");
 
   React.useEffect(() => {
-    const loadedJob = productionStore.get(params.id);
+    const loadedJob = productionStore.get(id);
     setJob(loadedJob);
     if (loadedJob?.name) {
       document.title = `${loadedJob.name} - Production - Tamer Studio`;
@@ -30,7 +31,7 @@ export default function ProductionDetailPage({ params }: { params: { id: string 
     }
     // In real app, get token from session
     setUserToken("mock-token-" + Math.random().toString(36).slice(2));
-  }, [params.id]);
+  }, [id]);
 
   const handleExecuteProduction = async () => {
     if (!job) return;
@@ -87,7 +88,7 @@ export default function ProductionDetailPage({ params }: { params: { id: string 
   };
 
   const handleRetry = () => {
-    const retried = productionStore.retry(params.id);
+    const retried = productionStore.retry(id);
     if (retried) {
       setJob(retried);
       setExecutionResult(null);

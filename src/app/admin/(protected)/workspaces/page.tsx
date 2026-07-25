@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Search, Filter, Plus, Loader, X, Trash2, Edit } from "lucide-react";
 import { toast } from "sonner";
 import { Breadcrumbs } from "@/components/admin/Breadcrumbs";
+import { useLocalizationContext } from "@/providers/localization";
 
 const MOCK_WORKSPACES = [
   { id: "ws_1", name: "Default Workspace", slug: "default", description: "Main workspace", status: "active", createdAt: "23/07/2026" },
@@ -29,6 +30,7 @@ const fetcher = (url: string) =>
     });
 
 export default function AdminWorkspacesPage() {
+  const { t } = useLocalizationContext();
   const { data, error, isLoading, mutate } = useSWR("/api/admin/workspaces", fetcher, { 
     revalidateOnFocus: false,
     shouldRetryOnError: false,
@@ -62,6 +64,8 @@ export default function AdminWorkspacesPage() {
     return matchesSearch && matchesStatus;
   });
 
+  const hasActiveFilters = search.trim() || statusFilter !== "all";
+
   const openEditModal = (workspace: any) => {
     setEditingWorkspace(workspace);
     setOriginalData({ name: workspace.name, slug: workspace.slug, description: workspace.description, status: workspace.status });
@@ -82,16 +86,16 @@ export default function AdminWorkspacesPage() {
 
       const result = await response.json();
       if (!response.ok) {
-        toast.error(result.error || "Failed to create workspace");
+        toast.error(result.error || t("admin.failedToCreateWorkspace", "Failed to create workspace"));
         return;
       }
 
-      toast.success("Workspace created successfully!");
+      toast.success(t("admin.workspaceCreatedSuccess", "Workspace created successfully!"));
       setFormData({ name: "", slug: "", description: "", status: "active" });
       setAddOpen(false);
       mutate();
     } catch (error) {
-      toast.error("Error creating workspace");
+      toast.error(t("admin.errorCreatingWorkspace", "Error creating workspace"));
       console.error(error);
     } finally {
       setFormLoading(false);
@@ -101,7 +105,7 @@ export default function AdminWorkspacesPage() {
   const handleEditWorkspace = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingWorkspace?.id) {
-      toast.error("Workspace ID not found");
+      toast.error(t("admin.workspaceIdNotFound", "Workspace ID not found"));
       return;
     }
 
@@ -124,7 +128,7 @@ export default function AdminWorkspacesPage() {
       }
 
       if (Object.keys(changedFields).length === 0) {
-        toast.info("No changes made");
+        toast.info(t("admin.noChanges", "No changes made"));
         return;
       }
 
@@ -136,18 +140,18 @@ export default function AdminWorkspacesPage() {
 
       const result = await response.json();
       if (!response.ok) {
-        toast.error(result.error || "Failed to update workspace");
+        toast.error(result.error || t("admin.failedToUpdateWorkspace", "Failed to update workspace"));
         return;
       }
 
-      toast.success("Workspace updated successfully!");
+      toast.success(t("admin.workspaceUpdatedSuccess", "Workspace updated successfully!"));
       setFormData({ name: "", slug: "", description: "", status: "active" });
       setOriginalData(null);
       setEditingWorkspace(null);
       setEditOpen(false);
       mutate();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Error updating workspace");
+      toast.error(error instanceof Error ? error.message : t("admin.errorUpdatingWorkspace", "Error updating workspace"));
       console.error(error);
     } finally {
       setFormLoading(false);
@@ -155,7 +159,7 @@ export default function AdminWorkspacesPage() {
   };
 
   const handleDeleteWorkspace = async (workspaceId: string, workspaceName: string) => {
-    if (!confirm(`Delete "${workspaceName}"?`)) return;
+    if (!confirm(t("admin.confirmDeleteWorkspace", `Delete "{{name}}"?`).replace("{{name}}", workspaceName))) return;
 
     try {
       const response = await fetch(`/api/admin/workspaces/${workspaceId}`, {
@@ -163,27 +167,27 @@ export default function AdminWorkspacesPage() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: "Failed to delete workspace" }));
-        toast.error(errorData.error || "Failed to delete workspace");
+        const errorData = await response.json().catch(() => ({ error: t("admin.failedToDeleteWorkspace", "Failed to delete workspace") }));
+        toast.error(errorData.error || t("admin.failedToDeleteWorkspace", "Failed to delete workspace"));
         return;
       }
 
-      toast.success("Workspace deleted successfully!");
+      toast.success(t("admin.workspaceDeletedSuccess", "Workspace deleted successfully!"));
       mutate();
     } catch (error) {
-      toast.error("Error deleting workspace");
+      toast.error(t("admin.errorDeletingWorkspace", "Error deleting workspace"));
       console.error(error);
     }
   };
 
   return (
     <div className="space-y-6">
-      <Breadcrumbs items={[{ label: "Workspaces" }]} />
+      <Breadcrumbs items={[{ label: t("admin.workspaces", "Workspaces") }]} />
       
       <DashboardCard>
         <div className="mb-6">
-          <h1 className="text-3xl font-bold">Workspaces</h1>
-          <p className="text-muted-foreground text-sm mt-1">Manage organization workspaces</p>
+          <h1 className="text-3xl font-bold">{t("admin.workspaces", "Workspaces")}</h1>
+          <p className="text-muted-foreground text-sm mt-1">{t("admin.manageWorkspaces", "Manage organization workspaces")}</p>
         </div>
 
         <div className="flex items-center gap-2 pb-4 flex-wrap">
@@ -192,7 +196,7 @@ export default function AdminWorkspacesPage() {
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search workspaces..."
+              placeholder={t("admin.searchWorkspaces", "Search workspaces...")}
               className="pl-9"
               disabled={isLoading}
             />
@@ -205,22 +209,22 @@ export default function AdminWorkspacesPage() {
               onClick={() => setFilterOpen(!filterOpen)}
             >
               <Filter className="mr-2 size-4" />
-              Filter
+              {t("common.filter", "Filter")}
             </Button>
             
             {filterOpen && (
               <div className="absolute right-0 top-full mt-2 w-64 rounded-lg border border-border bg-card p-4 shadow-lg z-50">
                 <div className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Status</label>
+                    <label className="text-sm font-medium mb-2 block">{t("admin.status", "Status")}</label>
                     <select 
                       value={statusFilter}
                       onChange={(e) => setStatusFilter(e.target.value)}
                       className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
                     >
-                      <option value="all">All Status</option>
-                      <option value="active">Active</option>
-                      <option value="inactive">Inactive</option>
+                      <option value="all">{t("admin.allStatus", "All Status")}</option>
+                      <option value="active">{t("admin.active", "Active")}</option>
+                      <option value="inactive">{t("admin.inactive", "Inactive")}</option>
                     </select>
                   </div>
                 </div>
@@ -230,36 +234,36 @@ export default function AdminWorkspacesPage() {
 
           <Button size="sm" onClick={() => setAddOpen(true)}>
             <Plus className="mr-2 size-4" />
-            Add Workspace
+            {t("admin.addWorkspace", "Add Workspace")}
           </Button>
         </div>
 
         {isLoading && workspaces.length === 0 ? (
           <div className="flex items-center justify-center py-12">
             <Loader className="size-6 animate-spin text-muted-foreground" />
-            <p className="ml-2 text-muted-foreground">Loading workspaces...</p>
+            <p className="ml-2 text-muted-foreground">{t("admin.loadingWorkspaces", "Loading workspaces...")}</p>
           </div>
         ) : (
           <>
             {isUsingMockData && (
               <div className="mb-4 rounded-lg border border-amber-200/50 bg-amber-50/50 dark:bg-amber-950/20 p-3 text-xs text-amber-700 dark:text-amber-300">
-                ℹ️ Database connection failed, showing mock data
+                ℹ️ {t("admin.databaseError", "Database connection failed. Please check your connection and try again.")}
               </div>
             )}
             {workspaces.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-muted-foreground">No workspaces found</p>
+                <p className="text-muted-foreground">{t("admin.noWorkspaces", "No workspaces found")}</p>
               </div>
             ) : (
               <AdminDataTable
                 data={filtered}
                 keyExtractor={(w) => w.id}
                 columns={[
-                  { key: "name", header: "Name", render: (w: any) => <p className="font-medium text-sm">{w.name}</p> },
+                  { key: "name", header: t("common.name", "Name"), render: (w: any) => <p className="font-medium text-sm">{w.name}</p> },
                   { key: "slug", header: "Slug", render: (w: any) => <p className="text-sm">{w.slug}</p> },
-                  { key: "description", header: "Description", render: (w: any) => <p className="text-sm text-muted-foreground">{w.description}</p> },
-                  { key: "status", header: "Status", align: "center", render: (w: any) => <Badge tone={w.status === "active" ? "success" : "muted"}>{w.status}</Badge> },
-                  { key: "createdAt", header: "Created", render: (w: any) => <span className="text-sm">{w.createdAt}</span> },
+                  { key: "description", header: t("common.description", "Description"), render: (w: any) => <p className="text-sm text-muted-foreground">{w.description}</p> },
+                  { key: "status", header: t("admin.status", "Status"), align: "center", render: (w: any) => <Badge tone={w.status === "active" ? "success" : "muted"}>{w.status}</Badge> },
+                  { key: "createdAt", header: t("admin.createdAt", "Created"), render: (w: any) => <span className="text-sm">{w.createdAt}</span> },
                   { key: "actions", header: "", align: "right", render: (w: any) => (
                     <div className="flex items-center gap-1 justify-end">
                       <Button 
@@ -292,7 +296,7 @@ export default function AdminWorkspacesPage() {
           <div className="fixed inset-0 z-40 bg-black/50" onClick={() => setAddOpen(false)} />
           <div className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-xl border border-border bg-card p-6 shadow-lg">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold">Add Workspace</h2>
+              <h2 className="text-xl font-semibold">{t("admin.addWorkspace", "Add Workspace")}</h2>
               <button onClick={() => setAddOpen(false)} className="text-muted-foreground hover:text-foreground">
                 <X className="size-5" />
               </button>
@@ -300,27 +304,27 @@ export default function AdminWorkspacesPage() {
 
             <form onSubmit={handleAddWorkspace} className="space-y-4">
               <div>
-                <label className="text-sm font-medium mb-1.5 block">Name</label>
-                <Input type="text" placeholder="Workspace name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
+                <label className="text-sm font-medium mb-1.5 block">{t("common.name", "Name")}</label>
+                <Input type="text" placeholder={t("admin.workspaceName", "Workspace name")} value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
               </div>
               <div>
                 <label className="text-sm font-medium mb-1.5 block">Slug</label>
                 <Input type="text" placeholder="workspace-slug" value={formData.slug} onChange={(e) => setFormData({ ...formData, slug: e.target.value })} required />
               </div>
               <div>
-                <label className="text-sm font-medium mb-1.5 block">Description</label>
-                <Input type="text" placeholder="Workspace description" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
+                <label className="text-sm font-medium mb-1.5 block">{t("common.description", "Description")}</label>
+                <Input type="text" placeholder={t("admin.workspaceDescription", "Workspace description")} value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
               </div>
               <div>
-                <label className="text-sm font-medium mb-1.5 block">Status</label>
+                <label className="text-sm font-medium mb-1.5 block">{t("admin.status", "Status")}</label>
                 <select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm">
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
+                  <option value="active">{t("admin.active", "Active")}</option>
+                  <option value="inactive">{t("admin.inactive", "Inactive")}</option>
                 </select>
               </div>
               <div className="flex gap-2 pt-4">
-                <Button type="button" variant="outline" onClick={() => setAddOpen(false)} className="flex-1">Cancel</Button>
-                <Button type="submit" disabled={formLoading} className="flex-1">{formLoading ? "Creating..." : "Create"}</Button>
+                <Button type="button" variant="outline" onClick={() => setAddOpen(false)} className="flex-1">{t("common.cancel", "Cancel")}</Button>
+                <Button type="submit" disabled={formLoading} className="flex-1">{formLoading ? t("admin.creating", "Creating...") : t("admin.create", "Create")}</Button>
               </div>
             </form>
           </div>
@@ -332,7 +336,7 @@ export default function AdminWorkspacesPage() {
           <div className="fixed inset-0 z-40 bg-black/50" onClick={() => setEditOpen(false)} />
           <div className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-xl border border-border bg-card p-6 shadow-lg">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold">Edit Workspace</h2>
+              <h2 className="text-xl font-semibold">{t("admin.editWorkspace", "Edit Workspace")}</h2>
               <button onClick={() => setEditOpen(false)} className="text-muted-foreground hover:text-foreground">
                 <X className="size-5" />
               </button>
@@ -340,7 +344,7 @@ export default function AdminWorkspacesPage() {
 
             <form onSubmit={handleEditWorkspace} className="space-y-4">
               <div>
-                <label className="text-sm font-medium mb-1.5 block">Name</label>
+                <label className="text-sm font-medium mb-1.5 block">{t("common.name", "Name")}</label>
                 <Input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
               </div>
               <div>
@@ -348,19 +352,19 @@ export default function AdminWorkspacesPage() {
                 <Input type="text" value={formData.slug} onChange={(e) => setFormData({ ...formData, slug: e.target.value })} required />
               </div>
               <div>
-                <label className="text-sm font-medium mb-1.5 block">Description</label>
+                <label className="text-sm font-medium mb-1.5 block">{t("common.description", "Description")}</label>
                 <Input type="text" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
               </div>
               <div>
-                <label className="text-sm font-medium mb-1.5 block">Status</label>
+                <label className="text-sm font-medium mb-1.5 block">{t("admin.status", "Status")}</label>
                 <select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm">
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
+                  <option value="active">{t("admin.active", "Active")}</option>
+                  <option value="inactive">{t("admin.inactive", "Inactive")}</option>
                 </select>
               </div>
               <div className="flex gap-2 pt-4">
-                <Button type="button" variant="outline" onClick={() => setEditOpen(false)} className="flex-1">Cancel</Button>
-                <Button type="submit" disabled={formLoading} className="flex-1">{formLoading ? "Updating..." : "Update"}</Button>
+                <Button type="button" variant="outline" onClick={() => setEditOpen(false)} className="flex-1">{t("common.cancel", "Cancel")}</Button>
+                <Button type="submit" disabled={formLoading} className="flex-1">{formLoading ? t("admin.updating", "Updating...") : t("admin.update", "Update")}</Button>
               </div>
             </form>
           </div>

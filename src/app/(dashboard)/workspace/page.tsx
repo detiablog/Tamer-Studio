@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react";
 import { AppShell } from "@/components/ui/AppShell";
 import { PageLayout } from "@/components/ui/PageLayout";
@@ -9,8 +11,6 @@ import { Button } from "@/components/ui/button";
 import { WorkspaceList } from "@/features/workspace/WorkspaceList";
 import { MoreVertical } from "lucide-react";
 import { useLocalizationContext } from "@/providers/localization";
-
-export const metadata = { title: "Workspace - Tamer Studio", description: "Manage workspaces, teams, and members." };
 
 export default function WorkspacePage() {
   const { t } = useLocalizationContext();

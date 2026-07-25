@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useLocalizationContext } from "@/providers/localization";
 import { cn } from "@/lib/utils";
 import { DashboardCard } from "@/components/ui/DashboardCard";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
@@ -20,14 +21,25 @@ const MOCK_AUDIT_LOGS = [
 ];
 
 export default function AuditLogsPage() {
+  const { t } = useLocalizationContext();
   const [logs, setLogs] = React.useState(MOCK_AUDIT_LOGS);
   const [search, setSearch] = React.useState("");
+
+  const formatAuditAction = (action: string, user?: string) => {
+    if (!action) return "—";
+    const key = action.replace(/\./g, "");
+    const translated = t(`admin.auditLogs.${key}`, action);
+    if (action === "user.login" && user) {
+      return `${user} - ${translated}`;
+    }
+    return translated;
+  };
 
   const filtered = logs.filter((l) => l.action.toLowerCase().includes(search.toLowerCase()) || l.user.toLowerCase().includes(search.toLowerCase()));
 
   const handleViewDetails = (id: string) => {
     const log = logs.find((l) => l.id === id);
-    alert(`Audit Log Details:\n\nAction: ${log?.action}\nUser: ${log?.user}\nTarget: ${log?.target}\nTimestamp: ${log?.timestamp}\nIP: ${log?.ip}\nStatus: ${log?.status}`);
+    alert(`${t("admin.auditLogs.details", "Audit Log Details")}:\n\n${t("admin.auditLogs.action", "Action")}: ${formatAuditAction(log?.action ?? "", log?.user || "")}\n${t("admin.auditLogs.user", "User")}: ${log?.user}\n${t("admin.auditLogs.target", "Target")}: ${log?.target}\n${t("admin.auditLogs.timestamp", "Timestamp")}: ${log?.timestamp}\n${t("admin.auditLogs.ip", "IP")}: ${log?.ip}\n${t("admin.auditLogs.status", "Status")}: ${log?.status}`);
   };
 
   const handleExport = () => {
@@ -41,38 +53,38 @@ export default function AuditLogsPage() {
     link.download = `audit-logs-${new Date().toISOString().split("T")[0]}.csv`;
     link.click();
     URL.revokeObjectURL(url);
-    toast.success("Audit logs exported");
+    toast.success(t("admin.auditLogs.exportSuccess", "Audit logs exported"));
   };
 
   return (
     <div className="space-y-6">
-      <Breadcrumbs items={[{ label: "Audit Logs" }]} />
+      <Breadcrumbs items={[{ label: t("admin.auditLogs", "Audit Logs") }]} />
       <DashboardCard>
         <div className="mb-6">
-          <h1 className="text-3xl font-bold">Audit Logs</h1>
-          <p className="text-muted-foreground text-sm mt-1">View system audit and activity logs</p>
+          <h1 className="text-3xl font-bold">{t("admin.auditLogs", "Audit Logs")}</h1>
+          <p className="text-muted-foreground text-sm mt-1">{t("admin.auditLogs.description", "View system audit and activity logs")}</p>
         </div>
 
         <div className="flex items-center gap-2 pb-4">
           <div className="relative flex-1 min-w-[250px]">
             <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search logs..." className="pl-9" />
+            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t("admin.auditLogs.searchLogs", "Search logs...")} className="pl-9" />
           </div>
-          <Button variant="outline" size="sm" onClick={handleExport}><RefreshCw className="mr-2 size-4" />Export</Button>
+          <Button variant="outline" size="sm" onClick={handleExport}><RefreshCw className="mr-2 size-4" />{t("common.export", "Export")}</Button>
         </div>
 
         <AdminDataTable
           data={filtered}
           keyExtractor={(l) => l.id}
           columns={[
-            { key: "action", header: "Action", render: (l: any) => <span className="font-medium text-sm">{l.action}</span> },
-            { key: "user", header: "User", render: (l: any) => <span className="text-sm">{l.user}</span> },
-            { key: "target", header: "Target", render: (l: any) => <code className="text-xs bg-muted/50 px-2 py-0.5 rounded">{l.target}</code> },
-            { key: "timestamp", header: "Timestamp", render: (l: any) => <span className="text-xs text-muted-foreground">{l.timestamp}</span> },
-            { key: "ip", header: "IP Address", render: (l: any) => <span className="text-xs font-mono">{l.ip}</span> },
-            { key: "status", header: "Status", render: (l: any) => <Badge tone={l.status === "Success" ? "success" : "warning"}>{l.status}</Badge> },
+             { key: "action", header: t("admin.auditLogs.action", "Action"), render: (l: any) => <span className="font-medium text-sm">{formatAuditAction(l.action, l.user)}</span> },
+            { key: "user", header: t("admin.auditLogs.user", "User"), render: (l: any) => <span className="text-sm">{l.user}</span> },
+            { key: "target", header: t("admin.auditLogs.target", "Target"), render: (l: any) => <code className="text-xs bg-muted/50 px-2 py-0.5 rounded">{l.target}</code> },
+            { key: "timestamp", header: t("admin.auditLogs.timestamp", "Timestamp"), render: (l: any) => <span className="text-xs text-muted-foreground">{l.timestamp}</span> },
+            { key: "ip", header: t("admin.auditLogs.ipAddress", "IP Address"), render: (l: any) => <span className="text-xs font-mono">{l.ip}</span> },
+            { key: "status", header: t("common.status", "Status"), render: (l: any) => <Badge tone={l.status === "Success" ? "success" : "warning"}>{l.status}</Badge> },
             { key: "actions", header: "", align: "right", render: (l: any) => (
-              <Button variant="ghost" size="icon-xs" onClick={() => handleViewDetails(l.id)} aria-label="View details"><Eye className="size-3.5" /></Button>
+              <Button variant="ghost" size="icon-xs" onClick={() => handleViewDetails(l.id)} aria-label={t("admin.auditLogs.viewDetails", "View details")}><Eye className="size-3.5" /></Button>
             )},
           ]}
         />

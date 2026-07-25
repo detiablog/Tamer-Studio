@@ -18,8 +18,8 @@ export const metadata = {
     default: "Tamer Studio",
     template: "%s | Tamer Studio",
   },
-  description: "Tamer Studio — AI-first production platform for creators. Manage projects, media, production, and publishing in one place.",
-  keywords: ["AI", "Studio", "Projects", "Media", "Production", "Publishing"],
+  description: "Tamer Studio is an AI-first production operating system. Plan, generate, organize, review, and publish content without switching between tools.",
+  keywords: ["AI", "Studio", "Projects", "Media", "Production", "Publishing", "AI-native", "workflow", "automation"],
   icons: {
     icon: "/favicon.svg",
     apple: "/apple-touch-icon.svg",
@@ -29,7 +29,7 @@ export const metadata = {
   },
   openGraph: {
     title: "Tamer Studio",
-    description: "Tamer Studio — AI-first production platform for creators. Manage projects, media, production, and publishing in one place.",
+    description: "Tamer Studio is an AI-first production operating system. Plan, generate, organize, review, and publish content without switching between tools.",
     url: SITE_URL,
     siteName: "Tamer Studio",
     images: [
@@ -45,7 +45,7 @@ export const metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Tamer Studio",
-    description: "Tamer Studio — AI-first production platform for creators. Manage projects, media, production, and publishing in one place.",
+    description: "Tamer Studio is an AI-first production operating system. Plan, generate, organize, review, and publish content without switching between tools.",
     images: [new URL("/og-image.svg", SITE_URL).toString()],
   },
   robots: { index: true, follow: true },
@@ -66,6 +66,25 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <LocalizationProvider>
             <CurrencyProvider>
               <HtmlLangUpdater />
+              <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{
+                  __html: JSON.stringify({
+                    "@context": "https://schema.org",
+                    "@type": "Organization",
+                    name: "Tamer Studio",
+                    url: SITE_URL,
+                    description: "Tamer Studio is an AI-first production operating system. Plan, generate, organize, review, and publish content without switching between tools.",
+                    logo: new URL("/favicon.svg", SITE_URL).toString(),
+                    contactPoint: {
+                      "@type": "ContactPoint",
+                      email: "support@tamer.studio",
+                      contactType: "customer support",
+                      availableLanguage: ["English", "Bahasa Indonesia"],
+                    },
+                  }),
+                }}
+              />
               {children}
               <Toaster />
             </CurrencyProvider>
