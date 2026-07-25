@@ -2,73 +2,99 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowRight, Check, Zap } from "lucide-react";
 import { useLocalizationContext } from "@/providers/localization";
 import { cn } from "@/lib/utils";
 
 interface Plan {
   key: string;
-  priceMonthly: string;
-  priceYearly: string;
+  priceMonthly: number | null;
+  priceYearly: number | null;
+  includedCreditsMonthly: number;
+  includedCreditsYearly: number;
   description: string;
   features: string[];
   cta: string;
   href: string;
   popular?: boolean;
+  topUp?: boolean;
 }
 
 const plans: Plan[] = [
   {
     key: "marketing.planFree",
-    priceMonthly: "$0",
-    priceYearly: "$0",
+    priceMonthly: 0,
+    priceYearly: 0,
+    includedCreditsMonthly: 0,
+    includedCreditsYearly: 0,
     description: "For individuals exploring AI production.",
-    features: ["1 Workspace", "3 Projects", "Basic AI models", "Community support"],
+    features: ["Platform access", "1 Workspace", "3 Projects", "Basic AI models", "Community support"],
     cta: "marketing.getStarted",
     href: "/register",
   },
   {
     key: "marketing.planStarter",
-    priceMonthly: "$29",
-    priceYearly: "$23",
+    priceMonthly: 29,
+    priceYearly: 23,
+    includedCreditsMonthly: 5000,
+    includedCreditsYearly: 60000,
     description: "For creators getting serious about production.",
-    features: ["5 Workspaces", "Unlimited projects", "All AI providers", "Priority support"],
+    features: ["Platform access", "5 Workspaces", "Unlimited projects", "All AI providers", "Priority support"],
     cta: "marketing.getStarted",
     href: "/register",
     popular: true,
   },
   {
     key: "marketing.planPro",
-    priceMonthly: "$79",
-    priceYearly: "$63",
+    priceMonthly: 79,
+    priceYearly: 63,
+    includedCreditsMonthly: 25000,
+    includedCreditsYearly: 300000,
     description: "For teams shipping content at scale.",
-    features: ["20 Workspaces", "Custom domains", "Advanced analytics", "Dedicated support"],
+    features: ["Platform access", "20 Workspaces", "Custom domains", "Advanced analytics", "Dedicated support"],
     cta: "marketing.getStarted",
     href: "/register",
   },
   {
     key: "marketing.planBusiness",
-    priceMonthly: "$199",
-    priceYearly: "$159",
+    priceMonthly: 199,
+    priceYearly: 159,
+    includedCreditsMonthly: 100000,
+    includedCreditsYearly: 1200000,
     description: "For organizations that need control and compliance.",
-    features: ["Unlimited workspaces", "SSO & SCIM", "Custom integrations", "SLA guarantee"],
+    features: ["Platform access", "Unlimited workspaces", "SSO & SCIM", "Custom integrations", "SLA guarantee"],
     cta: "marketing.contactSales",
     href: "/contact",
+    topUp: true,
   },
   {
     key: "marketing.planEnterprise",
-    priceMonthly: "Custom",
-    priceYearly: "Custom",
+    priceMonthly: null,
+    priceYearly: null,
+    includedCreditsMonthly: -1,
+    includedCreditsYearly: -1,
     description: "For large-scale deployments with dedicated infrastructure.",
-    features: ["Dedicated infrastructure", "Custom SLA", "On-premise option", "24/7 support"],
+    features: ["Platform access", "Dedicated infrastructure", "Custom SLA", "On-premise option", "24/7 support"],
     cta: "marketing.contactSales",
     href: "/contact",
+    topUp: true,
   },
 ];
 
 export function PricingSection() {
   const { t } = useLocalizationContext();
   const [yearly, setYearly] = React.useState(false);
+
+  const formatPrice = (price: number | null) => {
+    if (price === null) return t("marketing.contactSales");
+    return `$${price}`;
+  };
+
+  const formatCredits = (credits: number) => {
+    if (credits < 0) return t("marketing.contactSales");
+    const formatted = Math.abs(credits).toLocaleString("en-US");
+    return `${formatted} ${t("marketing.creditsPerMonth")}`;
+  };
 
   return (
     <section className="border-t border-border" id="pricing" aria-labelledby="pricing-heading">
@@ -109,6 +135,8 @@ export function PricingSection() {
         <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
           {plans.map((plan) => {
             const price = yearly ? plan.priceYearly : plan.priceMonthly;
+            const credits = yearly ? plan.includedCreditsYearly : plan.includedCreditsMonthly;
+
             return (
               <div
                 key={plan.key}
@@ -123,17 +151,42 @@ export function PricingSection() {
                   </span>
                 )}
                 <h3 className="text-base font-semibold">{t(plan.key)}</h3>
-                <p className="mt-1 text-2xl font-semibold">{price}</p>
-                <p className="text-xs text-muted-foreground">{yearly ? t("marketing.billedYearly") : t("marketing.billedMonthly")}</p>
+
+                {plan.priceMonthly !== null && plan.priceYearly !== null ? (
+                  <>
+                    <p className="mt-1 text-2xl font-semibold">{formatPrice(price)}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {yearly ? t("marketing.billedYearly") : t("marketing.billedMonthly")}
+                    </p>
+                  </>
+                ) : (
+                  <p className="mt-1 text-2xl font-semibold">{formatPrice(price)}</p>
+                )}
+
+                <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-muted/50 px-2.5 py-1 text-xs font-medium">
+                  <Zap className="size-3 text-primary" />
+                  <span>{formatCredits(credits)}</span>
+                </div>
+
+                {plan.topUp && (
+                  <div className="mt-2">
+                    <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+                      {t("marketing.topUpAnytime")}
+                    </span>
+                  </div>
+                )}
+
                 <p className="mt-3 text-sm text-muted-foreground">{plan.description}</p>
+
                 <ul className="mt-4 space-y-2">
-                  {plan.features.map((feature) => (
-                    <li key={feature} className="flex items-center gap-2 text-sm text-muted-foreground">
+                  {plan.features.map((feature, idx) => (
+                    <li key={feature + idx} className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Check className="size-4 text-primary" />
-                      {feature}
+                      {idx === 0 ? t("marketing.platformAccess") : feature}
                     </li>
                   ))}
                 </ul>
+
                 <Link
                   href={plan.href as any}
                   className={cn(
@@ -150,6 +203,10 @@ export function PricingSection() {
             );
           })}
         </div>
+
+        <p className="mt-8 text-center text-sm text-muted-foreground">
+          {t("marketing.billingNote")}
+        </p>
       </div>
     </section>
   );

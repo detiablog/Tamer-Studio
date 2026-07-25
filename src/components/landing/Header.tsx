@@ -18,7 +18,7 @@ function Dropdown({ label, items, isOpen, onToggle, align = "left" }: {
       <button
         type="button"
         onClick={onToggle}
-        className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground transition hover:text-foreground"
+        className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground transition hover:text-primary"
         aria-expanded={isOpen}
       >
         {label}
@@ -27,13 +27,13 @@ function Dropdown({ label, items, isOpen, onToggle, align = "left" }: {
       {isOpen && (
         <div
           className={cn(
-            "absolute top-full mt-2 w-48 rounded-xl border border-border bg-popover p-1 shadow-lg z-50",
+            "absolute top-full mt-2 w-48 rounded-xl border border-border bg-popover p-1 shadow-lg z-50 animate-in fade-in slide-in-from-top-2 duration-200",
             align === "right" ? "right-0" : "left-0"
           )}
         >
           {items.map((item) => (
             <Link
-              key={item.href}
+              key={item.label}
               href={item.href as any}
               className="block rounded-lg px-3 py-2 text-sm text-muted-foreground transition hover:bg-muted hover:text-foreground"
             >
@@ -88,7 +88,7 @@ export function Header() {
     { label: t("marketing.menuBlog"), href: "/blog" },
     { label: t("marketing.menuDocumentation"), href: "/docs" },
     { label: t("marketing.menuRoadmap"), href: "/roadmap" },
-    { label: t("marketing.menuCommunity"), href: "/community" },
+    { label: t("marketing.menuCommunity"), href: "/blog" },
   ];
 
   const productItems = [
@@ -98,15 +98,15 @@ export function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-border bg-background/80 backdrop-blur-xl">
+    <header className="sticky top-0 z-40 w-full border-b border-border bg-background/80 backdrop-blur-xl transition-all duration-300">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <div className="flex h-16 items-center justify-between">
+        <div className="flex h-16 items-center justify-between gap-4">
           <div className="flex items-center gap-8">
-            <Link href="/" className="flex items-center gap-2" aria-label="Tamer Studio home">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <Link href="/" className="flex items-center gap-2 transition hover:opacity-80" aria-label="Tamer Studio home">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/60 text-primary-foreground shadow-md">
                 <span className="text-sm font-bold">TS</span>
               </div>
-              <span className="text-lg font-semibold tracking-tight">Tamer Studio</span>
+              <span className="hidden sm:inline text-lg font-semibold tracking-tight">Tamer Studio</span>
             </Link>
 
             <nav ref={navRef} className="hidden md:flex items-center gap-6" aria-label="Main">
@@ -126,14 +126,16 @@ export function Header() {
               <button
                 type="button"
                 onClick={() => scrollTo("pricing")}
-                className="text-sm font-medium text-muted-foreground transition hover:text-foreground"
+                className="text-sm font-medium text-muted-foreground transition hover:text-primary"
+                title="Press P"
               >
                 {t("marketing.menuPricing")}
               </button>
               <button
                 type="button"
                 onClick={() => scrollTo("contact")}
-                className="text-sm font-medium text-muted-foreground transition hover:text-foreground"
+                className="text-sm font-medium text-muted-foreground transition hover:text-primary"
+                title="Press C"
               >
                 {t("marketing.menuContact")}
               </button>
@@ -141,12 +143,12 @@ export function Header() {
           </div>
 
           <div className="hidden md:flex items-center gap-3">
-            <Link href="/login" className="text-sm font-medium text-muted-foreground transition hover:text-foreground">
+            <Link href="/login" className="text-sm font-medium text-muted-foreground transition hover:text-primary">
               {t("marketing.menuSignIn")}
             </Link>
             <Link
               href="/register"
-              className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/80"
+              className="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-primary to-primary/80 px-4 py-2 text-sm font-medium text-primary-foreground transition hover:shadow-lg hover:scale-105 duration-200"
             >
               {t("marketing.menuGetStarted")}
             </Link>
@@ -166,13 +168,13 @@ export function Header() {
 
       {mobileOpen && (
         <div
-          className="md:hidden border-t border-border bg-background"
+          className="md:hidden border-t border-border bg-background animate-in fade-in slide-in-from-top-2 duration-200"
           suppressHydrationWarning
         >
           <nav className="mx-auto max-w-7xl px-4 py-4 space-y-1" aria-label="Mobile">
             {productItems.map((item) => (
               <Link
-                key={item.href}
+                key={item.label}
                 href={item.href as any}
                 className="block rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground"
                 onClick={() => setMobileOpen(false)}
@@ -182,7 +184,7 @@ export function Header() {
             ))}
             {resourcesItems.map((item) => (
               <Link
-                key={item.href}
+                key={item.label}
                 href={item.href as any}
                 className="block rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground"
                 onClick={() => setMobileOpen(false)}
@@ -199,7 +201,7 @@ export function Header() {
             </Link>
             <Link
               href="/register"
-              className="block rounded-lg px-3 py-2 text-sm font-medium bg-primary text-primary-foreground text-center transition hover:bg-primary/80"
+              className="block rounded-lg px-3 py-2 text-sm font-medium bg-gradient-to-r from-primary to-primary/80 text-primary-foreground text-center transition hover:shadow-lg"
               onClick={() => setMobileOpen(false)}
             >
               {t("marketing.menuGetStarted")}

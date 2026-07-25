@@ -32,6 +32,7 @@ type ApiSection = SectionRow & {
   type: string;
   title: string;
   subtitle: string | null;
+  content: Record<string, unknown>;
   isVisible: boolean;
   order: number;
   createdAt: Date | string;
@@ -58,6 +59,7 @@ export default function AdminLandingBuilderPage() {
         type: s.type,
         title: s.title,
         subtitle: s.subtitle,
+        content: s.content,
         isVisible: s.isVisible,
         order: s.order,
         media: Array.isArray(s.media) ? s.media : [],
@@ -195,7 +197,7 @@ export default function AdminLandingBuilderPage() {
         type: editingSection.type,
         title: editingSection.title,
         subtitle: editingSection.subtitle ?? "",
-        content: {},
+        content: editingSection.content ?? {},
         isVisible: editingSection.isVisible,
         order: editingSection.order,
       }
@@ -214,11 +216,13 @@ export default function AdminLandingBuilderPage() {
         </div>
 
         {isUsingMockData && (
-          <div className={`mb-4 rounded-lg border p-3 text-xs ${
-            isMissingTable
-              ? "border-amber-200/50 bg-amber-50/50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-300"
-              : "border-red-200/50 bg-red-50/50 dark:bg-red-950/20 text-red-700 dark:text-red-300"
-          }`}>
+          <div
+            className={`mb-4 rounded-lg border p-3 text-xs ${
+              isMissingTable
+                ? "border-amber-200/50 bg-amber-50/50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-300"
+                : "border-red-200/50 bg-red-50/50 dark:bg-red-950/20 text-red-700 dark:text-red-300"
+            }`}
+          >
             {isMissingTable
               ? "Landing CMS tables are missing. Run: pnpm db:migrate"
               : errorMessage || "Database connection failed. Please check your connection and try again."}

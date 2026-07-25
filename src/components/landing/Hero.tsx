@@ -63,6 +63,10 @@ export function Hero() {
             {t("marketing.socialProofTitle")}
           </p>
 
+          <p className="mt-3 text-xs text-muted-foreground/70">
+            Press <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-foreground">P</kbd> to jump to pricing
+          </p>
+
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
             {providers.map((provider) => (
               <span

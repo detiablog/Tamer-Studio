@@ -9,13 +9,13 @@ const productLinks = [
   { key: "marketing.footerPricing", href: "#pricing" },
   { key: "marketing.footerRoadmap", href: "/roadmap" },
   { key: "marketing.footerDocumentation", href: "/docs" },
-  { key: "marketing.footerApi", href: "/docs/api" },
+  { key: "marketing.footerApi", href: "/docs" },
   { key: "marketing.footerDevelopers", href: "/docs" },
 ];
 
 const resourcesLinks = [
   { key: "marketing.footerBlog", href: "/blog" },
-  { key: "marketing.footerCommunity", href: "/community" },
+  { key: "marketing.footerCommunity", href: "/blog" },
   { key: "marketing.footerDiscord", href: "https://discord.gg/tamerstudio", external: true },
   { key: "marketing.footerGithub", href: "https://github.com/tamerstudio", external: true },
 ];
@@ -23,16 +23,16 @@ const resourcesLinks = [
 const companyLinks = [
   { key: "marketing.footerAbout", href: "/about" },
   { key: "marketing.footerCareers", href: "/careers" },
-  { key: "marketing.footerPress", href: "/press" },
-  { key: "marketing.footerPartners", href: "/partners" },
+  { key: "marketing.footerPress", href: "/about" },
+  { key: "marketing.footerPartners", href: "/about" },
 ];
 
 const legalLinks = [
-  { key: "marketing.footerPrivacyPolicy", href: "/privacy" },
-  { key: "marketing.footerTermsOfService", href: "/terms" },
-  { key: "marketing.footerCookiePolicy", href: "/cookies" },
-  { key: "marketing.footerSecurity", href: "/security" },
-  { key: "marketing.footerCompliance", href: "/compliance" },
+  { key: "marketing.footerPrivacyPolicy", href: "/legal/privacy" },
+  { key: "marketing.footerTermsOfService", href: "/legal/terms" },
+  { key: "marketing.footerCookiePolicy", href: "/legal/privacy" },
+  { key: "marketing.footerSecurity", href: "/about" },
+  { key: "marketing.footerCompliance", href: "/about" },
 ];
 
 export function Footer() {

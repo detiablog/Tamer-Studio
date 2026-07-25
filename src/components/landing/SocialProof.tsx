@@ -51,7 +51,7 @@ function AnimatedCounter({ target, suffix, display }: { target: number; suffix: 
     return () => observer.disconnect();
   }, [target, display]);
 
-  const formatted = display || count.toLocaleString() + suffix;
+  const formatted = display || count.toLocaleString("en-US") + suffix;
 
   return <div ref={ref}>{formatted}</div>;
 }

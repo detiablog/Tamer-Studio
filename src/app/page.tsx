@@ -6,10 +6,14 @@ import { AIPlatform } from "@/components/landing/AIPlatform";
 import { Screenshots } from "@/components/landing/Screenshots";
 import { RealtimeStats } from "@/components/landing/RealtimeStats";
 import { PricingSection } from "@/components/landing/PricingSection";
+import { CreditPacks } from "@/components/landing/CreditPacks";
+import { CreditCalculator } from "@/components/landing/CreditCalculator";
+import { CreditUsageTable } from "@/components/landing/CreditUsageTable";
 import { Testimonials } from "@/components/landing/Testimonials";
 import { FAQ } from "@/components/landing/FAQ";
 import { CTASection } from "@/components/landing/CTASection";
 import { Footer } from "@/components/landing/Footer";
+import { LandingKeyboardShortcuts } from "@/components/landing/LandingKeyboardShortcuts";
 
 export const metadata = {
   title: {
@@ -64,6 +68,7 @@ export const metadata = {
 export default function HomePage() {
   return (
     <div className="flex min-h-screen flex-col">
+      <LandingKeyboardShortcuts />
       <Header />
       <main className="flex-1">
         <Hero />
@@ -73,6 +78,9 @@ export default function HomePage() {
         <Screenshots />
         <RealtimeStats />
         <PricingSection />
+        <CreditPacks />
+        <CreditCalculator />
+        <CreditUsageTable />
         <Testimonials />
         <FAQ />
         <CTASection />

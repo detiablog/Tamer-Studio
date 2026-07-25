@@ -39,7 +39,7 @@ const statItems: { key: keyof Metrics; labelKey: string }[] = [
 
 function formatValue(value: string | number): string {
   if (typeof value === "string") return value;
-  return value.toLocaleString();
+  return value.toLocaleString("en-US");
 }
 
 export function RealtimeStats() {

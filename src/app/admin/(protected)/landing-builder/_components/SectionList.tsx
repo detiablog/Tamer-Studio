@@ -12,6 +12,7 @@ export type SectionRow = {
   type: string;
   title: string;
   subtitle: string | null;
+  content: Record<string, unknown>;
   isVisible: boolean;
   order: number;
   media: Array<{
@@ -31,6 +32,19 @@ type SectionListProps = {
   onToggleVisibility: (section: SectionRow) => void;
   onReorder: (section: SectionRow, direction: "up" | "down") => void;
   onRefresh: () => void;
+};
+
+const TYPE_BADGE_TONE: Record<string, "default" | "success" | "warning" | "info" | "muted" | "purple"> = {
+  "pricing": "info",
+  "credit-packs": "success",
+  "credit-usage": "warning",
+  "faq": "purple",
+  "hero": "default",
+  "features": "default",
+  "cta": "default",
+  "footer": "default",
+  "custom": "muted",
+  "testimonials": "default",
 };
 
 export function SectionList({
@@ -90,7 +104,7 @@ export function SectionList({
                   <code className="text-[11px] bg-muted/60 px-1.5 py-0.5 rounded text-muted-foreground">
                     {section.key}
                   </code>
-                  <Badge tone={section.isVisible ? "success" : "muted"}>
+                  <Badge tone={TYPE_BADGE_TONE[section.type] ?? "default"}>
                     {section.type}
                   </Badge>
                   {!section.isVisible && (

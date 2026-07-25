@@ -31,10 +31,10 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
       { label: t("marketing.menuDocumentation"), href: "/docs" },
       { label: t("marketing.menuBlog"), href: "/blog" },
       { label: t("marketing.menuRoadmap"), href: "/roadmap" },
-      { label: t("marketing.menuCommunity"), href: "#" },
+      { label: t("marketing.menuCommunity"), href: "/blog" },
     ]},
     { label: t("marketing.menuRoadmap"), href: "/roadmap" },
-    { label: t("marketing.menuCommunity"), href: "#" },
+    { label: t("marketing.menuCommunity"), href: "/blog" },
     { label: t("marketing.menuContact"), href: "/contact" },
   ];
 
@@ -94,8 +94,8 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
               </Link>
               <p className="mt-4 text-sm text-muted-foreground max-w-xs">{t("marketing.footerTagline")}</p>
               <div className="mt-4 flex gap-4 text-sm text-muted-foreground">
-                <Link href="#" className="hover:text-foreground">{t("marketing.footerDiscord")}</Link>
-                <Link href="#" className="hover:text-foreground">{t("marketing.footerGithub")}</Link>
+                <a href="https://discord.gg/tamerstudio" target="_blank" rel="noopener noreferrer" className="hover:text-foreground">{t("marketing.footerDiscord")}</a>
+                <a href="https://github.com/tamerstudio" target="_blank" rel="noopener noreferrer" className="hover:text-foreground">{t("marketing.footerGithub")}</a>
               </div>
             </div>
             <div>

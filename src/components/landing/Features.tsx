@@ -52,7 +52,7 @@ export function Features() {
               <h3 className="mt-4 text-base font-semibold">{t(feature.key)}</h3>
               <p className="mt-1 text-sm text-muted-foreground leading-6">{t(feature.descKey)}</p>
               <Link
-                href="#"
+                href="/features"
                 className="mt-4 inline-flex items-center text-sm font-medium text-primary transition hover:underline"
               >
                 {t("marketing.learnMore")}

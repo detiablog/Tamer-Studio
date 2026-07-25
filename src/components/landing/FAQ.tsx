@@ -14,6 +14,9 @@ interface FAQItem {
 const faqItems: FAQItem[] = [
   { categoryKey: "marketing.faqBilling", questionKey: "marketing.faqBillingQuestion", answerKey: "marketing.faqBillingAnswer" },
   { categoryKey: "marketing.faqCredits", questionKey: "marketing.faqCreditsQuestion", answerKey: "marketing.faqCreditsAnswer" },
+  { categoryKey: "marketing.faqUnusedCredits", questionKey: "marketing.faqUnusedCreditsQuestion", answerKey: "marketing.faqUnusedCreditsAnswer" },
+  { categoryKey: "marketing.faqCreditPack", questionKey: "marketing.faqCreditPackQuestion", answerKey: "marketing.faqCreditPackAnswer" },
+  { categoryKey: "marketing.faqChangePlan", questionKey: "marketing.faqChangePlanQuestion", answerKey: "marketing.faqChangePlanAnswer" },
   { categoryKey: "marketing.faqAIModels", questionKey: "marketing.faqAIModelsQuestion", answerKey: "marketing.faqAIModelsAnswer" },
   { categoryKey: "marketing.faqPrivacy", questionKey: "marketing.faqPrivacyQuestion", answerKey: "marketing.faqPrivacyAnswer" },
   { categoryKey: "marketing.faqSecurity", questionKey: "marketing.faqSecurityQuestion", answerKey: "marketing.faqSecurityAnswer" },
