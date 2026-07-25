@@ -471,6 +471,7 @@
     "title": "Settings",
     "description": "Manage system settings and configuration",
     "settings": "Settings",
+    "landingBuilder": "Landing Builder",
     "users": "Users",
     "organizations": "Organizations",
     "billing": {

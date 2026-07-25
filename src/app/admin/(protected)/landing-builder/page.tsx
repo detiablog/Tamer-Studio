@@ -11,16 +11,20 @@ import { SectionList, type SectionRow } from "./_components/SectionList";
 import { useLocalizationContext } from "@/providers/localization";
 import { toast } from "sonner";
 
-const fetcher = (url: string) =>
-  fetch(url)
-    .then((r) => {
-      if (!r.ok) throw new Error(`API error: ${r.status}`);
-      return r.json();
-    })
-    .catch((error) => {
-      console.error(`[Fetcher] Failed to fetch ${url}:`, error);
-      throw error;
-    });
+const fetcher = async (url: string) => {
+  const response = await fetch(url);
+  if (!response.ok) {
+    let message = `API error: ${response.status}`;
+    try {
+      const body = await response.json();
+      if (body?.error) message = body.error;
+    } catch {
+      // keep default message
+    }
+    throw new Error(message);
+  }
+  return response.json();
+};
 
 type ApiSection = SectionRow & {
   id: string;
@@ -63,6 +67,17 @@ export default function AdminLandingBuilderPage() {
   }, [data]);
 
   const isUsingMockData = !data && error;
+
+  const errorMessage = React.useMemo(() => {
+    if (!error) return null;
+    if (typeof error === "object" && "error" in error) {
+      return (error as { error?: string }).error || null;
+    }
+    if (error instanceof Error) return error.message;
+    return String(error);
+  }, [error]);
+
+  const isMissingTable = errorMessage?.toLowerCase().includes("not found") || errorMessage?.toLowerCase().includes("migration");
 
   const openCreateModal = () => {
     setEditingSection(null);
@@ -199,8 +214,14 @@ export default function AdminLandingBuilderPage() {
         </div>
 
         {isUsingMockData && (
-          <div className="mb-4 rounded-lg border border-amber-200/50 bg-amber-50/50 dark:bg-amber-950/20 p-3 text-xs text-amber-700 dark:text-amber-300">
-            Database connection failed. Please check your connection and try again.
+          <div className={`mb-4 rounded-lg border p-3 text-xs ${
+            isMissingTable
+              ? "border-amber-200/50 bg-amber-50/50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-300"
+              : "border-red-200/50 bg-red-50/50 dark:bg-red-950/20 text-red-700 dark:text-red-300"
+          }`}>
+            {isMissingTable
+              ? "Landing CMS tables are missing. Run: pnpm db:migrate"
+              : errorMessage || "Database connection failed. Please check your connection and try again."}
           </div>
         )}
 

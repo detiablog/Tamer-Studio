@@ -27,9 +27,20 @@ export async function GET(request: NextRequest) {
 
     const sectionKeys = sections.map((s) => s.key);
 
-    const sectionKeyList = sectionKeys.map((k) => `'${k.replace(/'/g, "''")}'`).join(",");
-    const mediaRows = sectionKeys.length > 0
-      ? await db
+    let mediaRows: {
+      id: string;
+      sectionKey: string;
+      url: string;
+      alt: string;
+      type: string;
+      order: number;
+      createdAt: Date | string;
+    }[] = [];
+
+    if (sectionKeys.length > 0) {
+      const sectionKeyList = sectionKeys.map((k) => `'${k.replace(/'/g, "''")}'`).join(",");
+      try {
+        mediaRows = await db
           .select({
             id: landingMedia.id,
             sectionKey: landingMedia.sectionKey,
@@ -41,8 +52,11 @@ export async function GET(request: NextRequest) {
           })
           .from(landingMedia)
           .where(sql`${landingMedia.sectionKey} = ANY(${sql.raw(`ARRAY[${sectionKeyList}]`)})`)
-          .orderBy(asc(landingMedia.order))
-      : [];
+          .orderBy(asc(landingMedia.order));
+      } catch (mediaError) {
+        console.warn("[GET /api/landing/sections] Media query failed:", mediaError);
+      }
+    }
 
     const mediaBySection = mediaRows.reduce<Record<string, typeof mediaRows>>((acc, m) => {
       if (!acc[m.sectionKey]) acc[m.sectionKey] = [];
@@ -62,9 +76,15 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error("[GET /api/landing/sections] Error:", error);
+    const message = error instanceof Error ? error.message : String(error);
+    const isMissingTable = /does not exist|undefined_table|relation.*does not exist|Failed query/i.test(message);
     return NextResponse.json(
-      { success: false, error: "Failed to fetch landing sections", details: String(error) },
-      { status: 500 }
+      {
+        success: false,
+        error: isMissingTable ? "Landing tables not found. Please run migrations." : "Failed to fetch landing sections",
+        details: message,
+      },
+      { status: isMissingTable ? 404 : 500 }
     );
   }
 }

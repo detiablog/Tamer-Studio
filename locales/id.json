@@ -471,6 +471,7 @@
     "title": "Pengaturan",
     "description": "Kelola pengaturan dan konfigurasi sistem",
     "settings": "Pengaturan",
+    "landingBuilder": "Landing Builder",
     "users": "Pengguna",
     "organizations": "Organisasi",
     "billing": {

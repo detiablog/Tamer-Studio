@@ -10,6 +10,7 @@ import {
   Building2,
   Workflow,
   Cpu,
+  LayoutTemplate,
   Rocket,
   BarChart3,
   CreditCard,
@@ -121,6 +122,13 @@ export function AdminSidebar({ pathname, collapsed, onToggle }: AdminSidebarProp
               </SidebarTooltip>
             ) : (
               <SidebarItem icon={Cpu} label={t("admin.aiProviders")} href="/admin/ai-providers" active={isActive("/admin/ai-providers")} />
+            ))}
+            {hasPermission("admin:landing_builder") && (collapsed ? (
+              <SidebarTooltip label={t("admin.landingBuilder")}>
+                <SidebarItem icon={LayoutTemplate} label="" href="/admin/landing-builder" active={isActive("/admin/landing-builder")} />
+              </SidebarTooltip>
+            ) : (
+              <SidebarItem icon={LayoutTemplate} label={t("admin.landingBuilder")} href="/admin/landing-builder" active={isActive("/admin/landing-builder")} />
             ))}
             {hasPermission("admin:jobs") && (collapsed ? (
               <SidebarTooltip label={t("admin.jobs")}>
