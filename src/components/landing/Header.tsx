@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 
 function Dropdown({ label, items, isOpen, onToggle, align = "left" }: {
   label: string;
-  items: { label: string; href: string }[];
+  items: { label: string; href?: string }[];
   isOpen: boolean;
   onToggle: () => void;
   align?: "left" | "right";
@@ -34,7 +34,7 @@ function Dropdown({ label, items, isOpen, onToggle, align = "left" }: {
           {items.map((item) => (
             <Link
               key={item.label}
-              href={item.href as any}
+              href={(item.href || "#") as any}
               className="block rounded-lg px-3 py-2 text-sm text-muted-foreground transition hover:bg-muted hover:text-foreground"
             >
               {item.label}
@@ -181,7 +181,7 @@ export function Header() {
             {productItems.map((item) => (
               <Link
                 key={item.label}
-                href={item.href as any}
+                href={(item.href || "#") as any}
                 className="block rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground"
                 onClick={() => setMobileOpen(false)}
               >
@@ -191,7 +191,7 @@ export function Header() {
             {resourcesItems.map((item) => (
               <Link
                 key={item.label}
-                href={item.href as any}
+                href={(item.href || "#") as any}
                 className="block rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground"
                 onClick={() => setMobileOpen(false)}
               >

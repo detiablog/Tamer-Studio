@@ -5,9 +5,13 @@ import { useLocalizationContext } from "@/providers/localization";
 import { CreditCalculator } from "@/components/landing/CreditCalculator";
 import { CreditUsageTable } from "@/components/landing/CreditUsageTable";
 import Link from "next/link";
+import { useLandingSections } from "@/hooks/use-landing-sections";
 
 export default function CreditsPage() {
   const { t } = useLocalizationContext();
+  const { sections } = useLandingSections();
+  const calculatorSection = sections.find((s) => s.sectionKey === "credit-calculator");
+  const usageSection = sections.find((s) => s.sectionKey === "credit-usage");
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-20">
@@ -22,8 +26,8 @@ export default function CreditsPage() {
           {t("marketing.creditPackDescription")}
         </p>
       </div>
-      <CreditCalculator />
-      <CreditUsageTable />
+      {calculatorSection && <CreditCalculator section={calculatorSection} />}
+      {usageSection && <CreditUsageTable section={usageSection} />}
       <div className="mx-auto max-w-2xl text-center mt-12">
         <p className="text-sm text-muted-foreground">
           Want to see all plans?{" "}

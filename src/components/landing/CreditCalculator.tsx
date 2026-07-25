@@ -5,23 +5,27 @@ import Link from "next/link";
 import { Calculator } from "lucide-react";
 import { useLocalizationContext } from "@/providers/localization";
 import { cn } from "@/lib/utils";
+import type { SectionRendererProps } from "@/lib/landing-section-renderer";
 
-const ACTIONS = [
-  { key: "creditCalculatorTextGeneration", credits: 1 },
-  { key: "creditCalculatorImageGeneration", credits: 5 },
-  { key: "creditCalculatorVideoGeneration", credits: 50 },
-  { key: "creditCalculatorAudioGeneration", credits: 10 },
-  { key: "creditCalculatorCustomPrompt", credits: 2 },
-] as const;
+interface Action {
+  key: string;
+  label?: string;
+  credits: number;
+}
 
-export function CreditCalculator() {
+export function CreditCalculator({ section }: SectionRendererProps) {
   const { t } = useLocalizationContext();
+
+  const heading = (section.config.heading as string) || section.title || t("marketing.creditCalculatorTitle");
+  const description = (section.config.description as string) || section.description || t("marketing.creditCalculatorDescription");
+  const actions = (section.config.actions as Action[]) || [];
+
   const [values, setValues] = React.useState<Record<string, number>>(() =>
-    Object.fromEntries(ACTIONS.map((a) => [a.key, 0]))
+    Object.fromEntries(actions.map((a) => [a.key, 0]))
   );
   const [calculated, setCalculated] = React.useState(false);
 
-  const totalCredits = ACTIONS.reduce(
+  const totalCredits = actions.reduce(
     (sum, action) => sum + (values[action.key] ?? 0) * action.credits,
     0
   );
@@ -52,22 +56,22 @@ export function CreditCalculator() {
             <Calculator className="size-5 text-primary" />
           </div>
           <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-            {t("marketing.creditCalculatorTitle")}
+            {heading}
           </h2>
           <p className="mt-3 text-muted-foreground">
-            {t("marketing.creditCalculatorDescription")}
+            {description}
           </p>
         </div>
 
         <div className="mt-10 space-y-4">
-          {ACTIONS.map((action) => (
+          {actions.map((action) => (
             <div
               key={action.key}
               className="flex items-center gap-4 rounded-2xl border border-border bg-card p-4"
             >
               <div className="flex-1">
                 <label className="text-sm font-medium">
-                  {t(`marketing.${action.key}`)}
+                  {action.label || t(`marketing.${action.key}`)}
                 </label>
                 <p className="text-xs text-muted-foreground mt-1">
                   {action.credits} {t("marketing.credits")} /{" "}

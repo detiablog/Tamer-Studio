@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Activity } from "lucide-react";
 import { useLocalizationContext } from "@/providers/localization";
+import type { SectionRendererProps } from "@/lib/landing-section-renderer";
 
 interface Metrics {
   activeUsers: number;
@@ -26,26 +27,28 @@ const fallbackMetrics: Metrics = {
   queueLength: 0,
 };
 
-const statItems: { key: keyof Metrics; labelKey: string }[] = [
-  { key: "activeUsers", labelKey: "marketing.statActiveUsers" },
-  { key: "projects", labelKey: "marketing.statProjects" },
-  { key: "aiJobs", labelKey: "marketing.statAIJobs" },
-  { key: "imagesGenerated", labelKey: "marketing.statImagesGenerated" },
-  { key: "videosGenerated", labelKey: "marketing.statVideosGenerated" },
-  { key: "storageUsed", labelKey: "marketing.statStorageUsed" },
-  { key: "apiRequests", labelKey: "marketing.statApiRequests" },
-  { key: "queueLength", labelKey: "marketing.statQueueLength" },
-];
-
 function formatValue(value: string | number): string {
   if (typeof value === "string") return value;
   return value.toLocaleString("en-US");
 }
 
-export function RealtimeStats() {
+export function RealtimeStats({ section }: SectionRendererProps) {
   const { t } = useLocalizationContext();
   const [metrics, setMetrics] = React.useState<Metrics>(fallbackMetrics);
   const [loading, setLoading] = React.useState(true);
+
+  const heading = (section.config.heading as string) || section.title || t("marketing.statsSectionTitle");
+  const description = (section.config.description as string) || section.description || "";
+  const statItems = (section.config.statItems as Array<{ key: keyof Metrics; label: string }>) || [
+    { key: "activeUsers", label: t("marketing.statActiveUsers") },
+    { key: "projects", label: t("marketing.statProjects") },
+    { key: "aiJobs", label: t("marketing.statAIJobs") },
+    { key: "imagesGenerated", label: t("marketing.statImagesGenerated") },
+    { key: "videosGenerated", label: t("marketing.statVideosGenerated") },
+    { key: "storageUsed", label: t("marketing.statStorageUsed") },
+    { key: "apiRequests", label: t("marketing.statApiRequests") },
+    { key: "queueLength", label: t("marketing.statQueueLength") },
+  ];
 
   React.useEffect(() => {
     let cancelled = false;
@@ -54,12 +57,12 @@ export function RealtimeStats() {
       try {
         const res = await fetch("/api/metrics/public", { cache: "no-store" });
         if (!res.ok) throw new Error("Failed");
-      const response = await res.json();
-      const metricsData = response?.data ?? fallbackMetrics;
-      if (!cancelled) {
-        setMetrics(metricsData);
-        setLoading(false);
-      }
+        const response = await res.json();
+        const metricsData = response?.data ?? fallbackMetrics;
+        if (!cancelled) {
+          setMetrics(metricsData);
+          setLoading(false);
+        }
       } catch {
         if (!cancelled) {
           setMetrics(fallbackMetrics);
@@ -85,9 +88,9 @@ export function RealtimeStats() {
             <Activity className="size-5" />
           </div>
           <h2 id="stats-heading" className="text-2xl font-semibold tracking-tight sm:text-3xl">
-            {t("marketing.statsSectionTitle")}
+            {heading}
           </h2>
-          <p className="mt-3 text-muted-foreground">{t("marketing.statsSectionDescription")}</p>
+          <p className="mt-3 text-muted-foreground">{description}</p>
         </div>
 
         <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -96,7 +99,7 @@ export function RealtimeStats() {
               key={item.key}
               className="rounded-2xl border border-border bg-card p-5 transition hover:border-foreground/10"
             >
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">{t(item.labelKey)}</p>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">{item.label}</p>
               <p className="mt-2 text-2xl font-semibold">
                 {loading ? "—" : formatValue(metrics[item.key])}
               </p>

@@ -2,33 +2,29 @@
 
 import * as React from "react";
 import { useLocalizationContext } from "@/providers/localization";
+import type { SectionRendererProps } from "@/lib/landing-section-renderer";
 
-const screenshots = [
-  { key: "marketing.sectionDashboard", label: "Dashboard" },
-  { key: "marketing.featureAI", label: "AI Generator" },
-  { key: "marketing.sectionProjects", label: "Projects" },
-  { key: "marketing.sectionMedia", label: "Media Library" },
-  { key: "marketing.sectionBilling", label: "Billing" },
-  { key: "marketing.sectionAnalytics", label: "Analytics" },
-];
-
-export function Screenshots() {
+export function Screenshots({ section }: SectionRendererProps) {
   const { t } = useLocalizationContext();
+
+  const heading = (section.config.heading as string) || section.title || t("marketing.screenshotsTitle");
+  const description = (section.config.description as string) || section.description || "";
+  const screenshots = (section.config.screenshots as Array<{ label: string }>) || [];
 
   return (
     <section className="border-t border-border" id="screenshots" aria-labelledby="screenshots-heading">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-16 sm:py-20">
         <div className="mx-auto max-w-2xl text-center">
           <h2 id="screenshots-heading" className="text-2xl font-semibold tracking-tight sm:text-3xl">
-            {t("marketing.screenshotsTitle")}
+            {heading}
           </h2>
-          <p className="mt-3 text-muted-foreground">{t("marketing.screenshotsDescription")}</p>
+          <p className="mt-3 text-muted-foreground">{description}</p>
         </div>
 
         <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {screenshots.map((screenshot) => (
+          {screenshots.map((screenshot, idx) => (
             <div
-              key={screenshot.key}
+              key={String(screenshot.label || '') + idx}
               className="rounded-2xl border border-border bg-card overflow-hidden transition hover:border-foreground/10"
             >
               <div className="h-40 w-full bg-gradient-to-br from-muted/60 via-background to-background" aria-hidden="true">
@@ -38,7 +34,6 @@ export function Screenshots() {
               </div>
               <div className="border-t border-border px-4 py-3">
                 <p className="text-sm font-medium">{screenshot.label}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{t(screenshot.key)}</p>
               </div>
             </div>
           ))}

@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { landingSection, landingMedia } from "@/lib/db/schema/landing";
-import { eq, asc, desc, sql, and, or, ilike } from "drizzle-orm";
+import { eq, asc, desc, sql, and, or, ilike, inArray } from "drizzle-orm";
 import type { RequestContext } from "@/core/middleware/types";
 import { runMiddleware } from "@/core/middleware/compose";
 import { adminAuthentication } from "@/core/middleware";
@@ -107,7 +107,7 @@ export async function GET(request: NextRequest) {
             createdAt: landingMedia.createdAt,
           })
           .from(landingMedia)
-          .where(sql`${landingMedia.sectionKey} = ANY(${sectionKeys})`)
+          .where(inArray(landingMedia.sectionKey, sectionKeys))
           .orderBy(asc(landingMedia.order));
       } catch (mediaError) {
         console.warn("[GET /api/landing/sections] Media query failed:", mediaError);

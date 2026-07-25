@@ -2,13 +2,7 @@
 
 import * as React from "react";
 import { useLocalizationContext } from "@/providers/localization";
-
-const stats = [
-  { key: "marketing.statProjects", suffix: "+", value: 10000 },
-  { key: "marketing.statTeams", suffix: "+", value: 500 },
-  { key: "marketing.statGenerations", suffix: "+", value: 1000000, display: "1M+" },
-  { key: "marketing.statAvailability", suffix: "", value: 99.9, display: "99.9%" },
-];
+import type { SectionRendererProps } from "@/lib/landing-section-renderer";
 
 function AnimatedCounter({ target, suffix, display }: { target: number; suffix: string; display?: string }) {
   const [count, setCount] = React.useState(0);
@@ -56,8 +50,11 @@ function AnimatedCounter({ target, suffix, display }: { target: number; suffix: 
   return <div ref={ref}>{formatted}</div>;
 }
 
-export function SocialProof() {
+export function SocialProof({ section }: SectionRendererProps) {
   const { t } = useLocalizationContext();
+
+  const title = (section.config.title as string) || section.title || t("marketing.socialProofTitle");
+  const stats = (section.config.stats as Array<{ label: string; value: number | string; suffix?: string; display?: string }>) || [];
 
   return (
     <section className="border-t border-border" aria-labelledby="social-proof-heading">
@@ -66,19 +63,23 @@ export function SocialProof() {
           id="social-proof-heading"
           className="text-center text-2xl font-semibold tracking-tight sm:text-3xl"
         >
-          {t("marketing.socialProofTitle")}
+          {title}
         </h2>
 
         <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {stats.map((stat) => (
+          {stats.map((stat, idx) => (
             <div
-              key={stat.key}
+              key={String(stat.label || '') + idx}
               className="rounded-2xl border border-border bg-card p-6 text-center transition hover:border-foreground/10"
             >
               <div className="text-3xl font-semibold tracking-tight sm:text-4xl">
-                <AnimatedCounter target={stat.value} suffix={stat.suffix} display={stat.display} />
+                {typeof stat.value === "number" ? (
+                  <AnimatedCounter target={stat.value} suffix={stat.suffix || ""} display={stat.display} />
+                ) : (
+                  stat.value
+                )}
               </div>
-              <p className="mt-1 text-sm text-muted-foreground">{t(stat.key)}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{stat.label}</p>
             </div>
           ))}
         </div>

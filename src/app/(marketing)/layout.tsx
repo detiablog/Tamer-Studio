@@ -6,7 +6,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       <Header />
       <main className="flex-1">{children}</main>
-      <Footer />
+      <Footer section={{ id: "footer", sectionKey: "footer", title: "Footer", description: null, config: {}, media: [] }} />
     </div>
   );
 }

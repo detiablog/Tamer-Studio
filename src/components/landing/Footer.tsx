@@ -4,64 +4,63 @@ import * as React from "react";
 import Link from "next/link";
 import { useLocalizationContext } from "@/providers/localization";
 import { ArrowRight } from "lucide-react";
+import type { SectionRendererProps } from "@/lib/landing-section-renderer";
 
-const productLinks = [
-  { key: "marketing.footerFeatures", href: "#features" },
-  { key: "marketing.footerPricing", href: "#pricing" },
-  { key: "marketing.footerRoadmap", href: "/roadmap" },
-  { key: "marketing.footerDocumentation", href: "/docs" },
-  { key: "marketing.footerApi", href: "/docs" },
-  { key: "marketing.footerDevelopers", href: "/docs" },
-];
+interface FooterLink {
+  label: string;
+  href: string;
+  external?: boolean;
+}
 
-const resourcesLinks = [
-  { key: "marketing.footerBlog", href: "/blog" },
-  { key: "marketing.footerCommunity", href: "/blog" },
-  { key: "marketing.footerDiscord", href: "https://discord.gg/tamerstudio", external: true },
-  { key: "marketing.footerGithub", href: "https://github.com/tamerstudio", external: true },
-];
+function toFooterLink(item: string | { label: string; href?: string; external?: boolean }, idx: number): FooterLink {
+  if (typeof item === "string") {
+    const href = `#${item.toLowerCase().replace(/\s+/g, "-")}`;
+    return { label: item, href };
+  }
+  return {
+    label: item.label,
+    href: item.href || `#link-${idx}`,
+    external: item.external,
+  };
+}
 
-const companyLinks = [
-  { key: "marketing.footerAbout", href: "/about" },
-  { key: "marketing.footerCareers", href: "/careers" },
-  { key: "marketing.footerPress", href: "/about" },
-  { key: "marketing.footerPartners", href: "/about" },
-];
-
-const legalLinks = [
-  { key: "marketing.footerPrivacyPolicy", href: "/legal/privacy" },
-  { key: "marketing.footerTermsOfService", href: "/legal/terms" },
-  { key: "marketing.footerCookiePolicy", href: "/legal/privacy" },
-  { key: "marketing.footerSecurity", href: "/about" },
-  { key: "marketing.footerCompliance", href: "/about" },
-];
-
-export function Footer() {
+export function Footer({ section }: SectionRendererProps) {
   const { t } = useLocalizationContext();
 
-  const renderLink = (link: { key: string; href: string; external?: boolean }) => {
-    const label = t(link.key);
+  const companyName = (section.config.companyName as string) || section.title || "Tamer Studio";
+  const tagline = (section.config.tagline as string) || "";
+  const rawLinks = (section.config.links as Record<string, unknown>) || {};
+  const links: { product: FooterLink[]; resources: FooterLink[]; company: FooterLink[]; legal: FooterLink[] } = {
+    product: Array.isArray(rawLinks.product) ? rawLinks.product.map(toFooterLink) : [],
+    resources: Array.isArray(rawLinks.resources) ? rawLinks.resources.map(toFooterLink) : [],
+    company: Array.isArray(rawLinks.company) ? rawLinks.company.map(toFooterLink) : [],
+    legal: Array.isArray(rawLinks.legal) ? rawLinks.legal.map(toFooterLink) : [],
+  };
+
+  const renderLink = (link: FooterLink) => {
+    const label = String(link.label || "");
+    const href = link.href || "#";
     if (link.external) {
       return (
         <a
-          key={link.key}
-          href={link.href as any}
+          key={label + href}
+          href={href}
           target="_blank"
           rel="noopener noreferrer"
           className="text-sm text-muted-foreground transition hover:text-primary group inline-flex items-center gap-1"
         >
-          {label}
+          {link.label}
           <ArrowRight className="size-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition" />
         </a>
       );
     }
     return (
       <Link 
-        key={link.key} 
-        href={link.href as any} 
+        key={label + href} 
+        href={href as any}
         className="text-sm text-muted-foreground transition hover:text-primary group inline-flex items-center gap-1"
       >
-        {label}
+        {link.label}
         <ArrowRight className="size-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition" />
       </Link>
     );
@@ -77,11 +76,13 @@ export function Footer() {
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/60 text-primary-foreground shadow-md">
                 <span className="text-sm font-bold">TS</span>
               </div>
-              <span className="text-lg font-semibold tracking-tight">Tamer Studio</span>
+              <span className="text-lg font-semibold tracking-tight">{companyName}</span>
             </div>
-            <p className="mt-3 text-sm text-muted-foreground leading-relaxed max-w-xs">
-              {t("marketing.footerTagline")}
-            </p>
+            {tagline && (
+              <p className="mt-3 text-sm text-muted-foreground leading-relaxed max-w-xs">
+                {tagline}
+              </p>
+            )}
             <div className="mt-4 flex items-center gap-3">
               <a
                 href="https://discord.gg/tamerstudio"
@@ -108,62 +109,70 @@ export function Footer() {
             </div>
           </div>
 
-          <div>
-            <h3 className="text-sm font-bold text-foreground mb-4">{t("marketing.footerProduct")}</h3>
-            <ul className="space-y-2.5">
-              {productLinks.map((link) => (
-                <li key={link.key}>{renderLink(link)}</li>
-              ))}
-            </ul>
-          </div>
+          {links.product && links.product.length > 0 && (
+            <div>
+              <h3 className="text-sm font-bold text-foreground mb-4">{t("marketing.footerProduct")}</h3>
+              <ul className="space-y-2.5">
+                {links.product.map((link) => (
+                  <li key={String(link.label || '') + String(link.href || '')}>{renderLink(link)}</li>
+                ))}
+              </ul>
+            </div>
+          )}
 
-          <div>
-            <h3 className="text-sm font-bold text-foreground mb-4">{t("marketing.footerResources")}</h3>
-            <ul className="space-y-2.5">
-              {resourcesLinks.map((link) => (
-                <li key={link.key}>{renderLink(link)}</li>
-              ))}
-            </ul>
-          </div>
+          {links.resources && links.resources.length > 0 && (
+            <div>
+              <h3 className="text-sm font-bold text-foreground mb-4">{t("marketing.footerResources")}</h3>
+              <ul className="space-y-2.5">
+                {links.resources.map((link) => (
+                  <li key={String(link.label || '') + String(link.href || '')}>{renderLink(link)}</li>
+                ))}
+              </ul>
+            </div>
+          )}
 
-          <div>
-            <h3 className="text-sm font-bold text-foreground mb-4">{t("marketing.footerCompany")}</h3>
-            <ul className="space-y-2.5">
-              {companyLinks.map((link) => (
-                <li key={link.key}>{renderLink(link)}</li>
-              ))}
-            </ul>
-          </div>
+          {links.company && links.company.length > 0 && (
+            <div>
+              <h3 className="text-sm font-bold text-foreground mb-4">{t("marketing.footerCompany")}</h3>
+              <ul className="space-y-2.5">
+                {links.company.map((link) => (
+                  <li key={String(link.label || '') + String(link.href || '')}>{renderLink(link)}</li>
+                ))}
+              </ul>
+            </div>
+          )}
 
-          <div>
-            <h3 className="text-sm font-bold text-foreground mb-4">{t("marketing.footerLegal")}</h3>
-            <ul className="space-y-2.5 mb-6">
-              {legalLinks.map((link) => (
-                <li key={link.key}>{renderLink(link)}</li>
-              ))}
-            </ul>
+          {links.legal && links.legal.length > 0 && (
+            <div>
+              <h3 className="text-sm font-bold text-foreground mb-4">{t("marketing.footerLegal")}</h3>
+              <ul className="space-y-2.5 mb-6">
+                {links.legal.map((link) => (
+                  <li key={String(link.label || '') + String(link.href || '')}>{renderLink(link)}</li>
+                ))}
+              </ul>
 
-            <h3 className="text-sm font-bold text-foreground mb-4">{t("marketing.footerContact")}</h3>
-            <ul className="space-y-2.5">
-              <li>
-                <a href="mailto:support@tamer.studio" className="text-sm text-muted-foreground transition hover:text-primary group inline-flex items-center gap-1">
-                  {t("marketing.footerContactEmail")}
-                  <ArrowRight className="size-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition" />
-                </a>
-              </li>
-              <li>
-                <Link href={"/support" as any} className="text-sm text-muted-foreground transition hover:text-primary group inline-flex items-center gap-1">
-                  {t("marketing.footerContactSupport")}
-                  <ArrowRight className="size-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition" />
-                </Link>
-              </li>
-            </ul>
-          </div>
+              <h3 className="text-sm font-bold text-foreground mb-4">{t("marketing.footerContact")}</h3>
+              <ul className="space-y-2.5">
+                <li>
+                  <a href="mailto:support@tamer.studio" className="text-sm text-muted-foreground transition hover:text-primary group inline-flex items-center gap-1">
+                    {t("marketing.footerContactEmail")}
+                    <ArrowRight className="size-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition" />
+                  </a>
+                </li>
+                <li>
+                  <Link href={"/support" as any} className="text-sm text-muted-foreground transition hover:text-primary group inline-flex items-center gap-1">
+                    {t("marketing.footerContactSupport")}
+                    <ArrowRight className="size-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition" />
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          )}
         </div>
 
         <div className="border-t border-border pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-muted-foreground">
-            © 2026 Tamer Studio. {t("marketing.footerAllRightsReserved")}
+            © 2026 Tamer Studio. All rights reserved.
           </p>
           <p className="text-xs text-muted-foreground">
             {t("marketing.footerPoweredBy")} • {t("marketing.footerVersion")} 1.0.0 • {t("marketing.footerBuild")} 2026.07.25

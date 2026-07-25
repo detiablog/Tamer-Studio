@@ -8,6 +8,7 @@ import { FAQ } from "@/components/landing/FAQ";
 import { CreditCalculator } from "@/components/landing/CreditCalculator";
 import { CreditUsageTable } from "@/components/landing/CreditUsageTable";
 import { cn } from "@/lib/utils";
+import { useLandingSections } from "@/hooks/use-landing-sections";
 
 const creditPacks = [
   { key: "marketing.creditPackSmall", credits: 100, price: "$9" },
@@ -18,10 +19,15 @@ const creditPacks = [
 
 export default function PricingPage() {
   const { t } = useLocalizationContext();
+  const { sections } = useLandingSections();
+  const pricingSection = sections.find((s) => s.sectionKey === "pricing");
+  const faqSection = sections.find((s) => s.sectionKey === "faq");
+  const calculatorSection = sections.find((s) => s.sectionKey === "credit-calculator");
+  const usageSection = sections.find((s) => s.sectionKey === "credit-usage");
 
   return (
     <div className="w-full">
-      <PricingSection />
+      {pricingSection && <PricingSection section={pricingSection} />}
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-16 sm:py-20">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
@@ -65,15 +71,15 @@ export default function PricingPage() {
         </div>
 
         <div className="mt-12">
-          <CreditCalculator />
+          {calculatorSection && <CreditCalculator section={calculatorSection} />}
         </div>
 
         <div className="mt-12">
-          <CreditUsageTable />
+          {usageSection && <CreditUsageTable section={usageSection} />}
         </div>
 
         <div className="mt-12 mx-auto max-w-2xl">
-          <FAQ />
+          {faqSection && <FAQ section={faqSection} />}
         </div>
       </div>
     </div>
