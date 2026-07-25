@@ -7,6 +7,7 @@ import { GripVertical, ArrowUp, ArrowDown } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/Badge";
+import { CompactLoader } from "@/components/ui/ElegantLoader";
 
 export type LandingSection = {
   id: string;
@@ -215,13 +216,8 @@ export function SectionList({
       </div>
 
       {loading && sections.length === 0 ? (
-        <div className="flex items-center justify-center py-16">
-          <div className="space-y-3 text-center">
-            <div className="inline-flex items-center justify-center h-12 w-12 rounded-full bg-primary/10 animate-spin">
-              <div className="size-6 border-2 border-primary border-t-transparent rounded-full" />
-            </div>
-            <p className="text-sm text-muted-foreground font-medium">Loading sections...</p>
-          </div>
+        <div className="flex items-center justify-center py-32">
+          <CompactLoader />
         </div>
       ) : filteredSections.length === 0 ? (
         <div className="text-center py-16 space-y-4">

@@ -4,6 +4,7 @@ import * as React from "react";
 import { useLandingSections, type LandingSection } from "@/hooks/use-landing-sections";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CompactLoader } from "@/components/ui/ElegantLoader";
 
 type LivePreviewProps = {
   open: boolean;
@@ -69,13 +70,8 @@ export function LivePreview({ open, onClose }: LivePreviewProps) {
         {/* Preview Content */}
         <div className="flex-1 overflow-y-auto bg-background">
           {loading ? (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center space-y-3">
-                <div className="inline-flex items-center justify-center h-12 w-12 rounded-full bg-primary/10 animate-spin">
-                  <div className="size-8 border-2 border-primary border-t-transparent rounded-full" />
-                </div>
-                <p className="text-sm text-muted-foreground">Loading preview...</p>
-              </div>
+            <div className="flex items-center justify-center h-full py-32">
+              <CompactLoader />
             </div>
           ) : error ? (
             <div className="flex items-center justify-center h-full">
