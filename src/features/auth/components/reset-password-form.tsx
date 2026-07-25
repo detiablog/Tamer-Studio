@@ -27,11 +27,8 @@ const resetPasswordSchema = z
 
 type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
 
-export function ResetPasswordForm() {
+function ResetPasswordFormInner({ token }: { token: string }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const token = searchParams.get("token");
-
   const [submitting, setSubmitting] = React.useState(false);
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirm, setShowConfirm] = React.useState(false);
@@ -43,24 +40,6 @@ export function ResetPasswordForm() {
   } = useForm<ResetPasswordFormData>({
     resolver: zodResolver(resetPasswordSchema),
   });
-
-  if (!token) {
-    return (
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Invalid reset link</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            The password reset link is missing or expired. Please request a new one.
-          </p>
-          <Link href="/forgot-password" className="text-primary hover:underline">
-            Request a new reset link
-          </Link>
-        </CardContent>
-      </Card>
-    );
-  }
 
   const onSubmit = async (values: ResetPasswordFormData) => {
     try {
@@ -105,7 +84,6 @@ export function ResetPasswordForm() {
 
       <CardContent className="space-y-4">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {/* New Password Field */}
           <div className="space-y-2">
             <Label htmlFor="password">New password</Label>
             <div className="relative">
@@ -131,7 +109,6 @@ export function ResetPasswordForm() {
             {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
           </div>
 
-          {/* Confirm Password Field */}
           <div className="space-y-2">
             <Label htmlFor="confirmPassword">Confirm password</Label>
             <div className="relative">
@@ -159,7 +136,6 @@ export function ResetPasswordForm() {
             )}
           </div>
 
-          {/* Reset Button */}
           <Button
             className="w-full"
             type="submit"
@@ -178,5 +154,38 @@ export function ResetPasswordForm() {
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function ResetPasswordFormWithToken() {
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
+
+  if (!token) {
+    return (
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle>Invalid reset link</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            The password reset link is missing or expired. Please request a new one.
+          </p>
+          <Link href="/forgot-password" className="text-primary hover:underline">
+            Request a new reset link
+          </Link>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return <ResetPasswordFormInner token={token} />;
+}
+
+export function ResetPasswordForm() {
+  return (
+    <React.Suspense fallback={<div className="text-sm text-muted-foreground">Loading...</div>}>
+      <ResetPasswordFormWithToken />
+    </React.Suspense>
   );
 }

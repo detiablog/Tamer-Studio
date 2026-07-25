@@ -8,14 +8,14 @@ export const metadata: Metadata = {
 };
 
 type AdminLoginPageProps = {
-  searchParams: Promise<{ error?: string }> | { error?: string };
+  searchParams: Promise<{ error?: string }>;
 };
 
 export default async function AdminLoginPage({ searchParams }: AdminLoginPageProps) {
   const cookieStore = await cookies();
   const csrfToken = cookieStore.get("csrf_token")?.value ?? "";
 
-  const params = await Promise.resolve(searchParams);
+  const params = await searchParams;
   const error = params.error as "missing_fields" | "invalid_master_key" | "invalid_credentials" | "account_inactive" | "unexpected_error" | undefined;
 
   return (

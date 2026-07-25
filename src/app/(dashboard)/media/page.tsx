@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react"
 import { AppShell } from "@/components/ui/AppShell"
 import { PageLayout } from "@/components/ui/PageLayout"
@@ -8,8 +10,6 @@ import { Badge } from "@/components/ui/Badge"
 import { Button } from "@/components/ui/button"
 import { ImageIcon, Film, Music, FileText, Search, Filter } from "lucide-react"
 import { useLocalizationContext } from "@/providers/localization"
-
-export const metadata = { title: "Media Library - Tamer Studio", description: "Manage images, video, audio, and generated assets." }
 
 const MEDIA_ITEMS = [
   { id: "1", name: "hero-banner-v2.png", type: "image", size: "2.4 MB", date: "2 hours ago" },
