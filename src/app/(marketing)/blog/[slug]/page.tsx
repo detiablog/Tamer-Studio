@@ -63,9 +63,10 @@ const posts = [
 ];
 
 export default function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { t } = useLocalizationContext();
+  const { t, locale } = useLocalizationContext();
   const resolvedParams = React.use(params);
   const post = posts.find((p) => p.slug === resolvedParams.slug);
+  const dateLocale = locale === "id" ? "id-ID" : "en-US";
 
   if (!post) {
     return (
@@ -83,7 +84,7 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
       <Link href={"/blog" as any} className="text-sm text-muted-foreground hover:text-foreground">{t("marketing.blogBackToBlog")}</Link>
       <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">{post.title}</h1>
       <div className="mt-4 flex items-center gap-3 text-sm text-muted-foreground">
-        <span>{t("marketing.blogPublishedOn")} {new Date(post.date).toLocaleDateString()}</span>
+        <span suppressHydrationWarning>{t("marketing.blogPublishedOn")} {new Date(post.date).toLocaleDateString(dateLocale)}</span>
         <span>•</span>
         <span>{t("marketing.blogByAuthor")} {post.author}</span>
       </div>

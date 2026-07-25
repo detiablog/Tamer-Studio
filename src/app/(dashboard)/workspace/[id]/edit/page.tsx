@@ -7,7 +7,7 @@ import { workspaceStore } from "@/features/workspace/workspace.store";
 import { WorkspaceEditForm } from "@/components/workspace/WorkspaceEditForm";
 
 export default function WorkspaceEditPage({ params }: { params: Promise<{ id: string }> }) {
-  const id = params.id;
+  const { id } = React.use(params);
   React.useEffect(() => {
     const ws = workspaceStore.get(id);
     document.title = ws ? `Edit ${ws.name} - Tamer Studio` : "Edit Workspace - Tamer Studio";

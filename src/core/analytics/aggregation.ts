@@ -116,7 +116,7 @@ export async function getWorkspaceDashboardMetrics(
     successRate: total > 0 ? (succeeded / total) * 100 : 0,
     failureRate: total > 0 ? ((total - succeeded) / total) * 100 : 0,
     totalCostUsd: aggregated?.totalCost?.toString() || "0",
-    averageExecutionTime: aggregated?.avgExecutionTime || 0,
+    averageExecutionTime: Number(aggregated?.avgExecutionTime) || 0,
     topModels: topModels.map((m) => ({
       model: m.model || "unknown",
       count: m.count,

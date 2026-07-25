@@ -16,7 +16,7 @@ export const db = drizzle(client, { schema });
 
 // Graceful shutdown
 if (typeof globalThis !== "undefined") {
-  globalThis.onExit = async () => {
+  (globalThis as any).onExit = async () => {
     await client.end();
   };
 }

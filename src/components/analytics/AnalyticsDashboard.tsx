@@ -122,7 +122,7 @@ export function AnalyticsDashboard({ workspaceId }: AnalyticsDashboardProps) {
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ model, count }) => `${model}: ${count}`}
+                label={({ payload }) => `${payload.model}: ${payload.count}`}
                 outerRadius={80}
                 fill="#8884d8"
                 dataKey="count"

@@ -99,7 +99,7 @@ export async function proxy(request: NextRequest) {
           }
         }
       } catch (err) {
-        logger.warn("Admin session validation error", err instanceof Error ? err : new Error(String(err)));
+        logger.warn("Admin session validation error", { error: err instanceof Error ? err.message : String(err) });
       }
     }
 

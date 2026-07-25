@@ -48,7 +48,7 @@ describe('config', () => {
     const config = loadConfig();
     expect(config.database.url).toBe('postgresql://user:pass@localhost:5432/test');
     expect(config.auth.secret).toBe('secret123');
-    expect(config.admin.masterKey).toBe('master123');
+    expect(config.admin.masterKeyHash).toBe('master123');
     expect(config.app.env).toBe('development');
   });
 });

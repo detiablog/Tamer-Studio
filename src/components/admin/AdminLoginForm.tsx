@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Lock, ArrowLeft, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import { logger } from "@/core/logger";
 
@@ -52,7 +53,6 @@ export function AdminLoginForm({ error, csrfToken }: AdminLoginFormProps) {
 
     console.log("[AdminLoginForm] Submitting with:", { email, passwordLength: password.length, adminKeyLength: adminKey.length });
 
-    // Validate on client
     if (!email || !password || !adminKey) {
       setFormError(ERROR_MESSAGES.missing_fields);
       setSubmitting(false);
@@ -91,37 +91,27 @@ export function AdminLoginForm({ error, csrfToken }: AdminLoginFormProps) {
         return;
       }
 
-      // Success
       console.log("[AdminLoginForm] Login successful!");
-      console.log("[AdminLoginForm] Session token:", result.session?.token);
-      console.log("[AdminLoginForm] Document cookies before storing:", document.cookie);
       
-      // Store session token in localStorage
       if (result.session?.token) {
         try {
           localStorage.setItem("admin_session_token", result.session.token);
           console.log("[AdminLoginForm] Stored admin_session_token in localStorage");
           
-          // ALSO manually set cookie via document.cookie for server access
           document.cookie = `admin_session=${result.session.token}; path=/; max-age=${60*60*24}`;
           console.log("[AdminLoginForm] Manually set admin_session cookie via document.cookie");
-          console.log("[AdminLoginForm] Document cookies after manual set:", document.cookie);
         } catch (storageErr) {
           console.error("[AdminLoginForm] Failed to store:", storageErr);
         }
-      } else {
-        console.warn("[AdminLoginForm] No session token in response!");
       }
       
-      toast.success("Admin signed in successfully");
+      toast.success("Admin portal accessed successfully");
       
-      // Small delay to ensure cookies/storage are set
       await new Promise(resolve => setTimeout(resolve, 300));
       
       console.log("[AdminLoginForm] About to redirect to /admin");
       router.replace("/admin");
       
-      // Also refresh to ensure server validates session
       await new Promise(resolve => setTimeout(resolve, 500));
       router.refresh();
       
@@ -141,16 +131,25 @@ export function AdminLoginForm({ error, csrfToken }: AdminLoginFormProps) {
 
   return (
     <div className="w-full max-w-md space-y-6">
-      <div className="text-center">
-        <h1 className="text-2xl font-semibold">Admin Login</h1>
-        <p className="text-sm text-muted-foreground">Enter your admin credentials and master key</p>
+      {/* Header */}
+      <div className="space-y-2">
+        <div className="inline-flex items-center gap-2 rounded-full border border-destructive/20 bg-destructive/5 px-3 py-1 text-xs font-semibold text-destructive">
+          <ShieldAlert className="size-3.5" />
+          Admin Portal
+        </div>
+        <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+          Secure Admin Access
+        </h1>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          Enter your admin credentials and master key to access the administrative panel.
+        </p>
       </div>
 
-      <form onSubmit={onSubmit} className="space-y-4">
+      <form onSubmit={onSubmit} className="space-y-5">
         {/* Email Field */}
         <div className="space-y-2">
-          <label htmlFor="email" className="text-sm font-medium">
-            Email
+          <label htmlFor="email" className="text-sm font-semibold">
+            Admin Email
           </label>
           <input
             id="email"
@@ -160,13 +159,13 @@ export function AdminLoginForm({ error, csrfToken }: AdminLoginFormProps) {
             placeholder="admin@tamer.studio"
             autoComplete="email"
             disabled={submitting}
-            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
+            className="w-full h-10 rounded-lg border border-border bg-background/50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition disabled:opacity-50"
           />
         </div>
 
         {/* Password Field */}
         <div className="space-y-2">
-          <label htmlFor="password" className="text-sm font-medium">
+          <label htmlFor="password" className="text-sm font-semibold">
             Password
           </label>
           <div className="relative">
@@ -178,13 +177,13 @@ export function AdminLoginForm({ error, csrfToken }: AdminLoginFormProps) {
               placeholder="••••••••"
               autoComplete="current-password"
               disabled={submitting}
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
+              className="w-full h-10 rounded-lg border border-border bg-background/50 px-3 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition disabled:opacity-50"
             />
             <button
               type="button"
               onClick={() => setShowPassword((v) => !v)}
               disabled={submitting}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 p-1"
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -194,8 +193,8 @@ export function AdminLoginForm({ error, csrfToken }: AdminLoginFormProps) {
 
         {/* Admin Key Field */}
         <div className="space-y-2">
-          <label htmlFor="adminKey" className="text-sm font-medium">
-            Admin Key
+          <label htmlFor="adminKey" className="text-sm font-semibold">
+            Master Admin Key
           </label>
           <div className="relative">
             <input
@@ -203,29 +202,33 @@ export function AdminLoginForm({ error, csrfToken }: AdminLoginFormProps) {
               name="adminKey"
               type={showAdminKey ? "text" : "password"}
               required
-              placeholder="Master key"
+              placeholder="••••••••••••••••"
               disabled={submitting}
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
+              className="w-full h-10 rounded-lg border border-border bg-background/50 px-3 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition disabled:opacity-50"
             />
             <button
               type="button"
               onClick={() => setShowAdminKey((v) => !v)}
               disabled={submitting}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 p-1"
               aria-label={showAdminKey ? "Hide key" : "Show key"}
             >
               {showAdminKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
           <p className="text-xs text-muted-foreground">
-            This key is stored securely in the server environment.
+            <Lock className="inline size-3 mr-1" />
+            Stored securely in server environment
           </p>
         </div>
 
         {/* Error Message */}
         {formError && (
-          <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-            {formError}
+          <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive font-medium">
+            <div className="flex items-start gap-2">
+              <ShieldAlert className="size-4 mt-0.5 flex-shrink-0" />
+              <div>{formError}</div>
+            </div>
           </div>
         )}
 
@@ -233,18 +236,32 @@ export function AdminLoginForm({ error, csrfToken }: AdminLoginFormProps) {
         <button
           type="submit"
           disabled={submitting}
-          className="w-full rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/80 focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50 transition-colors"
+          className="w-full h-10 rounded-lg bg-gradient-to-r from-primary to-primary/80 px-3 py-2 text-sm font-semibold text-primary-foreground hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50 transition-all duration-200 group"
         >
           {submitting ? (
             <>
               <span className="inline-block animate-spin mr-2">⏳</span>
-              Signing in...
+              Authenticating...
             </>
           ) : (
-            "Sign in as Admin"
+            "Access Admin Panel"
           )}
         </button>
       </form>
+
+      {/* Footer with back link */}
+      <div className="flex items-center justify-between pt-4 border-t border-border">
+        <p className="text-xs text-muted-foreground">
+          Restricted access
+        </p>
+        <Link 
+          href="/"
+          className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-primary transition"
+        >
+          <ArrowLeft className="size-3" />
+          Back to Home
+        </Link>
+      </div>
     </div>
   );
 }

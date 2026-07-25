@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useLocalizationContext } from "@/providers/localization";
+import { ArrowRight } from "lucide-react";
 
 const productLinks = [
   { key: "marketing.footerFeatures", href: "#features" },
@@ -47,32 +48,38 @@ export function Footer() {
           href={link.href as any}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-sm text-muted-foreground transition hover:text-foreground"
+          className="text-sm text-muted-foreground transition hover:text-primary group inline-flex items-center gap-1"
         >
           {label}
+          <ArrowRight className="size-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition" />
         </a>
       );
     }
     return (
-      <Link key={link.key} href={link.href as any} className="text-sm text-muted-foreground transition hover:text-foreground">
+      <Link 
+        key={link.key} 
+        href={link.href as any} 
+        className="text-sm text-muted-foreground transition hover:text-primary group inline-flex items-center gap-1"
+      >
         {label}
+        <ArrowRight className="size-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition" />
       </Link>
     );
   };
 
   return (
-    <footer className="border-t border-border bg-muted/30" aria-labelledby="footer-heading">
+    <footer className="border-t border-border bg-gradient-to-b from-background to-muted/20" aria-labelledby="footer-heading">
       <h2 id="footer-heading" className="sr-only">Footer</h2>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-12 lg:py-16">
-        <div className="grid grid-cols-2 gap-8 lg:grid-cols-5">
+        <div className="grid grid-cols-2 gap-8 lg:grid-cols-5 mb-12">
           <div className="col-span-2 lg:col-span-1">
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/60 text-primary-foreground shadow-md">
                 <span className="text-sm font-bold">TS</span>
               </div>
               <span className="text-lg font-semibold tracking-tight">Tamer Studio</span>
             </div>
-            <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
+            <p className="mt-3 text-sm text-muted-foreground leading-relaxed max-w-xs">
               {t("marketing.footerTagline")}
             </p>
             <div className="mt-4 flex items-center gap-3">
@@ -80,7 +87,7 @@ export function Footer() {
                 href="https://discord.gg/tamerstudio"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-primary/10 hover:text-primary"
                 aria-label="Discord"
               >
                 <svg viewBox="0 0 24 24" className="size-4 fill-current" aria-hidden="true">
@@ -91,19 +98,19 @@ export function Footer() {
                 href="https://github.com/tamerstudio"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-primary/10 hover:text-primary"
                 aria-label="GitHub"
               >
-              <svg viewBox="0 0 24 24" className="size-4 fill-current" aria-hidden="true">
-                <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
-              </svg>
+                <svg viewBox="0 0 24 24" className="size-4 fill-current" aria-hidden="true">
+                  <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+                </svg>
               </a>
             </div>
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold text-foreground">{t("marketing.footerProduct")}</h3>
-            <ul className="mt-4 space-y-3">
+            <h3 className="text-sm font-bold text-foreground mb-4">{t("marketing.footerProduct")}</h3>
+            <ul className="space-y-2.5">
               {productLinks.map((link) => (
                 <li key={link.key}>{renderLink(link)}</li>
               ))}
@@ -111,8 +118,8 @@ export function Footer() {
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold text-foreground">{t("marketing.footerResources")}</h3>
-            <ul className="mt-4 space-y-3">
+            <h3 className="text-sm font-bold text-foreground mb-4">{t("marketing.footerResources")}</h3>
+            <ul className="space-y-2.5">
               {resourcesLinks.map((link) => (
                 <li key={link.key}>{renderLink(link)}</li>
               ))}
@@ -120,8 +127,8 @@ export function Footer() {
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold text-foreground">{t("marketing.footerCompany")}</h3>
-            <ul className="mt-4 space-y-3">
+            <h3 className="text-sm font-bold text-foreground mb-4">{t("marketing.footerCompany")}</h3>
+            <ul className="space-y-2.5">
               {companyLinks.map((link) => (
                 <li key={link.key}>{renderLink(link)}</li>
               ))}
@@ -129,31 +136,32 @@ export function Footer() {
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold text-foreground">{t("marketing.footerLegal")}</h3>
-            <ul className="mt-4 space-y-3">
+            <h3 className="text-sm font-bold text-foreground mb-4">{t("marketing.footerLegal")}</h3>
+            <ul className="space-y-2.5 mb-6">
               {legalLinks.map((link) => (
                 <li key={link.key}>{renderLink(link)}</li>
               ))}
             </ul>
-            <div className="mt-6">
-              <h3 className="text-sm font-semibold text-foreground">{t("marketing.footerContact")}</h3>
-              <ul className="mt-4 space-y-3">
-                <li>
-                  <a href="mailto:support@tamer.studio" className="text-sm text-muted-foreground transition hover:text-foreground">
-                    {t("marketing.footerContactEmail")}
-                  </a>
-                </li>
-                <li>
-                  <Link href={"/support" as any} className="text-sm text-muted-foreground transition hover:text-foreground">
-                    {t("marketing.footerContactSupport")}
-                  </Link>
-                </li>
-              </ul>
-            </div>
+
+            <h3 className="text-sm font-bold text-foreground mb-4">{t("marketing.footerContact")}</h3>
+            <ul className="space-y-2.5">
+              <li>
+                <a href="mailto:support@tamer.studio" className="text-sm text-muted-foreground transition hover:text-primary group inline-flex items-center gap-1">
+                  {t("marketing.footerContactEmail")}
+                  <ArrowRight className="size-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition" />
+                </a>
+              </li>
+              <li>
+                <Link href={"/support" as any} className="text-sm text-muted-foreground transition hover:text-primary group inline-flex items-center gap-1">
+                  {t("marketing.footerContactSupport")}
+                  <ArrowRight className="size-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition" />
+                </Link>
+              </li>
+            </ul>
           </div>
         </div>
 
-        <div className="mt-12 border-t border-border pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="border-t border-border pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-muted-foreground">
             © 2026 Tamer Studio. {t("marketing.footerAllRightsReserved")}
           </p>

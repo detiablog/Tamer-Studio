@@ -9,7 +9,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 }
 
 export default function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const id = params.id;
+  const { id } = React.use(params);
   return (
     <AppShell>
         <PageLayout title={`Project`} breadcrumb={[{ label: "Projects", href: "/projects" }, { label: id }]}> 

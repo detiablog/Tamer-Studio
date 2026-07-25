@@ -52,11 +52,11 @@ export function useWebSocket(options: UseWebSocketOptions) {
     };
   }, [options.token, options.workspaceId, options.productionId]);
 
-  const on = (event: string, callback: (...args: unknown[]) => void) => {
+  const on = (event: string, callback: (...args: any[]) => void) => {
     socketRef.current?.on(event, callback);
   };
 
-  const emit = (event: string, data: unknown) => {
+  const emit = (event: string, data: any) => {
     socketRef.current?.emit(event, data);
   };
 

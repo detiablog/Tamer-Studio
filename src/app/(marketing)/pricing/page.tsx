@@ -20,14 +20,14 @@ export default function PricingPage() {
   const { t } = useLocalizationContext();
 
   return (
-    <div>
+    <div className="w-full">
       <PricingSection />
-      <div className="mx-auto max-w-6xl px-6 py-20">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-16 sm:py-20">
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
             {t("marketing.creditPackTitle")}
           </h2>
-          <p className="mt-4 text-muted-foreground">
+          <p className="mt-4 text-lg text-muted-foreground">
             {t("marketing.creditPackDescription")}
           </p>
         </div>

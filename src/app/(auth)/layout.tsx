@@ -1,30 +1,57 @@
 import * as React from "react"
 import Link from "next/link"
+import { Home, ArrowLeft } from "lucide-react"
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background text-foreground px-6">
-      <div className="w-full max-w-md">
-        {/* Brand header */}
-        <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-            <span className="font-heading text-lg font-bold">TS</span>
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-background via-background to-muted/30">
+      {/* Decorative blobs */}
+      <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-gradient-to-l from-primary/10 to-transparent rounded-full blur-3xl -z-10" />
+      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-r from-primary/10 to-transparent rounded-full blur-3xl -z-10" />
+
+      {/* Header with back button */}
+      <header className="fixed top-0 left-0 right-0 z-40 border-b border-border/50 bg-background/80 backdrop-blur-xl">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+          <div className="flex h-16 items-center justify-between">
+            <Link 
+              href="/" 
+              className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition hover:text-primary"
+              aria-label="Back to home"
+            >
+              <ArrowLeft className="size-4" />
+              Back to Home
+            </Link>
+            <Link 
+              href="/" 
+              className="flex items-center gap-2 transition hover:opacity-80"
+            >
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/60 text-primary-foreground shadow-md">
+                <span className="text-xs font-bold">TS</span>
+              </div>
+              <span className="hidden sm:inline text-sm font-semibold">Tamer Studio</span>
+            </Link>
+            <div className="w-12" />
           </div>
-          <h1 className="font-heading text-xl font-semibold">Tamer Studio</h1>
-          <p className="mt-1 text-sm text-muted-foreground">AI-first production platform</p>
         </div>
+      </header>
 
-        {/* Auth card */}
-        <div className="rounded-2xl border border-border bg-card p-6 shadow-lg shadow-black/5">
-          {children}
+      {/* Main content */}
+      <div className="flex-1 flex items-center justify-center px-4 py-8 pt-24">
+        <div className="w-full max-w-md">
+          {/* Auth card */}
+          <div className="rounded-2xl border border-border bg-card/50 backdrop-blur-xl p-8 shadow-xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {children}
+          </div>
+
+          {/* Footer */}
+          <div className="mt-8 flex items-center justify-center gap-2 text-center text-xs text-muted-foreground">
+            <Link href="/legal/privacy" className="transition hover:text-primary">Privacy</Link>
+            <span className="text-muted-foreground/40">•</span>
+            <Link href="/legal/terms" className="transition hover:text-primary">Terms</Link>
+            <span className="text-muted-foreground/40">•</span>
+            <Link href="/support" className="transition hover:text-primary">Support</Link>
+          </div>
         </div>
-
-        {/* Footer */}
-        <p className="mt-6 text-center text-xs text-muted-foreground">
-          <Link href="/legal/privacy" className="text-primary hover:underline">Privacy Policy</Link>
-          {" "}and{" "}
-          <Link href="/legal/terms" className="text-primary hover:underline">Terms of Service</Link>.
-        </p>
       </div>
     </div>
   );

@@ -9,7 +9,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 }
 
 export default function AIProviderDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const id = params.id;
+  const { id } = React.use(params);
   return (
     <AppShell>
         <PageLayout title={"AI Provider"} breadcrumb={[{ label: "AI Platform", href: "/ai" }, { label: id }]}>

@@ -3,7 +3,6 @@
 import * as React from "react";
 import Link from "next/link";
 import { useLocalizationContext } from "@/providers/localization";
-import { cn } from "@/lib/utils";
 
 const posts = [
   {
@@ -57,27 +56,30 @@ const posts = [
 ];
 
 export default function BlogPage() {
-  const { t } = useLocalizationContext();
+  const { t, locale } = useLocalizationContext();
+  const dateLocale = locale === "id" ? "id-ID" : "en-US";
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-20">
-      <div className="mx-auto max-w-2xl text-center">
-        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{t("marketing.blogTitle")}</h1>
-        <p className="mt-4 text-muted-foreground">{t("marketing.blogDescription")}</p>
-      </div>
-      <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {posts.map((post) => (
-          <Link key={post.slug} href={`/blog/${post.slug}` as any} className="group">
-            <div className="rounded-2xl border border-border bg-card p-6 transition hover:border-foreground/20">
-              <h3 className="font-semibold group-hover:underline">{post.title}</h3>
-              <p className="mt-2 text-sm text-muted-foreground line-clamp-2">{post.excerpt}</p>
-              <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
-                <span>{post.author}</span>
-                <span>{new Date(post.date).toLocaleDateString()}</span>
+    <div className="w-full">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-16 sm:py-20">
+        <div className="mx-auto max-w-2xl text-center">
+          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{t("marketing.blogTitle")}</h1>
+          <p className="mt-4 text-lg text-muted-foreground">{t("marketing.blogDescription")}</p>
+        </div>
+        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {posts.map((post) => (
+            <Link key={post.slug} href={`/blog/${post.slug}` as any} className="group">
+              <div className="rounded-2xl border border-border bg-card p-6 transition hover:border-foreground/20">
+                <h3 className="font-semibold group-hover:underline">{post.title}</h3>
+                <p className="mt-2 text-sm text-muted-foreground line-clamp-2">{post.excerpt}</p>
+                <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
+                  <span>{post.author}</span>
+                  <span suppressHydrationWarning>{new Date(post.date).toLocaleDateString(dateLocale)}</span>
+                </div>
               </div>
-            </div>
-          </Link>
-        ))}
+            </Link>
+          ))}
+        </div>
       </div>
     </div>
   );

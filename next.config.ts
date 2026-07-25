@@ -1,5 +1,4 @@
 import type { NextConfig } from "next";
-import webpack from "webpack";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -14,37 +13,17 @@ const nextConfig: NextConfig = {
 
   serverExternalPackages: ["postgres", "redis", "@trigger.dev/sdk/v3"],
 
-  turbopack: {},
+  turbopack: {
+    resolveAlias: {
+      webpack: "webpack",
+    },
+  },
 
   typescript: {
     ignoreBuildErrors: true,
   },
 
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-        net: false,
-        tls: false,
-        crypto: false,
-        perf_hooks: false,
-        stream: false,
-        os: false,
-        path: false,
-        zlib: false,
-        http: false,
-        https: false,
-        child_process: false,
-      };
-
-      config.plugins = [
-        ...(config.plugins || []),
-        new webpack.IgnorePlugin({
-          resourceRegExp: /^(postgres|redis|@trigger\.dev\/sdk\/v3)$/,
-        }),
-      ];
-    }
+  webpack: (config) => {
     return config;
   },
 

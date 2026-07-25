@@ -11,7 +11,7 @@ import { auth } from "@/core/auth";
 export async function POST(request: NextRequest) {
   try {
     const response = await auth.api.signOut({
-      request,
+      headers: {},
     });
 
     // Ensure cookies are cleared

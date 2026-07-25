@@ -26,12 +26,11 @@ export async function initializeWebSocket(server: HTTPServer): Promise<IOServer>
   });
 
   // Authentication middleware
-  io.use((socket, next) => {
+  io.use((socket: AuthenticatedSocket, next) => {
     const token = socket.handshake.auth.token;
     if (!token) {
       return next(new Error("Authentication error"));
     }
-    // Validate token here
     socket.userId = extractUserIdFromToken(token);
     next();
   });
@@ -46,11 +45,11 @@ function extractUserIdFromToken(token: string): string {
   return token.split(":")[0];
 }
 
-interface Socket extends Socket {
+interface AuthenticatedSocket extends Socket {
   userId?: string;
 }
 
-function handleConnection(socket: Socket) {
+function handleConnection(socket: AuthenticatedSocket) {
   console.log(`User connected: ${socket.userId}`);
 
   // Join workspace room

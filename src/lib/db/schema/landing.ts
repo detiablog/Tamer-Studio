@@ -14,13 +14,16 @@ export const landingSection = pgTable(
   "landing_section",
   {
     id: text("id").primaryKey(),
-    key: text("key").notNull().unique(),
-    type: text("type").notNull().default("hero"),
+    sectionKey: text("section_key").notNull().unique(),
     title: text("title").notNull().default(""),
-    subtitle: text("subtitle"),
-    content: jsonb("content").$type<Record<string, unknown>>().default({}),
+    description: text("description"),
+    component: text("component").default(""),
+    type: text("type").notNull().default("hero"),
+    visible: boolean("visible").default(true).notNull(),
+    locked: boolean("locked").default(false).notNull(),
     order: integer("order").notNull().default(0),
-    isVisible: boolean("is_visible").default(true).notNull(),
+    config: jsonb("config").$type<Record<string, unknown>>().default({}),
+    styles: jsonb("styles").$type<Record<string, unknown>>().default({}),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()
@@ -28,11 +31,12 @@ export const landingSection = pgTable(
       .notNull(),
   },
   (table) => [
-    unique("landing_section_key_unique").on(table.key),
-    index("landing_section_key_idx").on(table.key),
+    unique("landing_section_section_key_unique").on(table.sectionKey),
+    index("landing_section_section_key_idx").on(table.sectionKey),
     index("landing_section_order_idx").on(table.order),
     index("landing_section_type_idx").on(table.type),
-    index("landing_section_visible_idx").on(table.isVisible),
+    index("landing_section_visible_idx").on(table.visible),
+    index("landing_section_locked_idx").on(table.locked),
   ]
 );
 
@@ -40,7 +44,7 @@ export const landingMedia = pgTable(
   "landing_media",
   {
     id: text("id").primaryKey(),
-    sectionKey: text("section_key").notNull().references(() => landingSection.key, { onDelete: "cascade" }),
+    sectionKey: text("section_key").notNull().references(() => landingSection.sectionKey, { onDelete: "cascade" }),
     url: text("url").notNull(),
     alt: text("alt").default(""),
     type: text("type").notNull().default("image"),
@@ -61,6 +65,6 @@ export const landingSectionRelations = relations(landingSection, ({ many }) => (
 export const landingMediaRelations = relations(landingMedia, ({ one }) => ({
   section: one(landingSection, {
     fields: [landingMedia.sectionKey],
-    references: [landingSection.key],
+    references: [landingSection.sectionKey],
   }),
 }));
