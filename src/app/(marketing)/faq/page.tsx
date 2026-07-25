@@ -2,9 +2,13 @@
 
 import { FAQ } from "@/components/landing/FAQ";
 import { useLocalizationContext } from "@/providers/localization";
+import { useLandingSections } from "@/hooks/use-landing-sections";
 
 export default function FAQPage() {
   const { t } = useLocalizationContext();
+  const { sections } = useLandingSections();
+  const faqSection = sections.find((s) => s.sectionKey === "faq");
+
   return (
     <div className="mx-auto max-w-6xl px-6 py-20">
       <div className="mx-auto max-w-2xl text-center">
@@ -15,7 +19,7 @@ export default function FAQPage() {
           {t("marketing.faqDescription")}
         </p>
       </div>
-      <FAQ />
+      {faqSection && <FAQ section={faqSection} />}
     </div>
   );
 }

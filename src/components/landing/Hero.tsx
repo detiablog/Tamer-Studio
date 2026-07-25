@@ -5,23 +5,24 @@ import Link from "next/link";
 import { ArrowRight, Rocket, Sparkles } from "lucide-react";
 import { useLocalizationContext } from "@/providers/localization";
 import { cn } from "@/lib/utils";
+import type { SectionRendererProps } from "@/lib/landing-section-renderer";
 
-// Landing-page specific translations (isolated from global translations)
-const LANDING_PAGE_TRANSLATIONS = {
-  heroSubtitle: "AI-Powered Production Platform",
-  getStarted: "Get Started Free",
-} as const;
+const providers = [
+  { key: "marketing.providerOpenAI", icon: "O" },
+  { key: "marketing.providerGemini", icon: "G" },
+  { key: "marketing.providerClaude", icon: "C" },
+  { key: "marketing.providerOpenRouter", icon: "OR" },
+  { key: "marketing.providerKilo", icon: "K" },
+];
 
-export function Hero() {
+export function Hero({ section }: SectionRendererProps) {
   const { t } = useLocalizationContext();
 
-  const providers = [
-    { key: "marketing.providerOpenAI", icon: "O" },
-    { key: "marketing.providerGemini", icon: "G" },
-    { key: "marketing.providerClaude", icon: "C" },
-    { key: "marketing.providerOpenRouter", icon: "OR" },
-    { key: "marketing.providerKilo", icon: "K" },
-  ];
+  const heading = (section.config.heading as string) || section.title;
+  const description = (section.config.description as string) || section.description || "";
+  const ctaPrimary = (section.config.ctaPrimary as string) || t("marketing.heroCtaPrimary");
+  const ctaSecondary = (section.config.ctaSecondary as string) || t("marketing.heroCtaSecondary");
+  const showProviders = section.config.showProviders !== false;
 
   return (
     <section className="relative overflow-hidden" aria-labelledby="hero-heading">
@@ -36,18 +37,18 @@ export function Hero() {
         <div className="mx-auto max-w-3xl text-center">
           <div className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm font-medium text-primary hover:bg-primary/10 transition cursor-default">
             <Sparkles className="size-4" />
-            {LANDING_PAGE_TRANSLATIONS.heroSubtitle}
+            AI-Powered Production Platform
           </div>
 
           <h1
             id="hero-heading"
             className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl leading-tight bg-gradient-to-r from-foreground via-foreground to-foreground/60 bg-clip-text text-transparent"
           >
-            {t("marketing.heroTitle")}
+            {heading}
           </h1>
 
           <p className="mt-6 text-base leading-8 text-muted-foreground sm:text-lg sm:leading-9">
-            {t("marketing.heroDescription")}
+            {description}
           </p>
 
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-3">
@@ -57,20 +58,20 @@ export function Hero() {
                 "inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-primary to-primary/80 px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:shadow-lg hover:scale-105 duration-200 group"
               )}
             >
-              {t("marketing.heroCtaPrimary")}
+              {ctaPrimary}
               <ArrowRight className="ml-2 size-4 group-hover:translate-x-1 transition" />
             </Link>
             <Link
               href="/login"
               className="inline-flex items-center justify-center rounded-lg border border-border bg-background px-6 py-3 text-sm font-semibold transition hover:bg-muted hover:border-foreground/20 group"
             >
-              {t("marketing.heroCtaSecondary")}
+              {ctaSecondary}
               <ArrowRight className="ml-2 size-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition" />
             </Link>
           </div>
 
           <p className="mt-6 text-xs text-muted-foreground">
-            {t("marketing.socialProofTitle")}
+            Trusted by creators, agencies, and businesses worldwide
           </p>
 
           <div className="mt-3 flex flex-wrap items-center justify-center gap-2 text-xs text-muted-foreground">
@@ -84,19 +85,21 @@ export function Hero() {
             <span>Contact</span>
           </div>
 
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
-            {providers.map((provider) => (
-              <span
-                key={provider.key}
-                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/50 backdrop-blur-sm px-3 py-1.5 text-xs font-medium text-muted-foreground hover:border-foreground/20 transition"
-              >
-                <span className="flex h-4 w-4 items-center justify-center rounded bg-gradient-to-br from-primary/20 to-primary/10 text-[10px] font-bold text-primary">
-                  {provider.icon}
+          {showProviders && (
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
+              {providers.map((provider) => (
+                <span
+                  key={provider.key}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/50 backdrop-blur-sm px-3 py-1.5 text-xs font-medium text-muted-foreground hover:border-foreground/20 transition"
+                >
+                  <span className="flex h-4 w-4 items-center justify-center rounded bg-gradient-to-br from-primary/20 to-primary/10 text-[10px] font-bold text-primary">
+                    {provider.icon}
+                  </span>
+                  {t(provider.key)}
                 </span>
-                {t(provider.key)}
-              </span>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="mt-16 sm:mt-20 animate-in fade-in slide-in-from-bottom-4 duration-1000">

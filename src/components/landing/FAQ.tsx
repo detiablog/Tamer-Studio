@@ -4,28 +4,20 @@ import * as React from "react";
 import { Plus, Minus } from "lucide-react";
 import { useLocalizationContext } from "@/providers/localization";
 import { cn } from "@/lib/utils";
+import type { SectionRendererProps } from "@/lib/landing-section-renderer";
 
 interface FAQItem {
-  categoryKey: string;
-  questionKey: string;
-  answerKey: string;
+  question: string;
+  answer: string;
 }
 
-const faqItems: FAQItem[] = [
-  { categoryKey: "marketing.faqBilling", questionKey: "marketing.faqBillingQuestion", answerKey: "marketing.faqBillingAnswer" },
-  { categoryKey: "marketing.faqCredits", questionKey: "marketing.faqCreditsQuestion", answerKey: "marketing.faqCreditsAnswer" },
-  { categoryKey: "marketing.faqUnusedCredits", questionKey: "marketing.faqUnusedCreditsQuestion", answerKey: "marketing.faqUnusedCreditsAnswer" },
-  { categoryKey: "marketing.faqCreditPack", questionKey: "marketing.faqCreditPackQuestion", answerKey: "marketing.faqCreditPackAnswer" },
-  { categoryKey: "marketing.faqChangePlan", questionKey: "marketing.faqChangePlanQuestion", answerKey: "marketing.faqChangePlanAnswer" },
-  { categoryKey: "marketing.faqAIModels", questionKey: "marketing.faqAIModelsQuestion", answerKey: "marketing.faqAIModelsAnswer" },
-  { categoryKey: "marketing.faqPrivacy", questionKey: "marketing.faqPrivacyQuestion", answerKey: "marketing.faqPrivacyAnswer" },
-  { categoryKey: "marketing.faqSecurity", questionKey: "marketing.faqSecurityQuestion", answerKey: "marketing.faqSecurityAnswer" },
-  { categoryKey: "marketing.faqSubscriptions", questionKey: "marketing.faqSubscriptionsQuestion", answerKey: "marketing.faqSubscriptionsAnswer" },
-];
-
-export function FAQ() {
+export function FAQ({ section }: SectionRendererProps) {
   const { t } = useLocalizationContext();
   const [openIndex, setOpenIndex] = React.useState<number | null>(null);
+
+  const heading = (section.config.heading as string) || section.title || t("marketing.faqTitle");
+  const description = (section.config.description as string) || section.description || t("marketing.faqDescription");
+  const items = (section.config.items as FAQItem[]) || [];
 
   const toggle = (index: number) => {
     setOpenIndex((prev) => (prev === index ? null : index));
@@ -36,17 +28,17 @@ export function FAQ() {
       <div className="mx-auto max-w-3xl px-4 sm:px-6 py-16 sm:py-20">
         <div className="text-center">
           <h2 id="faq-heading" className="text-2xl font-semibold tracking-tight sm:text-3xl">
-            {t("marketing.faqTitle")}
+            {heading}
           </h2>
-          <p className="mt-3 text-muted-foreground">{t("marketing.faqDescription")}</p>
+          <p className="mt-3 text-muted-foreground">{description}</p>
         </div>
 
         <div className="mt-10 space-y-3">
-          {faqItems.map((item, index) => {
+          {items.map((item, index) => {
             const isOpen = openIndex === index;
             return (
               <div
-                key={item.questionKey}
+                key={String(item.question || '') + index}
                 className="rounded-2xl border border-border bg-card transition hover:border-foreground/10"
               >
                 <button
@@ -55,7 +47,7 @@ export function FAQ() {
                   className="flex w-full items-center justify-between px-6 py-4 text-left"
                   aria-expanded={isOpen}
                 >
-                  <span className="text-sm font-medium">{t(item.questionKey)}</span>
+                  <span className="text-sm font-medium">{item.question}</span>
                   <span className="ml-4 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted/60 text-foreground transition-transform">
                     {isOpen ? <Minus className="size-3.5" /> : <Plus className="size-3.5" />}
                   </span>
@@ -67,7 +59,7 @@ export function FAQ() {
                   )}
                 >
                   <div className="px-6 pb-4">
-                    <p className="text-sm text-muted-foreground leading-6">{t(item.answerKey)}</p>
+                    <p className="text-sm text-muted-foreground leading-6">{item.answer}</p>
                   </div>
                 </div>
               </div>

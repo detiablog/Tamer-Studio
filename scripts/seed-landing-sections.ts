@@ -23,22 +23,24 @@ const LANDING_SECTIONS = [
       description: "Tamer Studio is the AI-first production operating system. Plan, generate, organize, review, and publish content without switching between tools.",
       ctaPrimary: "Get Started Free",
       ctaSecondary: "Sign In",
+      showProviders: true,
     },
   },
   {
     id: "social-proof-section",
     sectionKey: "social-proof",
     type: "custom",
-    title: "Social Proof",
+    title: "Trusted by creators, agencies, and businesses worldwide",
     description: "Trusted by creators, agencies, and businesses worldwide",
     order: 1,
     visible: true,
     config: {
       title: "Trusted by creators, agencies, and businesses worldwide",
       stats: [
-        { label: "Projects", value: "10K+" },
-        { label: "Teams", value: "500+" },
-        { label: "Generations", value: "1M+" },
+        { label: "Projects", value: "10K+", suffix: "+" },
+        { label: "Teams", value: "500+", suffix: "+" },
+        { label: "AI Generations", value: "1M+", suffix: "+", display: "1M+" },
+        { label: "Availability", value: "99.9%", suffix: "", display: "99.9%" },
       ],
     },
   },
@@ -55,55 +57,46 @@ const LANDING_SECTIONS = [
       description: "Everything you need to manage the full content lifecycle in one place.",
       features: [
         {
-          sectionKey: "workspace",
           title: "Workspace",
           description: "Organize teams, members, and permissions across multiple workspaces.",
           icon: "boxes",
         },
         {
-          sectionKey: "projects",
           title: "Projects",
           description: "Manage production projects with folders, tags, assets, and archives.",
           icon: "folder-open",
         },
         {
-          sectionKey: "media",
           title: "Media",
           description: "Generate and organize images, videos, audio, and documents in one library.",
           icon: "image",
         },
         {
-          sectionKey: "production",
           title: "Production",
           description: "Run production pipelines with queues, retries, logs, and progress tracking.",
           icon: "clapperboard",
         },
         {
-          sectionKey: "ai",
           title: "AI Platform",
           description: "Connect providers, manage models, and compose prompts with unified playground.",
           icon: "cpu",
         },
         {
-          sectionKey: "publishing",
           title: "Publishing",
           description: "Schedule and publish content to external platforms from one hub.",
           icon: "play",
         },
         {
-          sectionKey: "billing",
           title: "Billing",
           description: "Manage invoices, subscriptions, and payment methods in one place.",
           icon: "credit-card",
         },
         {
-          sectionKey: "analytics",
           title: "Analytics",
           description: "Track production metrics, AI usage, and team performance.",
           icon: "bar-chart-3",
         },
         {
-          sectionKey: "marketplace",
           title: "Marketplace",
           description: "Discover and integrate community templates and plugins.",
           icon: "store",
@@ -126,26 +119,37 @@ const LANDING_SECTIONS = [
         {
           title: "Multi-Provider AI",
           description: "Connect OpenAI, Gemini, Claude, OpenRouter, Kilo, and more with a single API key.",
+          icon: "globe",
         },
         {
           title: "Prompt Library",
           description: "Save, version, and reuse prompts across projects and teams.",
+          icon: "book-open",
         },
         {
           title: "Workflow Automation",
           description: "Build production pipelines combining AI models, applying safeguards, and routing outputs.",
+          icon: "workflow",
         },
         {
           title: "Model Selection",
           description: "Choose the right model for each task. Compare costs, latency, and quality.",
+          icon: "sliders",
         },
         {
           title: "Cost Optimization",
           description: "Track spending per project, set budgets, and get alerts before exceeding limits.",
+          icon: "dollar-sign",
         },
         {
           title: "History",
           description: "Every AI call is logged. Review, replay, and audit every generation.",
+          icon: "clock",
+        },
+        {
+          title: "Versioning",
+          description: "Version your prompts and models. Roll back to any previous state.",
+          icon: "git-branch",
         },
       ],
     },
@@ -161,6 +165,14 @@ const LANDING_SECTIONS = [
     config: {
       heading: "See Tamer Studio in Action",
       description: "From dashboard to delivery, every screen is designed for production teams.",
+      screenshots: [
+        { label: "Dashboard" },
+        { label: "AI Generator" },
+        { label: "Projects" },
+        { label: "Media Library" },
+        { label: "Billing" },
+        { label: "Analytics" },
+      ],
     },
   },
   {
@@ -173,11 +185,22 @@ const LANDING_SECTIONS = [
     visible: true,
     config: {
       heading: "Real-time Platform Stats",
+      description: "Real-time metrics from our production infrastructure.",
+      statItems: [
+        { key: "activeUsers", label: "Active Users" },
+        { key: "projects", label: "Projects" },
+        { key: "aiJobs", label: "AI Jobs" },
+        { key: "imagesGenerated", label: "Images Generated" },
+        { key: "videosGenerated", label: "Videos Generated" },
+        { key: "storageUsed", label: "Storage Used" },
+        { key: "apiRequests", label: "API Requests" },
+        { key: "queueLength", label: "Queue Length" },
+      ],
       stats: [
-        { label: "Active Users", value: "5K+" },
-        { label: "AI Jobs", value: "50K/day" },
-        { label: "Images Generated", value: "1M+" },
-        { label: "Videos Generated", value: "100K+" },
+        { label: "Active Users", value: "5K+", suffix: "+" },
+        { label: "AI Jobs", value: "50K/day", suffix: "" },
+        { label: "Images Generated", value: "1M+", suffix: "+", display: "1M+" },
+        { label: "Videos Generated", value: "100K+", suffix: "+", display: "100K+" },
       ],
     },
   },
@@ -194,7 +217,6 @@ const LANDING_SECTIONS = [
       description: "Simple and transparent pricing for every stage of your production workflow.",
       plans: [
         {
-          sectionKey: "free",
           name: "Free",
           priceMonthly: 0,
           priceYearly: 0,
@@ -202,9 +224,10 @@ const LANDING_SECTIONS = [
           includedCreditsYearly: 0,
           description: "For individuals exploring AI production.",
           features: ["Platform access", "1 Workspace", "3 Projects", "Basic AI models", "Community support"],
+          cta: "marketing.getStarted",
+          href: "/register",
         },
         {
-          sectionKey: "starter",
           name: "Starter",
           priceMonthly: 29,
           priceYearly: 23,
@@ -213,9 +236,10 @@ const LANDING_SECTIONS = [
           description: "For creators getting serious about production.",
           features: ["Platform access", "5 Workspaces", "Unlimited projects", "All AI providers", "Priority support"],
           popular: true,
+          cta: "marketing.getStarted",
+          href: "/register",
         },
         {
-          sectionKey: "pro",
           name: "Pro",
           priceMonthly: 79,
           priceYearly: 63,
@@ -223,9 +247,10 @@ const LANDING_SECTIONS = [
           includedCreditsYearly: 300000,
           description: "For teams shipping content at scale.",
           features: ["Platform access", "20 Workspaces", "Custom domains", "Advanced analytics", "Dedicated support"],
+          cta: "marketing.getStarted",
+          href: "/register",
         },
         {
-          sectionKey: "business",
           name: "Business",
           priceMonthly: 199,
           priceYearly: 159,
@@ -233,9 +258,11 @@ const LANDING_SECTIONS = [
           includedCreditsYearly: 1200000,
           description: "For organizations that need control and compliance.",
           features: ["Platform access", "Unlimited workspaces", "SSO & SCIM", "Custom integrations", "SLA guarantee"],
+          topUp: true,
+          cta: "marketing.contactSales",
+          href: "/contact",
         },
         {
-          sectionKey: "enterprise",
           name: "Enterprise",
           priceMonthly: null,
           priceYearly: null,
@@ -243,6 +270,9 @@ const LANDING_SECTIONS = [
           includedCreditsYearly: -1,
           description: "For large-scale deployments with dedicated infrastructure.",
           features: ["Platform access", "Dedicated infrastructure", "Custom SLA", "On-premise option", "24/7 support"],
+          topUp: true,
+          cta: "marketing.contactSales",
+          href: "/contact",
         },
       ],
     },
@@ -260,25 +290,25 @@ const LANDING_SECTIONS = [
       description: "Need more AI? Buy Credit Packs anytime.",
       packs: [
         {
-          sectionKey: "starter",
           name: "Starter Pack",
           credits: 10000,
           price: 50,
           description: "Perfect for getting started",
+          href: "/register",
         },
         {
-          sectionKey: "pro",
           name: "Pro Pack",
           credits: 50000,
           price: 200,
           description: "For growing teams",
+          href: "/register",
         },
         {
-          sectionKey: "business",
           name: "Business Pack",
           credits: 200000,
           price: 700,
           description: "For large operations",
+          href: "/register",
         },
       ],
     },
@@ -294,6 +324,13 @@ const LANDING_SECTIONS = [
     config: {
       heading: "Credit Calculator",
       description: "Estimate your monthly credit usage and find the right plan.",
+      actions: [
+        { key: "creditCalculatorTextGeneration", label: "Text generation", credits: 1 },
+        { key: "creditCalculatorImageGeneration", label: "Image generation", credits: 5 },
+        { key: "creditCalculatorVideoGeneration", label: "Video generation", credits: 50 },
+        { key: "creditCalculatorAudioGeneration", label: "Audio generation", credits: 10 },
+        { key: "creditCalculatorCustomPrompt", label: "Custom prompt / workflow", credits: 2 },
+      ],
     },
   },
   {
@@ -308,30 +345,16 @@ const LANDING_SECTIONS = [
       heading: "AI Credit Usage",
       description: "Estimated cost of credits per AI action. Actual costs may vary depending on model and parameters.",
       rows: [
-        {
-          action: "Text generation",
-          model: "Text short/chat",
-          credits: 5,
-          notes: "Per request",
-        },
-        {
-          action: "Image generation",
-          model: "Image standard",
-          credits: 20,
-          notes: "Per image",
-        },
-        {
-          action: "Video generation",
-          model: "Video short (15s)",
-          credits: 100,
-          notes: "Per video",
-        },
-        {
-          action: "Audio generation",
-          model: "TTS/voiceover",
-          credits: 10,
-          notes: "Per minute",
-        },
+        { action: "Short text / chat", model: "GPT-4o", credits: 1, note: "Per message" },
+        { action: "Long article / workflow", model: "GPT-4o", credits: 3, note: "Per generation" },
+        { action: "Standard image", model: "DALL-E 3", credits: 5, note: "Per image" },
+        { action: "HD image", model: "DALL-E 3", credits: 10, note: "Per image" },
+        { action: "Short video (15s)", model: "Runway", credits: 50, note: "Per video" },
+        { action: "Long video (60s)", model: "Runway", credits: 150, note: "Per video" },
+        { action: "TTS / voiceover", model: "ElevenLabs", credits: 10, note: "Per minute" },
+        { action: "Music / SFX", model: "MusicGen", credits: 15, note: "Per track" },
+        { action: "Custom model call", model: "Any", credits: "Varies", note: "Per API call" },
+        { action: "Batch processing", model: "Any", credits: "Varies", note: "Per batch" },
       ],
     },
   },
@@ -346,6 +369,26 @@ const LANDING_SECTIONS = [
     config: {
       heading: "Loved by production teams",
       description: "See how teams use Tamer Studio to move from intent to production.",
+      testimonials: [
+        {
+          quote: "Tamer Studio transformed how our team produces content. The AI integrations are seamless, and the workflow automation saved us hours every week.",
+          author: "Sarah Chen",
+          role: "Head of Content",
+          company: "Studio North",
+        },
+        {
+          quote: "We reduced production time by 60% after switching to Tamer Studio. The multi-provider AI platform is exactly what we needed.",
+          author: "Marcus Rivera",
+          role: "Creative Director",
+          company: "Atlas Agency",
+        },
+        {
+          quote: "The credit system is transparent and the billing is predictable. Finally, an AI platform that treats costs seriously.",
+          author: "Aiko Tanaka",
+          role: "CTO",
+          company: "Pixel Foundry",
+        },
+      ],
     },
   },
   {
@@ -361,20 +404,20 @@ const LANDING_SECTIONS = [
       description: "Everything you need to know about Tamer Studio.",
       items: [
         {
-          questionsectionKey: "faqBillingQuestion",
-          answersectionKey: "faqBillingAnswer",
+          question: "How does billing work?",
+          answer: "Tamer Studio uses a credit-based billing system. You purchase credits and consume them when running AI jobs, generating media, or using production features.",
         },
         {
-          questionsectionKey: "faqCreditsQuestion",
-          answersectionKey: "faqCreditsAnswer",
+          question: "Which AI models are supported?",
+          answer: "We support OpenAI (GPT-4, GPT-4o), Google Gemini, Anthropic Claude, OpenRouter, Kilo, and more. New providers are added regularly.",
         },
         {
-          questionsectionKey: "faqAIModelsQuestion",
-          answersectionKey: "faqAIModelsAnswer",
+          question: "How is my data protected?",
+          answer: "Your data is encrypted at rest and in transit. We do not use your data to train models. SOC 2 Type II compliant.",
         },
         {
-          questionsectionKey: "faqPrivacyQuestion",
-          answersectionKey: "faqPrivacyAnswer",
+          question: "Is Tamer Studio secure?",
+          answer: "Yes. We use industry-standard encryption, role-based access control, audit logging, and regular security assessments.",
         },
       ],
     },
@@ -407,10 +450,33 @@ const LANDING_SECTIONS = [
       companyName: "Tamer Studio",
       tagline: "From intent to production.",
       links: {
-        product: ["Features", "Pricing", "Roadmap", "Documentation", "API", "Developers"],
-        resources: ["Blog", "Community", "Discord", "GitHub"],
-        company: ["About", "Careers", "Press", "Partners"],
-        legal: ["Privacy Policy", "Terms of Service", "Cookie Policy", "Security", "Compliance"],
+        product: [
+          { label: "Features", href: "#features" },
+          { label: "Pricing", href: "#pricing" },
+          { label: "Roadmap", href: "/roadmap" },
+          { label: "Documentation", href: "/docs" },
+          { label: "API", href: "/docs" },
+          { label: "Developers", href: "/docs" },
+        ],
+        resources: [
+          { label: "Blog", href: "/blog" },
+          { label: "Community", href: "/blog" },
+          { label: "Discord", href: "https://discord.gg/tamerstudio", external: true },
+          { label: "GitHub", href: "https://github.com/tamerstudio", external: true },
+        ],
+        company: [
+          { label: "About", href: "/about" },
+          { label: "Careers", href: "/careers" },
+          { label: "Press", href: "/about" },
+          { label: "Partners", href: "/about" },
+        ],
+        legal: [
+          { label: "Privacy Policy", href: "/legal/privacy" },
+          { label: "Terms of Service", href: "/legal/terms" },
+          { label: "Cookie Policy", href: "/legal/privacy" },
+          { label: "Security", href: "/about" },
+          { label: "Compliance", href: "/about" },
+        ],
       },
     },
   },
@@ -421,11 +487,9 @@ async function seedLandingSections() {
     console.log("🌱 Starting landing sections seed...");
 
     for (const section of LANDING_SECTIONS) {
-      // Check if section already exists
       const existing = await db.select().from(landingSection).where(eq(landingSection.sectionKey, section.sectionKey)).limit(1);
 
       if (existing.length > 0) {
-        // Update existing section
         await db
           .update(landingSection)
           .set({
@@ -435,7 +499,6 @@ async function seedLandingSections() {
           .where(eq(landingSection.sectionKey, section.sectionKey));
         console.log(`✓ Updated section: ${section.sectionKey}`);
       } else {
-        // Insert new section
         await db.insert(landingSection).values({
           ...section,
           component: "",

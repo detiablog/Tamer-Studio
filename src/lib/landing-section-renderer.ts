@@ -17,7 +17,23 @@ import { CTASection } from '@/components/landing/CTASection';
 import { Footer } from '@/components/landing/Footer';
 import { SocialProof } from '@/components/landing/SocialProof';
 
-const SECTION_COMPONENTS: Record<string, React.ComponentType<Record<string, unknown>>> = {
+export interface SectionRendererProps {
+  section: {
+    id: string;
+    sectionKey: string;
+    title: string;
+    description: string | null;
+    config: Record<string, unknown>;
+    media?: Array<{
+      id: string;
+      url: string;
+      type: string;
+      order: number;
+    }>;
+  };
+}
+
+const SECTION_COMPONENTS: Record<string, React.ComponentType<SectionRendererProps>> = {
   hero: Hero,
   features: Features,
   'ai-platform': AIPlatform,
@@ -34,7 +50,7 @@ const SECTION_COMPONENTS: Record<string, React.ComponentType<Record<string, unkn
   'social-proof': SocialProof,
 };
 
-export function getSectionComponent(key: string): React.ComponentType<Record<string, unknown>> | null {
+export function getSectionComponent(key: string): React.ComponentType<SectionRendererProps> | null {
   return SECTION_COMPONENTS[key] || null;
 }
 
@@ -42,7 +58,7 @@ export function getAvailableSectionTypes(): string[] {
   return Object.keys(SECTION_COMPONENTS);
 }
 
-export function CustomSection({ section }: { section: LandingSection }) {
+export function CustomSection({ section }: { section: SectionRendererProps['section'] }) {
   const key = section.sectionKey;
   return React.createElement(
     'section',
@@ -82,10 +98,10 @@ export function renderLandingSection(section: LandingSection): React.ReactNode {
   const Component = SECTION_COMPONENTS[section.sectionKey];
 
   if (!Component) {
-    return React.createElement(CustomSection, { key: section.id, section });
+    return React.createElement(CustomSection, { key: section.id, section: section as SectionRendererProps['section'] });
   }
 
-  return React.createElement(Component, { key: section.id });
+  return React.createElement(Component, { key: section.id, section: section as SectionRendererProps['section'] });
 }
 
 export function renderLandingSections(sections: LandingSection[]): React.ReactNode[] {

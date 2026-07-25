@@ -3,39 +3,31 @@
 import * as React from "react";
 import { useLocalizationContext } from "@/providers/localization";
 import { cn } from "@/lib/utils";
+import type { SectionRendererProps } from "@/lib/landing-section-renderer";
 
 interface Row {
-  actionKey: string;
+  action: string;
   model: string;
-  cost: number | string;
+  credits: number | string;
   note: string;
 }
 
-const rows: Row[] = [
-  { actionKey: "creditUsageTextSmall", model: "GPT-4o", cost: 1, note: "Per message" },
-  { actionKey: "creditUsageTextMedium", model: "GPT-4o", cost: 3, note: "Per generation" },
-  { actionKey: "creditUsageImageStandard", model: "DALL-E 3", cost: 5, note: "Per image" },
-  { actionKey: "creditUsageImageHD", model: "DALL-E 3", cost: 10, note: "Per image" },
-  { actionKey: "creditUsageVideoShort", model: "Runway", cost: 50, note: "Per video" },
-  { actionKey: "creditUsageVideoLong", model: "Runway", cost: 150, note: "Per video" },
-  { actionKey: "creditUsageAudioTTS", model: "ElevenLabs", cost: 10, note: "Per minute" },
-  { actionKey: "creditUsageAudioMusic", model: "MusicGen", cost: 15, note: "Per track" },
-  { actionKey: "creditUsageCustom", model: "Any", cost: "Varies", note: "Per API call" },
-  { actionKey: "creditUsageBatch", model: "Any", cost: "Varies", note: "Per batch" },
-];
-
-export function CreditUsageTable() {
+export function CreditUsageTable({ section }: SectionRendererProps) {
   const { t } = useLocalizationContext();
+
+  const heading = (section.config.heading as string) || section.title || t("marketing.creditUsageTitle");
+  const description = (section.config.description as string) || section.description || t("marketing.creditUsageDescription");
+  const rows = (section.config.rows as Row[]) || [];
 
   return (
     <section className="border-t border-border">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 py-16 sm:py-20">
         <div className="text-center">
           <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-            {t("marketing.creditUsageTitle")}
+            {heading}
           </h2>
           <p className="mt-3 text-muted-foreground">
-            {t("marketing.creditUsageDescription")}
+            {description}
           </p>
         </div>
 
@@ -50,14 +42,14 @@ export function CreditUsageTable() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {rows.map((row) => (
+              {rows.map((row, idx) => (
                 <tr
-                  key={row.actionKey}
+                  key={String(row.action || '') + idx}
                   className="transition hover:bg-muted/30"
                 >
-                  <td className="px-6 py-3">{t(`marketing.${row.actionKey}`)}</td>
+                  <td className="px-6 py-3">{row.action}</td>
                   <td className="px-6 py-3 text-muted-foreground">{row.model}</td>
-                  <td className="px-6 py-3">{row.cost}</td>
+                  <td className="px-6 py-3">{row.credits}</td>
                   <td className="px-6 py-3 text-muted-foreground">{row.note}</td>
                 </tr>
               ))}

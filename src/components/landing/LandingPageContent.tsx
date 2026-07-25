@@ -4,7 +4,6 @@ import React from 'react';
 import { useLandingSections } from '@/hooks/use-landing-sections';
 import { renderLandingSections } from '@/lib/landing-section-renderer';
 import { Header } from '@/components/landing/Header';
-import { SocialProof } from '@/components/landing/SocialProof';
 
 export function LandingPageContent() {
   const { sections, loading, error } = useLandingSections();
@@ -44,7 +43,6 @@ export function LandingPageContent() {
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-      <SocialProof />
       <main className="flex-1">
         {sections.length === 0 ? (
           <div className="flex items-center justify-center py-32">
