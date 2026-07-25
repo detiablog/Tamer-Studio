@@ -10,10 +10,10 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/button";
 import { Play, RotateCcw, Copy, Download, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
-import { estimateExecutionTime } from "@/core/production/execution";
+import { estimateExecutionTime } from "@/core/production/estimates";
 
 export default function ProductionDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const id = params.id;
+  const { id } = React.use(params);
   const [job, setJob] = React.useState<ReturnType<typeof productionStore.get> | null>(null);
   const [content, setContent] = React.useState("");
   const [isExecuting, setIsExecuting] = React.useState(false);

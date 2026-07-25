@@ -6,6 +6,12 @@ import { ArrowRight, Check, Zap } from "lucide-react";
 import { useLocalizationContext } from "@/providers/localization";
 import { cn } from "@/lib/utils";
 
+// Landing-page specific translations (isolated from global translations)
+const LANDING_PAGE_TRANSLATIONS = {
+  getStartedButton: "Get Started Free",
+  contactSalesButton: "Contact Sales",
+} as const;
+
 interface Plan {
   key: string;
   priceMonthly: number | null;
@@ -96,22 +102,34 @@ export function PricingSection() {
     return `${formatted} ${t("marketing.creditsPerMonth")}`;
   };
 
+  const getCtaText = (ctaKey: string) => {
+    if (ctaKey === "marketing.getStarted") {
+      return LANDING_PAGE_TRANSLATIONS.getStartedButton;
+    }
+    if (ctaKey === "marketing.contactSales") {
+      return LANDING_PAGE_TRANSLATIONS.contactSalesButton;
+    }
+    return t(ctaKey);
+  };
+
   return (
     <section className="border-t border-border" id="pricing" aria-labelledby="pricing-heading">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-16 sm:py-20">
-        <div className="mx-auto max-w-2xl text-center">
-          <h2 id="pricing-heading" className="text-2xl font-semibold tracking-tight sm:text-3xl">
+        <div className="mx-auto max-w-2xl text-center mb-14">
+          <h2 id="pricing-heading" className="text-3xl sm:text-4xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
             {t("marketing.pricingTitle")}
           </h2>
-          <p className="mt-3 text-muted-foreground">{t("marketing.pricingDescription")}</p>
+          <p className="mt-4 text-muted-foreground text-lg">{t("marketing.pricingDescription")}</p>
 
-          <div className="mt-6 inline-flex items-center gap-3 rounded-full border border-border bg-card p-1">
+          <div className="mt-8 inline-flex items-center gap-1 rounded-full border border-border bg-card p-1 shadow-sm">
             <button
               type="button"
               onClick={() => setYearly(false)}
               className={cn(
-                "rounded-full px-4 py-1.5 text-sm font-medium transition",
-                !yearly ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+                "rounded-full px-4 py-2 text-sm font-semibold transition duration-200",
+                !yearly 
+                  ? "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-md" 
+                  : "text-muted-foreground hover:text-foreground"
               )}
             >
               {t("marketing.monthly")}
@@ -120,19 +138,26 @@ export function PricingSection() {
               type="button"
               onClick={() => setYearly(true)}
               className={cn(
-                "inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium transition",
-                yearly ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+                "inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold transition duration-200",
+                yearly 
+                  ? "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-md" 
+                  : "text-muted-foreground hover:text-foreground"
               )}
             >
               {t("marketing.yearly")}
-              <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
-                {t("marketing.saveYearly")}
+              <span className={cn(
+                "rounded-full px-2 py-0.5 text-xs font-bold",
+                yearly 
+                  ? "bg-primary-foreground/20 text-primary-foreground" 
+                  : "bg-green-500/20 text-green-600"
+              )}>
+                Save 20%
               </span>
             </button>
           </div>
         </div>
 
-        <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-5 auto-rows-max">
           {plans.map((plan) => {
             const price = yearly ? plan.priceYearly : plan.priceMonthly;
             const credits = yearly ? plan.includedCreditsYearly : plan.includedCreditsMonthly;
@@ -141,48 +166,48 @@ export function PricingSection() {
               <div
                 key={plan.key}
                 className={cn(
-                  "relative rounded-2xl border border-border bg-card p-6 transition hover:border-foreground/10",
-                  plan.popular && "ring-2 ring-primary"
+                  "relative rounded-2xl border border-border bg-card p-6 transition-all duration-300 hover:shadow-lg hover:border-foreground/10 flex flex-col h-full",
+                  plan.popular && "ring-2 ring-primary scale-105 lg:scale-100 shadow-xl"
                 )}
               >
                 {plan.popular && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-primary to-primary/80 px-3 py-1 text-xs font-bold text-primary-foreground shadow-lg">
                     {t("marketing.mostPopular")}
                   </span>
                 )}
-                <h3 className="text-base font-semibold">{t(plan.key)}</h3>
+                <h3 className="text-lg font-bold text-foreground">{t(plan.key)}</h3>
 
                 {plan.priceMonthly !== null && plan.priceYearly !== null ? (
                   <>
-                    <p className="mt-1 text-2xl font-semibold">{formatPrice(price)}</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="mt-2 text-3xl font-bold">{formatPrice(price)}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
                       {yearly ? t("marketing.billedYearly") : t("marketing.billedMonthly")}
                     </p>
                   </>
                 ) : (
-                  <p className="mt-1 text-2xl font-semibold">{formatPrice(price)}</p>
+                  <p className="mt-2 text-3xl font-bold">{formatPrice(price)}</p>
                 )}
 
-                <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-muted/50 px-2.5 py-1 text-xs font-medium">
-                  <Zap className="size-3 text-primary" />
+                <div className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-muted/50 px-3 py-2 text-xs font-semibold w-fit">
+                  <Zap className="size-3.5 text-primary" />
                   <span>{formatCredits(credits)}</span>
                 </div>
 
                 {plan.topUp && (
                   <div className="mt-2">
-                    <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+                    <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
                       {t("marketing.topUpAnytime")}
                     </span>
                   </div>
                 )}
 
-                <p className="mt-3 text-sm text-muted-foreground">{plan.description}</p>
+                <p className="mt-4 text-sm text-muted-foreground leading-relaxed flex-grow">{plan.description}</p>
 
-                <ul className="mt-4 space-y-2">
+                <ul className="mt-6 space-y-3 flex-grow">
                   {plan.features.map((feature, idx) => (
-                    <li key={feature + idx} className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Check className="size-4 text-primary" />
-                      {idx === 0 ? t("marketing.platformAccess") : feature}
+                    <li key={feature + idx} className="flex items-start gap-3 text-sm text-muted-foreground">
+                      <Check className="size-4 text-primary flex-shrink-0 mt-0.5" />
+                      <span>{idx === 0 ? t("marketing.platformAccess") : feature}</span>
                     </li>
                   ))}
                 </ul>
@@ -190,23 +215,33 @@ export function PricingSection() {
                 <Link
                   href={plan.href as any}
                   className={cn(
-                    "mt-6 inline-flex w-full items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition",
+                    "mt-6 inline-flex w-full items-center justify-center rounded-lg px-4 py-2.5 text-sm font-semibold transition duration-200 group",
                     plan.popular
-                      ? "bg-primary text-primary-foreground hover:bg-primary/80"
-                      : "border border-border bg-background hover:bg-muted"
+                      ? "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground hover:shadow-lg hover:scale-105"
+                      : "border border-border bg-background hover:bg-muted hover:border-foreground/20"
                   )}
                 >
-                  {t(plan.cta)}
-                  {plan.cta === "marketing.getStarted" && <ArrowRight className="ml-2 size-4" />}
+                  {getCtaText(plan.cta)}
+                  {plan.cta === "marketing.getStarted" && <ArrowRight className="ml-2 size-4 group-hover:translate-x-1 transition" />}
                 </Link>
               </div>
             );
           })}
         </div>
 
-        <p className="mt-8 text-center text-sm text-muted-foreground">
+        <p className="mt-12 text-center text-sm text-muted-foreground leading-relaxed">
           {t("marketing.billingNote")}
         </p>
+
+        <div className="mt-8 text-center">
+          <Link
+            href="/pricing"
+            className="inline-flex items-center text-sm font-semibold text-primary hover:text-primary/80 group"
+          >
+            View Detailed Comparison
+            <ArrowRight className="ml-2 size-4 group-hover:translate-x-1 transition" />
+          </Link>
+        </div>
       </div>
     </section>
   );

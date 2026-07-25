@@ -39,12 +39,11 @@ export async function POST(request: NextRequest) {
 
     // Call better-auth to sign in
     const response = await auth.api.signInEmail({
-      email,
-      password,
-      request,
+      body: { email, password },
+      headers: {},
     });
 
-    return response;
+    return response as unknown as NextResponse;
   } catch (error) {
     console.error("Sign-in error:", error);
     return NextResponse.json(

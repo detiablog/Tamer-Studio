@@ -31,65 +31,67 @@ export default function RoadmapPage() {
   };
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-20">
-      <div className="mx-auto max-w-2xl text-center">
-        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{t("marketing.roadmapTitle")}</h1>
-        <p className="mt-4 text-muted-foreground">{t("marketing.roadmapDescription")}</p>
-      </div>
-      <div className="mt-12 grid gap-6 lg:grid-cols-3">
-        <div>
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">{t("marketing.roadmapPlanned")}</h2>
-          <div className="mt-4 space-y-4">
-            {roadmap.planned.map((item) => (
-              <div key={item.id} className="rounded-2xl border border-border bg-card p-5">
-                <h3 className="font-medium">{item.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{item.description}</p>
-                <div className="mt-4 flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">{votes[item.id] || 0} votes</span>
-                  <button
-                    onClick={() => handleVote(item.id)}
-                    disabled={userVotes[item.id]}
-                    className="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-xs font-medium transition hover:bg-muted disabled:opacity-50"
-                  >
-                    <ArrowUp className="size-3.5" /> {t("marketing.roadmapVote")}
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+    <div className="w-full">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-16 sm:py-20">
+        <div className="mx-auto max-w-2xl text-center">
+          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{t("marketing.roadmapTitle")}</h1>
+          <p className="mt-4 text-lg text-muted-foreground">{t("marketing.roadmapDescription")}</p>
         </div>
-        <div>
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">{t("marketing.roadmapInProgress")}</h2>
-          <div className="mt-4 space-y-4">
-            {roadmap.inProgress.map((item) => (
-              <div key={item.id} className="rounded-2xl border border-border bg-card p-5">
-                <Badge tone="warning">{t("marketing.monthly")}</Badge>
-                <h3 className="font-medium">{item.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{item.description}</p>
-                <div className="mt-4 flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">{votes[item.id] || 0} votes</span>
-                  <button
-                    onClick={() => handleVote(item.id)}
-                    disabled={userVotes[item.id]}
-                    className="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-xs font-medium transition hover:bg-muted disabled:opacity-50"
-                  >
-                    <ArrowUp className="size-3.5" /> {t("marketing.roadmapVote")}
-                  </button>
+        <div className="mt-12 grid gap-6 lg:grid-cols-3">
+          <div>
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">{t("marketing.roadmapPlanned")}</h2>
+            <div className="mt-4 space-y-4">
+              {roadmap.planned.map((item) => (
+                <div key={item.id} className="rounded-2xl border border-border bg-card p-5">
+                  <h3 className="font-medium">{item.title}</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">{item.description}</p>
+                  <div className="mt-4 flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">{votes[item.id] || 0} votes</span>
+                    <button
+                      onClick={() => handleVote(item.id)}
+                      disabled={userVotes[item.id]}
+                      className="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-xs font-medium transition hover:bg-muted disabled:opacity-50"
+                    >
+                      <ArrowUp className="size-3.5" /> {t("marketing.roadmapVote")}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-        <div>
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">{t("marketing.roadmapCompleted")}</h2>
-          <div className="mt-4 space-y-4">
-            {roadmap.completed.map((item) => (
-              <div key={item.id} className="rounded-2xl border border-border bg-card p-5">
-                <Badge tone="success">{t("common.success")}</Badge>
-                <h3 className="font-medium">{item.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{item.description}</p>
-              </div>
-            ))}
+          <div>
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">{t("marketing.roadmapInProgress")}</h2>
+            <div className="mt-4 space-y-4">
+              {roadmap.inProgress.map((item) => (
+                <div key={item.id} className="rounded-2xl border border-border bg-card p-5">
+                  <Badge tone="warning">{t("marketing.monthly")}</Badge>
+                  <h3 className="font-medium">{item.title}</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">{item.description}</p>
+                  <div className="mt-4 flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">{votes[item.id] || 0} votes</span>
+                    <button
+                      onClick={() => handleVote(item.id)}
+                      disabled={userVotes[item.id]}
+                      className="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-xs font-medium transition hover:bg-muted disabled:opacity-50"
+                    >
+                      <ArrowUp className="size-3.5" /> {t("marketing.roadmapVote")}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">{t("marketing.roadmapCompleted")}</h2>
+            <div className="mt-4 space-y-4">
+              {roadmap.completed.map((item) => (
+                <div key={item.id} className="rounded-2xl border border-border bg-card p-5">
+                  <Badge tone="success">{t("common.success")}</Badge>
+                  <h3 className="font-medium">{item.title}</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">{item.description}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

@@ -7,6 +7,7 @@ import {
   BarChartMetrics,
   PieChartMetrics,
   ChartDataPoint,
+  CHART_COLORS,
   generateTimeSeriesData,
   generateCategoryData,
   generateDistributionData,
@@ -29,8 +30,8 @@ interface AnalyticsDashboardProps {
   isLoading?: boolean;
   data?: {
     timeSeries?: ChartDataPoint[];
-    categories?: Array<{ name: string; value: number }>;
-    distribution?: Array<{ name: string; value: number }>;
+    categories?: Array<{ name: string; value: number; fill?: string }>;
+    distribution?: Array<{ name: string; value: number; fill?: string }>;
   };
 }
 
@@ -192,7 +193,7 @@ export function AnalyticsDashboard({
                   Overall job completion status
                 </p>
               </div>
-              <PieChartMetrics data={distributionData} height={350} />
+              <PieChartMetrics data={distributionData.map(d => ({ ...d, fill: d.fill || "#8884d8" }))} height={350} />
             </div>
 
             {/* Stacked Metrics */}
@@ -213,7 +214,7 @@ export function AnalyticsDashboard({
                     </div>
                     <div
                       className="size-3 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: item.fill }}
+                      style={{ backgroundColor: item.fill || CHART_COLORS[0] }}
                     />
                   </div>
                 </div>

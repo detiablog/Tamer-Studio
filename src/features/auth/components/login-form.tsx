@@ -10,7 +10,6 @@ import { authClient } from "@/lib/auth/auth-client";
 import { loginSchema, type LoginSchema } from "@/features/auth/schemas/login.schema";
 import { logger } from "@/core/logger";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -90,89 +89,93 @@ export function LoginForm() {
   };
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader>
-        <CardTitle>{t("auth.signInTitle")}</CardTitle>
-      </CardHeader>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      {/* Email Field */}
+      <div className="space-y-2">
+        <Label htmlFor="email" className="text-sm font-semibold">{t("auth.emailLabel")}</Label>
+        <Input
+          id="email"
+          type="email"
+          placeholder="you@company.com"
+          {...register("email")}
+          autoComplete="email"
+          aria-invalid={!!errors.email}
+          disabled={submitting}
+          className="h-10 bg-background/50 border-border focus:border-primary transition"
+        />
+        {errors.email && (
+          <p className="text-xs text-destructive font-medium">{errors.email.message}</p>
+        )}
+      </div>
 
-      <CardContent className="space-y-4">
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">{t("auth.emailLabel")}</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="you@company.com"
-              {...register("email")}
-              autoComplete="email"
-              aria-invalid={!!errors.email}
-              disabled={submitting}
-            />
-            {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="password">{t("auth.passwordLabel")}</Label>
-            <div className="relative">
-              <Input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                placeholder={t("auth.passwordLabel")}
-                {...register("password")}
-                autoComplete="current-password"
-                aria-invalid={!!errors.password}
-                disabled={submitting}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors hover:bg-muted rounded-md p-1"
-                aria-label={showPassword ? "Hide password" : "Show password"}
-                disabled={submitting}
-              >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
-            </div>
-            {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
-          </div>
-
-          <div className="flex items-center justify-between">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                {...register("remember")}
-                className="h-4 w-4 rounded border-muted cursor-pointer"
-                disabled={submitting}
-              />
-              <span className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                {t("auth.rememberMe")}
-              </span>
-            </label>
-            <a
-              href="/forgot-password"
-              className="text-sm text-primary hover:underline transition-colors"
-            >
-              {t("common.forgotPassword")}
-            </a>
-          </div>
-
-          <Button
-            className="w-full"
-            type="submit"
-            disabled={submitting}
-            size="lg"
+      {/* Password Field */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <Label htmlFor="password" className="text-sm font-semibold">{t("auth.passwordLabel")}</Label>
+          <a
+            href="/forgot-password"
+            className="text-xs text-primary hover:text-primary/80 font-medium transition"
           >
-            {submitting ? (
-              <>
-                <span className="inline-block animate-spin mr-2">⏳</span>
-                {t("auth.signingIn")}
-              </>
-            ) : (
-              t("auth.signInButton")
-            )}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+            {t("common.forgotPassword")}
+          </a>
+        </div>
+        <div className="relative">
+          <Input
+            id="password"
+            type={showPassword ? "text" : "password"}
+            placeholder="••••••••"
+            {...register("password")}
+            autoComplete="current-password"
+            aria-invalid={!!errors.password}
+            disabled={submitting}
+            className="h-10 bg-background/50 border-border focus:border-primary transition pr-10"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((v) => !v)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+            aria-label={showPassword ? "Hide password" : "Show password"}
+            disabled={submitting}
+          >
+            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </button>
+        </div>
+        {errors.password && (
+          <p className="text-xs text-destructive font-medium">{errors.password.message}</p>
+        )}
+      </div>
+
+      {/* Remember Me */}
+      <div className="flex items-center gap-2 pt-2">
+        <input
+          type="checkbox"
+          id="remember"
+          {...register("remember")}
+          className="h-4 w-4 rounded border-border cursor-pointer transition accent-primary"
+          disabled={submitting}
+        />
+        <label 
+          htmlFor="remember"
+          className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer select-none font-medium"
+        >
+          {t("auth.rememberMe")}
+        </label>
+      </div>
+
+      <Button
+        className="w-full h-10 text-sm font-semibold bg-gradient-to-r from-primary to-primary/80 hover:shadow-lg transition"
+        type="submit"
+        disabled={submitting}
+      >
+        {submitting ? (
+          <>
+            <span className="inline-block animate-spin mr-2">⏳</span>
+            {t("auth.signingIn")}
+          </>
+        ) : (
+          t("auth.signInButton")
+        )}
+      </Button>
+    </form>
   );
 }

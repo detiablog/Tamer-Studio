@@ -10,7 +10,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       defaultTheme="dark"
       enableSystem={false}
       storageKey="theme-preference"
-      suppressHydrationWarning
       forcedTheme={undefined}
     >
       {children}

@@ -46,6 +46,12 @@ function Dropdown({ label, items, isOpen, onToggle, align = "left" }: {
   );
 }
 
+// Landing-page specific translations (isolated from global translations)
+const LANDING_PAGE_TRANSLATIONS = {
+  getStartedButton: "Get Started Free",
+  signInButton: "Sign In",
+} as const;
+
 export function Header() {
   const { t } = useLocalizationContext();
   const [mobileOpen, setMobileOpen] = React.useState(false);
@@ -150,7 +156,7 @@ export function Header() {
               href="/register"
               className="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-primary to-primary/80 px-4 py-2 text-sm font-medium text-primary-foreground transition hover:shadow-lg hover:scale-105 duration-200"
             >
-              {t("marketing.menuGetStarted")}
+              {LANDING_PAGE_TRANSLATIONS.getStartedButton}
             </Link>
           </div>
 
@@ -204,7 +210,7 @@ export function Header() {
               className="block rounded-lg px-3 py-2 text-sm font-medium bg-gradient-to-r from-primary to-primary/80 text-primary-foreground text-center transition hover:shadow-lg"
               onClick={() => setMobileOpen(false)}
             >
-              {t("marketing.menuGetStarted")}
+              {LANDING_PAGE_TRANSLATIONS.getStartedButton}
             </Link>
           </nav>
         </div>

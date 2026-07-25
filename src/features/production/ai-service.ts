@@ -325,7 +325,7 @@ export async function streamOpenAIProduction(
     model?: string;
   },
   onProgress: (update: {
-    status: "started" | "running" | "completed" | "failed";
+    status: "started" | "running" | "completed" | "failed" | "error";
     progress: number;
     message: string;
   }) => void
@@ -426,10 +426,11 @@ export async function executeBatchProductions(
   for (const config of configs) {
     try {
       const result = await executeProductionWithAI(config);
+      const resultAny = result as unknown as Record<string, unknown>;
       results.push({
         productionId: config.productionId,
-        success: result.success,
-        ...result,
+        success: (resultAny as { success: boolean }).success,
+        ...resultAny,
       });
     } catch (error) {
       results.push({

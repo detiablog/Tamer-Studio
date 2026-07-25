@@ -120,8 +120,8 @@ export async function streamProductionExecution(
     onProgress({
       status: "error",
       progress: 100,
-      message: result.error,
-      error: result.error,
+      message: result.error || "Unknown error",
+      error: result.error || "Unknown error",
     });
   }
 

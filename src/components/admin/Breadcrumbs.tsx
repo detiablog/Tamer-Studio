@@ -24,7 +24,7 @@ export function Breadcrumbs({ items }: BreadcrumbsProps) {
         <React.Fragment key={index}>
           <ChevronRight className="size-4 text-muted-foreground" />
           {item.href ? (
-            <Link href={item.href} className="text-muted-foreground hover:text-foreground transition-colors">
+            <Link href={item.href as any} className="text-muted-foreground hover:text-foreground transition-colors">
               {item.label}
             </Link>
           ) : (

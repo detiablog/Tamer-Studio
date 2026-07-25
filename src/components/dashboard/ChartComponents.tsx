@@ -22,7 +22,6 @@ import { useTheme } from "next-themes";
 
 export interface ChartDataPoint {
   name: string;
-  value: number;
   [key: string]: string | number;
 }
 
@@ -295,7 +294,7 @@ export function PieChartMetrics({
           cy="50%"
           labelLine={false}
           label={({ name, value, percent }) =>
-            `${name}: ${(percent * 100).toFixed(0)}%`
+            `${name}: ${((percent || 0) * 100).toFixed(0)}%`
           }
           outerRadius={100}
           fill="#8884d8"

@@ -8,6 +8,7 @@ import { LocalizationProvider } from "@/providers/localization";
 import { CurrencyProvider } from "@/providers/currency";
 import { HtmlLangUpdater } from "@/components/providers/HtmlLangUpdater";
 import { config } from "@/core/config";
+import Script from "next/script";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -66,7 +67,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <LocalizationProvider>
             <CurrencyProvider>
               <HtmlLangUpdater />
-              <script
+              <Script
+                id="json-ld"
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{
                   __html: JSON.stringify({

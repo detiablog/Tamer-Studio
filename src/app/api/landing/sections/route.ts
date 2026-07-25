@@ -1,44 +1,100 @@
-import type { NextRequest } from "next/server";
+import { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { landingSection, landingMedia } from "@/lib/db/schema/landing";
-import { sql, eq, asc, desc } from "drizzle-orm";
+import { eq, asc, desc, sql, and, or, ilike } from "drizzle-orm";
 import type { RequestContext } from "@/core/middleware/types";
 import { runMiddleware } from "@/core/middleware/compose";
 import { adminAuthentication } from "@/core/middleware";
+import { z } from "zod";
+import { logAdminAction } from "@/core/admin/audit";
+
+const CreateSectionSchema = z.object({
+  sectionKey: z.string().min(1, "Key is required").max(100),
+  title: z.string().min(1, "Title is required").max(255),
+  description: z.string().optional(),
+  component: z.string().optional(),
+  type: z.string().default("hero"),
+  visible: z.boolean().default(true),
+  locked: z.boolean().default(false),
+  order: z.number().int().optional(),
+  config: z.any().optional(),
+  styles: z.any().optional(),
+  media: z
+    .array(
+      z.object({
+        url: z.string().url("Invalid media URL"),
+        alt: z.string().optional(),
+        type: z.string().default("image"),
+        order: z.number().int().optional(),
+      })
+    )
+    .optional(),
+});
+
+function getAdminFromContext(ctx: RequestContext) {
+  return ctx.state.adminSession;
+}
 
 export async function GET(request: NextRequest) {
   try {
-    const sections = await db
-      .select({
-        id: landingSection.id,
-        key: landingSection.key,
-        type: landingSection.type,
-        title: landingSection.title,
-        subtitle: landingSection.subtitle,
-        content: landingSection.content,
-        order: landingSection.order,
-        isVisible: landingSection.isVisible,
-        createdAt: landingSection.createdAt,
-        updatedAt: landingSection.updatedAt,
-      })
-      .from(landingSection)
-      .orderBy(asc(landingSection.order), desc(landingSection.createdAt));
+    const url = new URL(request.url);
+    const search = url.searchParams.get("search")?.trim();
+    const type = url.searchParams.get("type")?.trim();
+    const visible = url.searchParams.get("visible");
+    const locked = url.searchParams.get("locked");
+    const limit = Math.min(parseInt(url.searchParams.get("limit") || "100", 10), 500);
 
-    const sectionKeys = sections.map((s) => s.key);
+    const conditions: any[] = [];
+
+    if (search) {
+      const searchTerm = `%${search}%`;
+      conditions.push(
+        or(
+          ilike(landingSection.title, searchTerm),
+          ilike(landingSection.sectionKey, searchTerm),
+          ilike(landingSection.description ?? "", searchTerm),
+          ilike(landingSection.component ?? "", searchTerm)
+        )
+      );
+    }
+
+    if (type) {
+      conditions.push(eq(landingSection.type, type));
+    }
+
+    if (visible === "true") {
+      conditions.push(eq(landingSection.visible, true));
+    } else if (visible === "false") {
+      conditions.push(eq(landingSection.visible, false));
+    }
+
+    if (locked === "true") {
+      conditions.push(eq(landingSection.locked, true));
+    } else if (locked === "false") {
+      conditions.push(eq(landingSection.locked, false));
+    }
+
+    const sections = await db
+      .select()
+      .from(landingSection)
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(asc(landingSection.order), desc(landingSection.createdAt))
+      .limit(limit);
+
+    const sectionKeys = sections.map((s) => s.sectionKey);
 
     let mediaRows: {
       id: string;
       sectionKey: string;
       url: string;
-      alt: string;
+      alt: string | null;
       type: string;
       order: number;
       createdAt: Date | string;
     }[] = [];
 
     if (sectionKeys.length > 0) {
-      const sectionKeyList = sectionKeys.map((k) => `'${k.replace(/'/g, "''")}'`).join(",");
       try {
         mediaRows = await db
           .select({
@@ -51,7 +107,7 @@ export async function GET(request: NextRequest) {
             createdAt: landingMedia.createdAt,
           })
           .from(landingMedia)
-          .where(sql`${landingMedia.sectionKey} = ANY(${sql.raw(`ARRAY[${sectionKeyList}]`)})`)
+          .where(sql`${landingMedia.sectionKey} = ANY(${sectionKeys})`)
           .orderBy(asc(landingMedia.order));
       } catch (mediaError) {
         console.warn("[GET /api/landing/sections] Media query failed:", mediaError);
@@ -66,7 +122,7 @@ export async function GET(request: NextRequest) {
 
     const result = sections.map((section) => ({
       ...section,
-      media: mediaBySection[section.key] ?? [],
+      media: mediaBySection[section.sectionKey] ?? [],
     }));
 
     return NextResponse.json({
@@ -117,79 +173,96 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { key, type, title, subtitle, content, order, isVisible } = body as {
-      key?: string;
-      type?: string;
-      title?: string;
-      subtitle?: string | null;
-      content?: Record<string, unknown>;
-      order?: number;
-      isVisible?: boolean;
-    };
+    const parsed = CreateSectionSchema.safeParse(body);
 
-    if (!key || !title) {
+    if (!parsed.success) {
+      const flatten = parsed.error.flatten();
       return NextResponse.json(
-        { success: false, error: "key and title are required" },
+        { success: false, error: flatten.fieldErrors?.sectionKey?.[0] || flatten.formErrors?.[0] || "Invalid input" },
         { status: 400 }
       );
     }
 
-    const sectionKey = String(key).trim();
-    const sectionTitle = String(title).trim();
-
-    const now = new Date();
-    const sectionOrder = typeof order === "number" ? order : 0;
-    const sectionVisible = typeof isVisible === "boolean" ? isVisible : true;
-    const sectionType = type || "hero";
+    const { sectionKey, title, description, component, type, visible, locked, order, config, styles, media } = parsed.data;
 
     const existing = await db
       .select()
       .from(landingSection)
-      .where(eq(landingSection.key, sectionKey))
+      .where(eq(landingSection.sectionKey, sectionKey))
       .limit(1);
 
-    let section;
     if (existing.length > 0) {
-      section = await db
-        .update(landingSection)
-        .set({
-          type: sectionType,
-          title: sectionTitle,
-          subtitle: subtitle ?? null,
-          content: (content ?? {}) as Record<string, unknown>,
-          order: sectionOrder,
-          isVisible: sectionVisible,
-          updatedAt: now,
-        })
-        .where(eq(landingSection.key, sectionKey))
-        .returning();
-    } else {
-      const id = crypto.randomUUID();
-      section = await db
+      return NextResponse.json(
+        { success: false, error: `Section with key "${sectionKey}" already exists` },
+        { status: 409 }
+      );
+    }
+
+    const maxOrder = await db.select({ max: sql<number>`MAX(${landingSection.order})` }).from(landingSection).then((r) => r[0]?.max ?? -1);
+
+    const sectionId = crypto.randomUUID();
+    const now = new Date();
+    const sectionOrder = typeof order === "number" ? order : maxOrder + 1;
+
+    const result = (await db.transaction(async (tx) => {
+      const [created] = await tx
         .insert(landingSection)
         .values({
-          id,
-          key: sectionKey,
-          type: sectionType,
-          title: sectionTitle,
-          subtitle: subtitle ?? null,
-          content: (content ?? {}) as Record<string, unknown>,
+          id: sectionId,
+          sectionKey,
+          title,
+          description: description ?? null,
+          component: component ?? "",
+          type,
+          visible,
+          locked,
           order: sectionOrder,
-          isVisible: sectionVisible,
+          config: (config ?? {}) as Record<string, unknown>,
+          styles: (styles ?? {}) as Record<string, unknown>,
           createdAt: now,
           updatedAt: now,
         })
         .returning();
+
+      if (media && media.length > 0) {
+        await tx.insert(landingMedia).values(
+          media.map((m, idx) => ({
+            id: crypto.randomUUID(),
+            sectionKey,
+            url: m.url,
+            alt: m.alt ?? "",
+            type: m.type,
+            order: typeof m.order === "number" ? m.order : idx,
+            createdAt: now,
+          }))
+        );
+      }
+
+      return created;
+    })) as unknown as any[];
+
+    const section = result[0];
+
+    const admin = getAdminFromContext(ctx);
+    if (admin?.adminId) {
+      logAdminAction("landing.section.created", admin.adminId, {
+        sectionKey,
+        title,
+        type,
+      }).catch(() => {});
     }
 
     return NextResponse.json({
       success: true,
-      data: section[0],
+      data: {
+        ...section,
+        media: [],
+      },
     });
   } catch (error) {
     console.error("[POST /api/landing/sections] Error:", error);
     return NextResponse.json(
-      { success: false, error: "Failed to save landing section", details: String(error) },
+      { success: false, error: "Failed to create landing section", details: String(error) },
       { status: 500 }
     );
   }

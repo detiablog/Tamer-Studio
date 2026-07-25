@@ -3,13 +3,16 @@
 import * as React from "react";
 import useSWR from "swr";
 import { DashboardCard } from "@/components/ui/DashboardCard";
-import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/button";
 import { Breadcrumbs } from "@/components/admin/Breadcrumbs";
-import { SectionEditor, type SectionFormData } from "./_components/SectionEditor";
-import { SectionList, type SectionRow } from "./_components/SectionList";
+import { SectionDrawer } from "./_components/SectionDrawer";
+import { SectionList, type LandingSection } from "./_components/SectionList";
+import { AddSectionDialog } from "./_components/AddSectionDialog";
 import { useLocalizationContext } from "@/providers/localization";
 import { toast } from "sonner";
+import { RefreshCw, Eye, Plus } from "lucide-react";
+import { DndContext, closestCenter, PointerSensor, KeyboardSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
+import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
 
 const fetcher = async (url: string) => {
   const response = await fetch(url);
@@ -26,21 +29,8 @@ const fetcher = async (url: string) => {
   return response.json();
 };
 
-type ApiSection = SectionRow & {
-  id: string;
-  key: string;
-  type: string;
-  title: string;
-  subtitle: string | null;
-  content: Record<string, unknown>;
-  isVisible: boolean;
-  order: number;
-  createdAt: Date | string;
-  updatedAt: Date | string;
-};
-
 export default function AdminLandingBuilderPage() {
-  const { t } = useLocalizationContext();
+  const { t: _t } = useLocalizationContext();
   const { data, error, isLoading, mutate } = useSWR("/api/landing/sections", fetcher, {
     revalidateOnFocus: false,
     shouldRetryOnError: false,
@@ -48,45 +38,42 @@ export default function AdminLandingBuilderPage() {
   });
 
   const [editorOpen, setEditorOpen] = React.useState(false);
-  const [editingSection, setEditingSection] = React.useState<SectionRow | null>(null);
-  const [saving, setSaving] = React.useState(false);
+  const [editingSection, setEditingSection] = React.useState<LandingSection | null>(null);
+  const [addDialogOpen, setAddDialogOpen] = React.useState(false);
+  const [isRefreshing, setIsRefreshing] = React.useState(false);
 
-  const sections: SectionRow[] = React.useMemo(() => {
+  const sections: LandingSection[] = React.useMemo(() => {
     if (data?.success && Array.isArray(data.data)) {
-      return data.data.map((s: ApiSection) => ({
-        id: s.id,
-        key: s.key,
-        type: s.type,
-        title: s.title,
-        subtitle: s.subtitle,
-        content: s.content,
-        isVisible: s.isVisible,
-        order: s.order,
-        media: Array.isArray(s.media) ? s.media : [],
+      return data.data.map((s: Record<string, unknown>) => ({
+        id: String(s.id),
+        sectionKey: String(s.sectionKey),
+        title: String(s.title),
+        description: s.description as string | null,
+        component: String(s.component ?? ""),
+        type: String(s.type),
+        visible: Boolean(s.visible),
+        locked: Boolean(s.locked),
+        order: Number(s.order),
+        config: (s.config ?? {}) as Record<string, unknown>,
+        styles: (s.styles ?? {}) as Record<string, unknown>,
+        media: Array.isArray(s.media) ? s.media.map((m: Record<string, unknown>) => ({
+          id: String(m.id),
+          url: String(m.url),
+          alt: String(m.alt ?? ""),
+          type: String(m.type),
+          order: Number(m.order),
+        })) : [],
       }));
     }
     return [];
   }, [data]);
 
-  const isUsingMockData = !data && error;
-
-  const errorMessage = React.useMemo(() => {
-    if (!error) return null;
-    if (typeof error === "object" && "error" in error) {
-      return (error as { error?: string }).error || null;
-    }
-    if (error instanceof Error) return error.message;
-    return String(error);
-  }, [error]);
-
-  const isMissingTable = errorMessage?.toLowerCase().includes("not found") || errorMessage?.toLowerCase().includes("migration");
-
-  const openCreateModal = () => {
+  const openCreateDialog = () => {
     setEditingSection(null);
-    setEditorOpen(true);
+    setAddDialogOpen(true);
   };
 
-  const openEditModal = (section: SectionRow) => {
+  const openEditDrawer = (section: LandingSection) => {
     setEditingSection(section);
     setEditorOpen(true);
   };
@@ -96,41 +83,14 @@ export default function AdminLandingBuilderPage() {
     setEditingSection(null);
   };
 
-  const handleSave = async (form: SectionFormData) => {
-    setSaving(true);
-    try {
-      const isNew = !editingSection;
-      const method = isNew ? "POST" : "PATCH";
-      const url = isNew ? "/api/landing/sections" : `/api/landing/sections/${encodeURIComponent(form.key)}`;
-
-      const response = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-
-      const result = await response.json();
-      if (!response.ok) {
-        toast.error(result.error || (isNew ? "Failed to create section" : "Failed to update section"));
-        return;
-      }
-
-      toast.success(isNew ? "Section created" : "Section updated");
-      closeEditor();
-      mutate();
-    } catch {
-      toast.error("Error saving section");
-    } finally {
-      setSaving(false);
-    }
+  const handleSave = async (_section: LandingSection) => {
+    closeEditor();
+    await mutate();
   };
 
-  const handleDelete = async (section: SectionRow) => {
-    const confirmed = confirm(`Hide section "${section.title || section.key}"?`);
-    if (!confirmed) return;
-
+  const handleDelete = async (section: LandingSection) => {
     try {
-      const response = await fetch(`/api/landing/sections/${encodeURIComponent(section.key)}`, {
+      const response = await fetch(`/api/landing/sections/${encodeURIComponent(section.sectionKey)}`, {
         method: "DELETE",
       });
 
@@ -140,19 +100,56 @@ export default function AdminLandingBuilderPage() {
         return;
       }
 
-      toast.success("Section hidden");
-      mutate();
+      toast.success("Section deleted", {
+        action: {
+          label: "Undo",
+          onClick: () => handleUndoDelete(section),
+        },
+      });
+      await mutate();
     } catch {
       toast.error("Error deleting section");
     }
   };
 
-  const handleToggleVisibility = async (section: SectionRow) => {
+  const handleUndoDelete = async (section: LandingSection) => {
     try {
-      const response = await fetch(`/api/landing/sections/${encodeURIComponent(section.key)}`, {
+      const response = await fetch("/api/landing/sections", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sectionKey: section.sectionKey,
+          title: section.title,
+          description: section.description,
+          component: section.component,
+          type: section.type,
+          visible: section.visible,
+          locked: section.locked,
+          order: section.order,
+          config: section.config,
+          styles: section.styles,
+          media: section.media,
+        }),
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        toast.success("Section restored");
+        await mutate();
+      } else {
+        toast.error(result.error || "Failed to restore section");
+      }
+    } catch {
+      toast.error("Error restoring section");
+    }
+  };
+
+  const handleToggleVisibility = async (section: LandingSection) => {
+    try {
+      const response = await fetch(`/api/landing/sections/${encodeURIComponent(section.sectionKey)}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isVisible: !section.isVisible }),
+        body: JSON.stringify({ visible: !section.visible }),
       });
 
       const result = await response.json();
@@ -161,92 +158,221 @@ export default function AdminLandingBuilderPage() {
         return;
       }
 
-      toast.success(section.isVisible ? "Section hidden" : "Section visible");
-      mutate();
+      toast.success(section.visible ? "Section hidden" : "Section is now visible");
+      await mutate();
     } catch {
       toast.error("Error updating visibility");
     }
   };
 
-  const handleReorder = async (section: SectionRow, direction: "up" | "down") => {
-    const currentOrder = section.order;
-    const targetOrder = direction === "up" ? currentOrder - 1 : currentOrder + 1;
-
+  const handleToggleLock = async (section: LandingSection) => {
     try {
-      const response = await fetch(`/api/landing/sections/${encodeURIComponent(section.key)}`, {
+      const response = await fetch(`/api/landing/sections/${encodeURIComponent(section.sectionKey)}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ order: targetOrder }),
+        body: JSON.stringify({ locked: !section.locked }),
       });
 
       const result = await response.json();
       if (!response.ok) {
-        toast.error(result.error || "Failed to reorder section");
+        toast.error(result.error || "Failed to update lock state");
         return;
       }
 
-      mutate();
+      toast.success(section.locked ? "Section unlocked" : "Section locked");
+      await mutate();
     } catch {
-      toast.error("Error reordering section");
+      toast.error("Error updating lock state");
     }
   };
 
-  const initialEditorData = editingSection
-    ? {
-        key: editingSection.key,
-        type: editingSection.type,
-        title: editingSection.title,
-        subtitle: editingSection.subtitle ?? "",
-        content: editingSection.content ?? {},
-        isVisible: editingSection.isVisible,
-        order: editingSection.order,
+  const handleDuplicate = async (section: LandingSection) => {
+    try {
+      const response = await fetch(`/api/landing/sections/${encodeURIComponent(section.sectionKey)}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          newSectionKey: `${section.sectionKey}-copy-${Date.now()}`,
+        }),
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        toast.error(result.error || "Failed to duplicate section");
+        return;
       }
-    : null;
+
+      toast.success("Section duplicated");
+      await mutate();
+    } catch {
+      toast.error("Error duplicating section");
+    }
+  };
+
+  const handleReorder = async (reordered: { sectionKey: string; order: number }[]) => {
+    try {
+      const response = await fetch("/api/landing/sections/reorder", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sections: reordered }),
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        toast.error(result.error || "Failed to reorder sections");
+        await mutate();
+        return;
+      }
+
+      toast.success("Sections reordered");
+      await mutate();
+    } catch {
+      toast.error("Error reordering sections");
+      await mutate();
+    }
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = sections.findIndex((s) => s.sectionKey === active.id);
+    const newIndex = sections.findIndex((s) => s.sectionKey === over.id);
+
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reordered = arrayMove(sections, oldIndex, newIndex).map((s, idx) => ({
+      sectionKey: s.sectionKey,
+      order: idx,
+    }));
+    handleReorder(reordered);
+  };
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await mutate();
+    setIsRefreshing(false);
+  };
 
   return (
     <div className="space-y-6">
       <Breadcrumbs items={[{ label: "Landing Builder" }]} />
 
       <DashboardCard>
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold">Landing Builder</h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Manage landing page sections, content, and visibility
-          </p>
+        <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-background border-primary/20 rounded-lg p-6">
+          <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Landing Page Builder</h1>
+            <p className="text-muted-foreground text-sm mt-2 leading-relaxed">
+              Manage and customize landing page sections. Drag to reorder, click to edit. All changes save automatically.
+            </p>
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.open("/?preview=true", "_blank")}
+              className="whitespace-nowrap"
+            >
+              <Eye className="mr-2 size-4" />
+              Live Preview
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+            >
+              <RefreshCw className={`mr-2 size-4 ${isRefreshing ? "animate-spin" : ""}`} />
+              Refresh
+            </Button>
+            <Button
+              size="sm"
+              onClick={openCreateDialog}
+              className="bg-gradient-to-r from-primary to-primary/80 whitespace-nowrap"
+            >
+              <Plus className="mr-2 size-4" />
+              New Section
+            </Button>
+          </div>
+          </div>
         </div>
+      </DashboardCard>
 
-        {isUsingMockData && (
+      <DashboardCard>
+        {error && (
           <div
-            className={`mb-4 rounded-lg border p-3 text-xs ${
-              isMissingTable
-                ? "border-amber-200/50 bg-amber-50/50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-300"
-                : "border-red-200/50 bg-red-50/50 dark:bg-red-950/20 text-red-700 dark:text-red-300"
+            className={`mb-4 rounded-lg border p-4 text-sm font-medium ${
+              error.message?.toLowerCase().includes("not found") || error.message?.toLowerCase().includes("migration")
+                ? "border-amber-200/50 bg-amber-50/50 text-amber-700"
+                : "border-red-200/50 bg-red-50/50 text-red-700"
             }`}
           >
-            {isMissingTable
+            {error.message?.toLowerCase().includes("not found") || error.message?.toLowerCase().includes("migration")
               ? "Landing CMS tables are missing. Run: pnpm db:migrate"
-              : errorMessage || "Database connection failed. Please check your connection and try again."}
+              : error.message || "Database connection failed."}
           </div>
         )}
 
-        <SectionList
-          sections={sections}
-          loading={isLoading}
-          onAdd={openCreateModal}
-          onEdit={openEditModal}
-          onDelete={handleDelete}
-          onToggleVisibility={handleToggleVisibility}
-          onReorder={handleReorder}
-          onRefresh={() => mutate()}
-        />
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={sections.map((s) => s.sectionKey)}
+            strategy={verticalListSortingStrategy}
+          >
+            <SectionList
+              sections={sections}
+              loading={isLoading}
+              onAdd={openCreateDialog}
+              onEdit={openEditDrawer}
+              onDelete={handleDelete}
+              onToggleVisibility={handleToggleVisibility}
+              onToggleLock={handleToggleLock}
+              onReorder={handleReorder}
+              onRefresh={handleRefresh}
+            />
+          </SortableContext>
+        </DndContext>
       </DashboardCard>
 
-      <SectionEditor
+      <SectionDrawer
         open={editorOpen}
-        section={initialEditorData}
-        saving={saving}
+        section={editingSection}
         onClose={closeEditor}
         onSave={handleSave}
+        onDelete={handleDelete}
+        onDuplicate={handleDuplicate}
+      />
+
+      <AddSectionDialog
+        open={addDialogOpen}
+        onClose={() => setAddDialogOpen(false)}
+        onCreated={({ key, title }) => {
+          const newSection: LandingSection = {
+            id: crypto.randomUUID(),
+            sectionKey: key,
+            title,
+            description: null,
+            component: key,
+            type: key,
+            visible: true,
+            locked: false,
+            order: sections.length,
+            config: {},
+            styles: {},
+            media: [],
+          };
+          setEditingSection(newSection);
+          setEditorOpen(true);
+        }}
       />
     </div>
   );

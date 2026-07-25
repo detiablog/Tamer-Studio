@@ -126,7 +126,14 @@ export type AuditAction =
   | "feature.flag.deactivated"
   | "system.config.updated"
   | "system.health.checked"
-  | "settings.updated";
+  | "settings.updated"
+  | "landing.section.created"
+  | "landing.section.updated"
+  | "landing.section.deleted"
+  | "landing.section.duplicated"
+  | "landing.sections.reordered"
+  | "landing.section.visibility.updated"
+  | "landing.section.lock.updated";
 
 export interface AuditQuery {
   action?: AuditAction;

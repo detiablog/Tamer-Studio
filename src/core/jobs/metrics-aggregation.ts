@@ -19,8 +19,10 @@ export const dailyMetricsAggregation = task({
       });
 
       return {
-        success: true,
-        ...result,
+        data: {
+          ...result,
+          ok: true,
+        },
       };
     } catch (error) {
       logger.error("Daily metrics aggregation failed", {

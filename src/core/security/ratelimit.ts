@@ -39,7 +39,7 @@ export async function checkRateLimit(
     return {
       success: result.success,
       remaining: result.remaining,
-      resetTime: result.resetAfter,
+      resetTime: result.reset,
     };
   } catch (error) {
     console.error("Rate limit check failed:", error);

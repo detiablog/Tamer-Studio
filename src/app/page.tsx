@@ -1,19 +1,6 @@
-import { Header } from "@/components/landing/Header";
-import { Hero } from "@/components/landing/Hero";
-import { SocialProof } from "@/components/landing/SocialProof";
-import { Features } from "@/components/landing/Features";
-import { AIPlatform } from "@/components/landing/AIPlatform";
-import { Screenshots } from "@/components/landing/Screenshots";
-import { RealtimeStats } from "@/components/landing/RealtimeStats";
-import { PricingSection } from "@/components/landing/PricingSection";
-import { CreditPacks } from "@/components/landing/CreditPacks";
-import { CreditCalculator } from "@/components/landing/CreditCalculator";
-import { CreditUsageTable } from "@/components/landing/CreditUsageTable";
-import { Testimonials } from "@/components/landing/Testimonials";
-import { FAQ } from "@/components/landing/FAQ";
-import { CTASection } from "@/components/landing/CTASection";
-import { Footer } from "@/components/landing/Footer";
-import { LandingKeyboardShortcuts } from "@/components/landing/LandingKeyboardShortcuts";
+import { Suspense } from 'react';
+import { LandingPageContent } from '@/components/landing/LandingPageContent';
+import { LandingKeyboardShortcuts } from '@/components/landing/LandingKeyboardShortcuts';
 
 export const metadata = {
   title: {
@@ -69,23 +56,24 @@ export default function HomePage() {
   return (
     <div className="flex min-h-screen flex-col">
       <LandingKeyboardShortcuts />
-      <Header />
       <main className="flex-1">
-        <Hero />
-        <SocialProof />
-        <Features />
-        <AIPlatform />
-        <Screenshots />
-        <RealtimeStats />
-        <PricingSection />
-        <CreditPacks />
-        <CreditCalculator />
-        <CreditUsageTable />
-        <Testimonials />
-        <FAQ />
-        <CTASection />
+        <Suspense fallback={<LoadingFallback />}>
+          <LandingPageContent />
+        </Suspense>
       </main>
-      <Footer />
+    </div>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="text-center space-y-4">
+        <div className="inline-flex items-center justify-center h-12 w-12 rounded-full bg-primary/10 animate-spin">
+          <div className="size-8 border-2 border-primary border-t-transparent rounded-full" />
+        </div>
+        <p className="text-muted-foreground">Loading landing page...</p>
+      </div>
     </div>
   );
 }
