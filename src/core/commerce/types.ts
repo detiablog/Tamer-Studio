@@ -215,6 +215,8 @@ export interface CheckoutInput {
   userId: UserId;
   items: CheckoutItemInput[];
   currency: Currency;
+  pricingProfileCode?: string;
+  billingCycle?: string;
   voucherCode?: string;
   couponCode?: string;
   metadata?: Record<string, unknown>;

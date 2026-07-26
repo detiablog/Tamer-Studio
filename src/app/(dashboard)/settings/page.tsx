@@ -109,6 +109,40 @@ export default function SettingsPage() {
               </div>
             </DashboardCard>
 
+            <DashboardCard title={t("settings.language", "Language & Region")} description={t("settings.languageDesc", "Manage your localization preferences")}>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">{t("settings.language", "Language")}</label>
+                  <select className="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50">
+                    <option value="en">English</option>
+                    <option value="id">Bahasa Indonesia</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">{t("settings.currency", "Currency")}</label>
+                  <select className="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50">
+                    <option value="USD">USD ($)</option>
+                    <option value="IDR">IDR (Rp)</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">{t("settings.country", "Country")}</label>
+                  <select className="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50">
+                    <option value="US">United States</option>
+                    <option value="ID">Indonesia</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">{t("settings.timezone", "Timezone")}</label>
+                  <select className="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50">
+                    <option value="UTC">UTC</option>
+                    <option value="Asia/Jakarta">Asia/Jakarta</option>
+                    <option value="America/New_York">America/New_York</option>
+                  </select>
+                </div>
+              </div>
+            </DashboardCard>
+
             <DashboardCard title={t("settings.dangerZone", "Danger Zone")}>
               <div className="space-y-4">
                 <div className="flex items-center justify-between rounded-xl border border-destructive/20 bg-destructive/5 p-4">

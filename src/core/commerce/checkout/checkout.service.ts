@@ -5,6 +5,7 @@ import { DefaultPaymentService } from "../payment/payment.service";
 import { DefaultVoucherService } from "../voucher/voucher.service";
 import { DefaultCouponService } from "../coupon/coupon.service";
 import { DefaultTaxService } from "../tax/tax.service";
+import { pricingRuleService } from "@/core/localization/pricing-rule.service";
 
 export interface CheckoutService {
   initiateCheckout(input: CheckoutInput): Promise<{ orderId: string; checkoutSessionId: string }>;
@@ -21,11 +22,28 @@ export class DefaultCheckoutService implements CheckoutService {
   private repository = new DefaultCheckoutRepository();
 
   async initiateCheckout(input: CheckoutInput): Promise<{ orderId: string; checkoutSessionId: string }> {
+    const pricingResolution = await pricingRuleService.resolveForCheckout(
+      input.pricingProfileCode,
+      input.items[0]?.productId,
+      input.billingCycle ?? "monthly"
+    );
+
+    const items = input.items.map((item) => {
+      let unitPrice = item.unitPrice;
+      if (pricingResolution.rule && item.productId === pricingResolution.rule.planId) {
+        unitPrice = parseFloat(pricingResolution.rule.amount) || unitPrice;
+      }
+      return {
+        ...item,
+        unitPrice,
+      };
+    });
+
     const order = await this.orderService.createOrder({
       workspaceId: input.workspaceId,
       userId: input.userId,
       currency: input.currency,
-      items: input.items,
+      items: items as any,
       metadata: input.metadata,
     });
 

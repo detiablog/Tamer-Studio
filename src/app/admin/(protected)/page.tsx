@@ -9,16 +9,18 @@ import { TrendingUp, ArrowUpRight, ArrowDownRight, RefreshCw, Clock, Activity } 
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useLocalizationContext } from "@/providers/localization";
+import { useCurrencyContext } from "@/providers/currency";
 
 export default function AdminDashboardPage() {
   const { t } = useLocalizationContext();
+  const { formatCurrency } = useCurrencyContext();
   const [metrics, setMetrics] = React.useState({
     totalUsers: 1234,
     activeWorkspaces: 45,
-    revenue: "$12,500",
-    revenueToday: "$850",
-    revenueWeek: "$5,200",
-    revenueMonth: "$12,500",
+    revenue: 12500,
+    revenueToday: 850,
+    revenueWeek: 5200,
+    revenueMonth: 12500,
   });
 
   const [jobs, setJobs] = React.useState({ processing: 8 });
@@ -31,7 +33,7 @@ export default function AdminDashboardPage() {
       setMetrics((prev) => ({
         ...prev,
         totalUsers: prev.totalUsers + Math.floor(Math.random() * 5) - 1,
-        revenueToday: `$${(850 + Math.floor(Math.random() * 100)).toLocaleString()}`,
+        revenueToday: prev.revenueToday + Math.floor(Math.random() * 100),
       }));
       setLastRefresh(Date.now());
     }, 30000);
@@ -86,7 +88,7 @@ export default function AdminDashboardPage() {
           { title: t("admin.totalUsers", "Total Users"), value: metrics.totalUsers ?? 0, delta: <span className="flex items-center gap-1 text-xs text-muted-foreground"><ArrowUpRight className="size-3" /> +12% {t("admin.thisWeek", "this week")}</span>, href: "/admin/users" },
           { title: t("admin.activeWorkspaces", "Active Workspaces"), value: metrics.activeWorkspaces ?? 0, delta: <span className="flex items-center gap-1 text-xs text-muted-foreground"><ArrowUpRight className="size-3" /> +5 {t("admin.thisWeek", "this week")}</span>, href: "/admin/workspaces" },
           { title: t("admin.activeJobs", "Active Jobs"), value: jobs.processing ?? 0, delta: <span className="flex items-center gap-1 text-xs text-muted-foreground"><ArrowDownRight className="size-3" /> -3 {t("admin.fromYesterday", "from yesterday")}</span>, href: "/admin/jobs" },
-          { title: t("admin.revenue", "Revenue"), value: metrics.revenue ?? "$0", delta: <span className="flex items-center gap-1 text-xs text-muted-foreground"><ArrowUpRight className="size-3" /> +8.2% {t("admin.vsLastMonth", "vs last month")}</span>, href: "/admin/billing" },
+          { title: t("admin.revenue", "Revenue"), value: formatCurrency(metrics.revenue ?? 0), delta: <span className="flex items-center gap-1 text-xs text-muted-foreground"><ArrowUpRight className="size-3" /> +8.2% {t("admin.vsLastMonth", "vs last month")}</span>, href: "/admin/billing" },
         ].map((stat) => (
           <div key={stat.title} className="cursor-pointer" onClick={() => handleCardClick(stat.title)}>
             <StatCard title={stat.title} value={stat.value} delta={stat.delta} />
@@ -98,9 +100,9 @@ export default function AdminDashboardPage() {
         <DashboardCard title={t("admin.revenueOverview", "Revenue Overview")} description={t("admin.revenueOverviewDesc", "Platform revenue for the last 7 days")}>
           <div className="grid gap-4 sm:grid-cols-3">
             {[
-              { label: t("admin.today", "Today"), value: metrics.revenueToday ?? "$0", change: "+5.2%" },
-              { label: t("admin.thisWeek", "This Week"), value: metrics.revenueWeek ?? "$0", change: "+12.1%" },
-              { label: t("admin.thisMonth", "This Month"), value: metrics.revenueMonth ?? "$0", change: "+8.2%" },
+              { label: t("admin.today", "Today"), value: formatCurrency(metrics.revenueToday ?? 0), change: "+5.2%" },
+              { label: t("admin.thisWeek", "This Week"), value: formatCurrency(metrics.revenueWeek ?? 0), change: "+12.1%" },
+              { label: t("admin.thisMonth", "This Month"), value: formatCurrency(metrics.revenueMonth ?? 0), change: "+8.2%" },
             ].map((stat) => (
               <div key={stat.label} className="rounded-xl border border-border bg-muted/20 p-4 cursor-pointer hover:bg-muted/30 transition-colors" onClick={() => handleCardClick(stat.label)}>
                 <p className="text-xs text-muted-foreground">{stat.label}</p>

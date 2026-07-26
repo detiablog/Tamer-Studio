@@ -39,6 +39,21 @@ const PUBLIC_ROUTES = ["/", "/about", "/contact", "/docs", "/pricing", "/legal/p
 const ADMIN_ROUTES = ["/admin"];
 const ADMIN_LOGIN_ROUTE = "/admin/login";
 
+function setLocalizationCookies(request: NextRequest, response: NextResponse) {
+  const country = request.headers.get("cf-ipcountry") || request.headers.get("x-vercel-ip-country");
+  if (country && country !== "XX") {
+    if (!request.cookies.get("tamer_country")?.value) {
+      response.cookies.set("tamer_country", country, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 60 * 60 * 24 * 365,
+        path: "/",
+      });
+    }
+  }
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const method = request.method;
@@ -67,6 +82,7 @@ export async function proxy(request: NextRequest) {
 
   if (PUBLIC_ROUTES.includes(pathname) || pathname === "/") {
     const response = withSecurityHeaders(NextResponse.next());
+    setLocalizationCookies(request, response);
     metrics.increment("api.request", { method, route: pathname, status: "public" });
     return response;
   }

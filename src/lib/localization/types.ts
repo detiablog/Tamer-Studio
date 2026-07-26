@@ -82,3 +82,103 @@ export const DEFAULT_LOCALE: SupportedLocale = "en";
 export const DEFAULT_CURRENCY: SupportedCurrency = "USD";
 export const DEFAULT_COUNTRY = "US";
 export const DEFAULT_TIMEZONE = "UTC";
+
+export type LocaleCode = string;
+export type CurrencyCode = string;
+export type TimezoneCode = string;
+
+export interface LocalizationProfile {
+  id: string;
+  code: string;
+  name: string;
+  locale: LocaleCode;
+  currency: CurrencyCode;
+  country: string | null;
+  timezone: TimezoneCode;
+  isDefault: boolean;
+  isEnabled: boolean;
+  pricingProfile: string;
+  paymentProfile: string;
+  supportedCurrencies: string[];
+  supportedLanguages: string[];
+}
+
+export interface RegionInfo {
+  id: string;
+  code: string;
+  name: string;
+  nativeName: string | null;
+  profileCode: string;
+  enabled: boolean;
+  priority: number;
+}
+
+export interface CurrencyProfile {
+  id: string;
+  code: string;
+  name: string;
+  symbol: string;
+  locale: string;
+  minimumFractionDigits: number;
+  maximumFractionDigits: number;
+  exchangeRateToUsd: number;
+  isEnabled: boolean;
+}
+
+export interface PricingProfileInfo {
+  id: string;
+  code: string;
+  name: string;
+  description: string | null;
+  currency: string;
+  isEnabled: boolean;
+  config: Record<string, unknown>;
+}
+
+export interface PricingRuleInfo {
+  id: string;
+  profileId: string;
+  planId: string;
+  displayPrice: string;
+  amount: string;
+  currency: string;
+  billingCycle: string;
+  isVisible: boolean;
+}
+
+export interface PaymentProfileInfo {
+  id: string;
+  code: string;
+  name: string;
+  description: string | null;
+  isEnabled: boolean;
+  config: Record<string, unknown>;
+}
+
+export interface PaymentMethodInfo {
+  id: string;
+  profileId: string;
+  provider: string;
+  name: string;
+  isEnabled: boolean;
+  priority: number;
+  config: Record<string, unknown>;
+}
+
+export interface BusinessLocaleResolution {
+  profile: LocalizationProfile;
+  region: RegionInfo | null;
+  currency: CurrencyProfile | null;
+  pricingProfile: PricingProfileInfo | null;
+  paymentProfile: PaymentProfileInfo | null;
+  availableCurrencies: CurrencyProfile[];
+  availablePaymentMethods: PaymentMethodInfo[];
+}
+
+export interface AdminLocalizationSettings {
+  defaultProfileCode: string;
+  autoDetectEnabled: boolean;
+  supportedLocales: string[];
+  supportedCurrencies: string[];
+  defaultCountry: string;
+}

@@ -5,7 +5,8 @@ import { logger } from "@/core/logger";
 import { defaultEmailService } from "@/modules/email";
 import { db } from "@/lib/db";
 import { user } from "@/lib/db/schema/auth";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
+import { paymentMethod, paymentProfile } from "@/lib/db/schema/localization";
 
 export interface PaymentService {
   initiatePayment(orderId: string, provider: PaymentProvider, amount: number, currency: string): Promise<PaymentResult>;
@@ -13,10 +14,31 @@ export interface PaymentService {
   failPayment(paymentIntentId: string, reason: string): Promise<PaymentIntent>;
   getPaymentIntent(paymentIntentId: string): Promise<PaymentIntent | undefined>;
   listPaymentIntents(workspaceId: string): Promise<PaymentIntent[]>;
+  getAvailableProviders(profileCode?: string | null): Promise<string[]>;
 }
 
 export class DefaultPaymentService implements PaymentService {
   private repository = new DefaultTransactionRepository();
+
+  async getAvailableProviders(profileCode?: string | null): Promise<string[]> {
+    if (!profileCode) return [];
+
+    const [profile] = await db
+      .select()
+      .from(paymentProfile)
+      .where(and(eq(paymentProfile.code, profileCode), eq(paymentProfile.isEnabled, true)))
+      .limit(1);
+
+    if (!profile) return [];
+
+    const methods = await db
+      .select()
+      .from(paymentMethod)
+      .where(and(eq(paymentMethod.profileId, profile.id), eq(paymentMethod.isEnabled, true)))
+      .orderBy(paymentMethod.priority);
+
+    return methods.map((m) => m.provider);
+  }
 
   async initiatePayment(orderId: string, provider: PaymentProvider, amount: number, currency: string): Promise<PaymentResult> {
     const intent = await this.repository.createPaymentIntent({
