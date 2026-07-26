@@ -186,9 +186,9 @@ export default function AdminOrganizationsPage() {
                   className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
                 >
                   <option value="all">{t("admin.allPlans", "All Plans")}</option>
-                  <option value="Starter">Starter</option>
-                  <option value="Pro">Pro</option>
-                  <option value="Enterprise">Enterprise</option>
+                  <option value="Starter">{t("planStarter", "Starter")}</option>
+                  <option value="Pro">{t("planPro", "Pro")}</option>
+                  <option value="Enterprise">{t("planEnterprise", "Enterprise")}</option>
                 </select>
               </div>
             )}
@@ -294,7 +294,7 @@ export default function AdminOrganizationsPage() {
                 <label className="text-sm font-medium mb-1.5 block">{t("admin.status", "Status")}</label>
                 <select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm">
                   <option value="Active">{t("admin.active", "Active")}</option>
-                  <option value="Suspended">Suspended</option>
+                  <option value="Suspended">{t("admin.suspended", "Suspended")}</option>
                 </select>
               </div>
               <div className="flex gap-2 pt-4">

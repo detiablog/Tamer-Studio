@@ -93,16 +93,16 @@ export function LoginForm() {
       {/* Email Field */}
       <div className="space-y-2">
         <Label htmlFor="email" className="text-sm font-semibold">{t("auth.emailLabel")}</Label>
-        <Input
-          id="email"
-          type="email"
-          placeholder="you@company.com"
-          {...register("email")}
-          autoComplete="email"
-          aria-invalid={!!errors.email}
-          disabled={submitting}
-          className="h-10 bg-background/50 border-border focus:border-primary transition"
-        />
+         <Input
+           id="email"
+           type="email"
+           placeholder={t("auth.loginForm.emailPlaceholder")}
+           {...register("email")}
+           autoComplete="email"
+           aria-invalid={!!errors.email}
+           disabled={submitting}
+           className="h-10 bg-background/50 border-border focus:border-primary transition"
+         />
         {errors.email && (
           <p className="text-xs text-destructive font-medium">{errors.email.message}</p>
         )}
@@ -120,23 +120,23 @@ export function LoginForm() {
           </a>
         </div>
         <div className="relative">
-          <Input
-            id="password"
-            type={showPassword ? "text" : "password"}
-            placeholder="••••••••"
-            {...register("password")}
-            autoComplete="current-password"
-            aria-invalid={!!errors.password}
-            disabled={submitting}
-            className="h-10 bg-background/50 border-border focus:border-primary transition pr-10"
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword((v) => !v)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
-            aria-label={showPassword ? "Hide password" : "Show password"}
-            disabled={submitting}
-          >
+           <Input
+             id="password"
+             type={showPassword ? "text" : "password"}
+             placeholder={t("auth.loginForm.passwordPlaceholder")}
+             {...register("password")}
+             autoComplete="current-password"
+             aria-invalid={!!errors.password}
+             disabled={submitting}
+             className="h-10 bg-background/50 border-border focus:border-primary transition pr-10"
+           />
+           <button
+             type="button"
+             onClick={() => setShowPassword((v) => !v)}
+             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+             aria-label={showPassword ? t("auth.loginForm.hidePassword") : t("auth.loginForm.showPassword")}
+             disabled={submitting}
+           >
             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>
         </div>

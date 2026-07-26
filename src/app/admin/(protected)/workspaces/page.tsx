@@ -260,7 +260,7 @@ export default function AdminWorkspacesPage() {
                 keyExtractor={(w) => w.id}
                 columns={[
                   { key: "name", header: t("common.name", "Name"), render: (w: any) => <p className="font-medium text-sm">{w.name}</p> },
-                  { key: "slug", header: "Slug", render: (w: any) => <p className="text-sm">{w.slug}</p> },
+                   { key: "slug", header: t("admin.slug", "Slug"), render: (w: any) => <p className="text-sm">{w.slug}</p> },
                   { key: "description", header: t("common.description", "Description"), render: (w: any) => <p className="text-sm text-muted-foreground">{w.description}</p> },
                   { key: "status", header: t("admin.status", "Status"), align: "center", render: (w: any) => <Badge tone={w.status === "active" ? "success" : "muted"}>{w.status}</Badge> },
                   { key: "createdAt", header: t("admin.createdAt", "Created"), render: (w: any) => <span className="text-sm">{w.createdAt}</span> },
@@ -308,8 +308,8 @@ export default function AdminWorkspacesPage() {
                 <Input type="text" placeholder={t("admin.workspaceName", "Workspace name")} value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
               </div>
               <div>
-                <label className="text-sm font-medium mb-1.5 block">Slug</label>
-                <Input type="text" placeholder="workspace-slug" value={formData.slug} onChange={(e) => setFormData({ ...formData, slug: e.target.value })} required />
+                <label className="text-sm font-medium mb-1.5 block">{t("admin.slug", "Slug")}</label>
+                <Input type="text" placeholder={t("admin.slugPlaceholder", "workspace-slug")} value={formData.slug} onChange={(e) => setFormData({ ...formData, slug: e.target.value })} required />
               </div>
               <div>
                 <label className="text-sm font-medium mb-1.5 block">{t("common.description", "Description")}</label>
@@ -348,7 +348,7 @@ export default function AdminWorkspacesPage() {
                 <Input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
               </div>
               <div>
-                <label className="text-sm font-medium mb-1.5 block">Slug</label>
+                <label className="text-sm font-medium mb-1.5 block">{t("admin.slug", "Slug")}</label>
                 <Input type="text" value={formData.slug} onChange={(e) => setFormData({ ...formData, slug: e.target.value })} required />
               </div>
               <div>

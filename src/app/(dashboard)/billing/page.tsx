@@ -53,7 +53,7 @@ export default function BillingPage() {
         <div className="space-y-6">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard title={t("billing.currentPlan")} value={data.plan} delta={data.nextInvoice ? `${formatCurrency(parseFloat(data.nextInvoice.replace("$", "") || 0))}/month` : undefined} />
-            <StatCard title={t("billing.nextInvoice")} value={data.nextInvoice ?? formatCurrency(0)} delta={data.nextInvoiceDate ?? ""} />
+            <StatCard title={t("billing.nextInvoice")} value={data.nextInvoice ?? formatCurrency(0)} delta={data.nextInvoiceDate ?? t("common.empty", "")} />
             <StatCard title={t("billing.paymentMethod")} value={data.paymentMethod ?? ""} delta={data.paymentExpiry ? `Expires ${data.paymentExpiry}` : undefined} />
             <StatCard title={t("billing.creditsRemaining")} value={data.creditsRemaining ?? 0} delta={data.creditsValue ? `${formatCurrency(parseFloat(data.creditsValue.replace("$", "") || 0))} value` : undefined} />
           </div>

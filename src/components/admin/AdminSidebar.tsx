@@ -68,11 +68,11 @@ export function AdminSidebar({ pathname, collapsed, onToggle }: AdminSidebarProp
             collapsed ? "justify-center w-full" : "justify-between"
           )}
           aria-expanded={!collapsed}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-label={collapsed ? t("sidebar.expand") : t("sidebar.collapse")}
         >
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary text-sm font-bold">TS</div>
-            {!collapsed && <span className="font-heading text-sm font-semibold">Tamer Studio</span>}
+            {!collapsed && <span className="font-heading text-sm font-semibold">{t("topbar.brand")}</span>}
           </div>
           {collapsed ? (
             <PanelLeft className="size-4 text-muted-foreground" />
@@ -205,14 +205,14 @@ export function AdminSidebar({ pathname, collapsed, onToggle }: AdminSidebarProp
         ) : (
           <div className={cn("flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground", collapsed && "justify-center")}>
             <RefreshCw className="h-3 w-3 animate-spin" />
-            {!collapsed && "Loading permissions..."}
+            {!collapsed && t("admin.loadingPermissions")}
           </div>
         )}
 
         {!collapsed && mounted && (
           <div className="mt-6 pt-4 border-t border-border/50 text-[10px] text-muted-foreground/60 px-2">
-            <p>Status: {isAdmin ? "✓ Admin" : "✗ Not Admin"}</p>
-            <p>Refresh: {forceRefresh}</p>
+            <p>{t("admin.statusLabel", "Status")}: {isAdmin ? t("admin.adminStatus") : t("admin.notAdminStatus")}</p>
+            <p>{t("admin.refreshLabel", "Refresh")}: {forceRefresh}</p>
           </div>
         )}
       </nav>

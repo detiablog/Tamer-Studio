@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
+import { useLocalizationContext } from "@/providers/localization";
 
 type BreadcrumbItem = {
   label: string;
@@ -14,10 +15,11 @@ type BreadcrumbsProps = {
 };
 
 export function Breadcrumbs({ items }: BreadcrumbsProps) {
+  const { t } = useLocalizationContext();
   return (
     <nav className="flex items-center gap-2 text-sm mb-6">
       <Link href="/admin" className="text-muted-foreground hover:text-foreground transition-colors">
-        Admin
+        {t("admin.label")}
       </Link>
       
       {items.map((item, index) => (

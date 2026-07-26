@@ -73,6 +73,20 @@ export async function detectLocale(request: Request): Promise<ResolvedPreference
     };
   }
 
+  const langResult = await detectFromAcceptLanguage(acceptLanguage);
+  if (langResult.country) {
+    const info = getCountryInfo(langResult.country);
+    const prefs: ResolvedPreference = {
+      locale: info.locale,
+      currency: info.currency,
+      country: info.code,
+      timezone: info.timezone,
+      source: "accept-language",
+    };
+    setCookiePreferences(prefs);
+    return prefs;
+  }
+
   const cfResult = await detectFromCloudflare(headers);
   if (cfResult.country) {
     const info = getCountryInfo(cfResult.country);
@@ -96,20 +110,6 @@ export async function detectLocale(request: Request): Promise<ResolvedPreference
       country: info.code,
       timezone: info.timezone,
       source: "vercel",
-    };
-    setCookiePreferences(prefs);
-    return prefs;
-  }
-
-  const langResult = await detectFromAcceptLanguage(acceptLanguage);
-  if (langResult.country) {
-    const info = getCountryInfo(langResult.country);
-    const prefs: ResolvedPreference = {
-      locale: info.locale,
-      currency: info.currency,
-      country: info.code,
-      timezone: info.timezone,
-      source: "accept-language",
     };
     setCookiePreferences(prefs);
     return prefs;

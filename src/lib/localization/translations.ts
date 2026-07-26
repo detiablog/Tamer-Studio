@@ -1,5 +1,8 @@
 import enTranslations from "../../../locales/en.json";
 import idTranslations from "../../../locales/id.json";
+import jaTranslations from "../../../locales/ja.json";
+import frTranslations from "../../../locales/fr.json";
+import deTranslations from "../../../locales/de.json";
 
 type TranslationDict = Record<string, string>;
 
@@ -24,9 +27,19 @@ function flattenObject(
 
 const FLATTENED_EN = flattenObject(enTranslations as Record<string, unknown>);
 const FLATTENED_ID = flattenObject(idTranslations as Record<string, unknown>);
+const FLATTENED_JA = flattenObject(jaTranslations as Record<string, unknown>);
+const FLATTENED_FR = flattenObject(frTranslations as Record<string, unknown>);
+const FLATTENED_DE = flattenObject(deTranslations as Record<string, unknown>);
 
 CACHE["translations_en"] = FLATTENED_EN;
 CACHE["translations_id"] = FLATTENED_ID;
+CACHE["translations_ja"] = FLATTENED_JA;
+CACHE["translations_fr"] = FLATTENED_FR;
+CACHE["translations_de"] = FLATTENED_DE;
+
+function getEnglishFallback(key: string, fallback?: string): string {
+  return FLATTENED_EN[key] ?? fallback ?? key;
+}
 
 export function getTranslation(
   locale: string,
@@ -34,20 +47,26 @@ export function getTranslation(
   fallback?: string
 ): string {
   const translations = getTranslations(locale);
-  return translations[key] ?? fallback ?? key;
+  const translated = translations[key];
+  if (translated) return translated;
+  if (locale === "en") return fallback ?? key;
+  return getEnglishFallback(key, fallback);
 }
 
 export function getTranslations(locale: string): TranslationDict {
   const cacheKey = `translations_${locale}`;
   if (CACHE[cacheKey]) return CACHE[cacheKey];
 
-  if (locale === "id") {
-    CACHE[cacheKey] = FLATTENED_ID;
-    return FLATTENED_ID;
-  }
+  const map: Record<string, TranslationDict> = {
+    en: FLATTENED_EN,
+    id: FLATTENED_ID,
+    ja: FLATTENED_JA,
+    fr: FLATTENED_FR,
+    de: FLATTENED_DE,
+  };
 
-  CACHE[cacheKey] = FLATTENED_EN;
-  return FLATTENED_EN;
+  CACHE[cacheKey] = map[locale] || FLATTENED_EN;
+  return CACHE[cacheKey];
 }
 
 export function hasTranslation(locale: string, key: string): boolean {

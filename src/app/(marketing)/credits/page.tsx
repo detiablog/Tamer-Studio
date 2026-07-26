@@ -30,9 +30,9 @@ export default function CreditsPage() {
       {usageSection && <CreditUsageTable section={usageSection} />}
       <div className="mx-auto max-w-2xl text-center mt-12">
         <p className="text-sm text-muted-foreground">
-          Want to see all plans?{" "}
+          {t("marketing.creditPackViewPlans", "Want to see all plans? ")}
           <Link href="/pricing" className="text-primary hover:underline">
-            View pricing
+            {t("marketing.creditPackViewPricing", "View pricing")}
           </Link>
         </p>
       </div>

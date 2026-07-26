@@ -6,6 +6,7 @@ import { StatCard } from "@/components/ui/StatCard";
 import { DashboardCard } from "@/components/ui/DashboardCard";
 import { Badge } from "@/components/ui/Badge";
 import Link from "next/link";
+import { useLocalizationContext } from "@/providers/localization";
 import {
   Rocket,
   FolderOpen,
@@ -20,14 +21,15 @@ import {
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 export default function DashboardHomePage() {
+  const { t } = useLocalizationContext();
   const { data, error, isLoading } = useSWR("/api/user/stats", fetcher);
 
   if (isLoading) {
-    return <div className="flex items-center justify-center p-8">Loading...</div>;
+    return <div className="flex items-center justify-center p-8">{t("common.loading", "Loading...")}</div>;
   }
 
   if (error) {
-    return <div className="text-destructive p-8">Failed to load dashboard data</div>;
+    return <div className="text-destructive p-8">{t("common.failedToLoad", "Failed to load dashboard data")}</div>;
   }
 
   const stats = data || {};
@@ -38,15 +40,15 @@ export default function DashboardHomePage() {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard title="Active Projects" value={stats.activeProjects ?? 0} delta={<span className="text-xs text-muted-foreground">+2 this week</span>} />
-        <StatCard title="Media Assets" value={stats.mediaAssets ?? 0} delta={<span className="text-xs text-muted-foreground">+8 new files</span>} />
-        <StatCard title="Running Jobs" value={stats.runningJobs ?? 0} delta={stats.queuedJobs ? <span className="text-xs text-muted-foreground">{stats.queuedJobs} queued</span> : undefined} />
-        <StatCard title="AI Generations" value={stats.aiGenerationsTotal ?? 0} delta={stats.aiGenerationsToday ? <span className="text-xs text-muted-foreground">+{stats.aiGenerationsToday} today</span> : undefined} />
+        <StatCard title={t("dashboard.activeProjects", "Active Projects")} value={stats.activeProjects ?? 0} delta={<span className="text-xs text-muted-foreground">{t("dashboard.delta.thisWeek", "+2 this week")}</span>} />
+        <StatCard title={t("dashboard.mediaAssets", "Media Assets")} value={stats.mediaAssets ?? 0} delta={<span className="text-xs text-muted-foreground">{t("dashboard.delta.newFiles", "+8 new files")}</span>} />
+        <StatCard title={t("dashboard.runningJobs", "Running Jobs")} value={stats.runningJobs ?? 0} delta={stats.queuedJobs ? <span className="text-xs text-muted-foreground">{stats.queuedJobs} {t("dashboard.delta.queued", "queued")}</span> : undefined} />
+        <StatCard title={t("dashboard.aiGenerations", "AI Generations")} value={stats.aiGenerationsTotal ?? 0} delta={stats.aiGenerationsToday ? <span className="text-xs text-muted-foreground">+{stats.aiGenerationsToday} {t("dashboard.delta.today", "today")}</span> : undefined} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
-          <DashboardCard title="Recent Projects" description="Your latest production projects">
+          <DashboardCard title={t("dashboard.recentProjects", "Recent Projects")} description={t("dashboard.recentProjectsDesc", "Your latest production projects")}>
             <div className="space-y-3">
               {recentProjects.map((project: any) => (
                 <div key={project.name} className="flex items-center justify-between rounded-xl border border-border bg-muted/20 p-4">
@@ -62,16 +64,16 @@ export default function DashboardHomePage() {
                       <div className="h-1.5 rounded-full bg-primary transition-all" style={{ width: `${project.progress}%` }} />
                     </div>
                   </div>
-                  <Link href="/projects" className="text-sm text-muted-foreground hover:text-foreground">Open</Link>
+                  <Link href="/projects" className="text-sm text-muted-foreground hover:text-foreground">{t("dashboard.open", "Open")}</Link>
                 </div>
               ))}
             </div>
             <div className="mt-4">
-              <Link href="/projects" className="block w-full text-center text-sm text-muted-foreground hover:text-foreground">View all projects</Link>
+              <Link href="/projects" className="block w-full text-center text-sm text-muted-foreground hover:text-foreground">{t("dashboard.viewAllProjects", "View all projects")}</Link>
             </div>
           </DashboardCard>
 
-          <DashboardCard title="Production Queue" description="Active and upcoming production jobs">
+          <DashboardCard title={t("dashboard.productionQueue", "Production Queue")} description={t("dashboard.productionQueueDesc", "Active and upcoming production jobs")}>
             <div className="space-y-3">
               {recentJobs.map((job: any) => (
                 <div key={job.name} className="flex items-center justify-between rounded-xl border border-border bg-muted/20 p-4">
@@ -87,24 +89,24 @@ export default function DashboardHomePage() {
                       <div className="h-1.5 rounded-full bg-primary transition-all" style={{ width: `${job.progress}%` }} />
                     </div>
                   </div>
-                  <Link href="/production" className="text-sm text-primary hover:underline">Details</Link>
+                  <Link href="/production" className="text-sm text-primary hover:underline">{t("dashboard.details", "Details")}</Link>
                 </div>
               ))}
             </div>
             <div className="mt-4">
-              <Link href="/production" className="block w-full text-center text-sm text-muted-foreground hover:text-foreground">View all jobs</Link>
+              <Link href="/production" className="block w-full text-center text-sm text-muted-foreground hover:text-foreground">{t("dashboard.viewAllJobs", "View all jobs")}</Link>
             </div>
           </DashboardCard>
         </div>
 
         <div className="space-y-6">
-          <DashboardCard title="Quick Actions">
+          <DashboardCard title={t("dashboard.quickActions", "Quick Actions")}>
             <div className="grid grid-cols-2 gap-3">
               {[
-                { label: "New Project", icon: FolderOpen, href: "/projects" },
-                { label: "Generate Media", icon: ImageIcon, href: "/media" },
-                { label: "Start Production", icon: Rocket, href: "/production" },
-                { label: "Open AI Studio", icon: Cpu, href: "/ai" },
+                { label: t("dashboard.newProject", "New Project"), icon: FolderOpen, href: "/projects" },
+                { label: t("dashboard.generateMedia", "Generate Media"), icon: ImageIcon, href: "/media" },
+                { label: t("dashboard.startProduction", "Start Production"), icon: Rocket, href: "/production" },
+                { label: t("dashboard.openAIStudio", "Open AI Studio"), icon: Cpu, href: "/ai" },
               ].map((action) => (
                 <Link
                   key={action.label}
@@ -118,7 +120,7 @@ export default function DashboardHomePage() {
             </div>
           </DashboardCard>
 
-          <DashboardCard title="Recent Activity">
+          <DashboardCard title={t("dashboard.recentActivity", "Recent Activity")}>
             <div className="space-y-3">
               {recentActivity.map((activity: any, idx: number) => (
                 <div key={idx} className="flex items-start gap-3">
@@ -134,17 +136,17 @@ export default function DashboardHomePage() {
             </div>
           </DashboardCard>
 
-          <DashboardCard title="AI Usage">
+          <DashboardCard title={t("dashboard.aiUsage", "AI Usage")}>
             <div className="space-y-3">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">This month</span>
-                <span className="font-medium">{stats.aiGenerationsTotal ?? 0} generations</span>
+                <span className="text-muted-foreground">{t("dashboard.thisMonth", "This month")}</span>
+                <span className="font-medium">{stats.aiGenerationsTotal ?? 0} {t("dashboard.generationsCount", "generations")}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Credits remaining</span>
+                <span className="text-muted-foreground">{t("dashboard.creditsRemaining", "Credits remaining")}</span>
                 <span className="font-medium">{stats.creditsRemaining ?? 0}</span>
               </div>
-              <Link href="/ai" className="block w-full text-center text-sm text-muted-foreground hover:text-foreground">View AI Platform</Link>
+              <Link href="/ai" className="block w-full text-center text-sm text-muted-foreground hover:text-foreground">{t("dashboard.viewAIPlatform", "View AI Platform")}</Link>
             </div>
           </DashboardCard>
         </div>

@@ -7,6 +7,8 @@ import { GripVertical, ArrowUp, ArrowDown } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/Badge";
+import { CompactLoader } from "@/components/ui/ElegantLoader";
+import { useLocalizationContext } from "@/providers/localization";
 
 export type LandingSection = {
   id: string;
@@ -86,6 +88,7 @@ export function SectionList({
   onReorder,
   onRefresh,
 }: SectionListProps) {
+  const { t } = useLocalizationContext();
   const [searchQuery, setSearchQuery] = React.useState("");
   const [filterVisible, setFilterVisible] = React.useState<string>("all");
   const [filterLocked, setFilterLocked] = React.useState<string>("all");
@@ -99,7 +102,7 @@ export function SectionList({
 
   const handleDeleteWithUndo = async (section: LandingSection) => {
     if (section.locked) {
-      toast.error("Cannot delete a locked section");
+      toast.error(t("landingBuilder.cannotDeleteLocked", "Cannot delete a locked section"));
       return;
     }
 
@@ -156,7 +159,7 @@ export function SectionList({
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground font-medium">
-              {filteredSections.length} of {sections.length} sections
+              {t("sectionList.ofSections", "{0} of {1} sections").replace("{0}", String(filteredSections.length)).replace("{1}", String(sections.length))}
             </span>
           </div>
           <div className="flex gap-2">
@@ -171,12 +174,12 @@ export function SectionList({
 
         {sections.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            <StatCard label="Total" value={stats.total} icon="📊" />
-            <StatCard label="Visible" value={stats.visible} icon="👁️" color="text-green-600" />
-            <StatCard label="Hidden" value={stats.hidden} icon="🙈" color="text-amber-600" />
-            <StatCard label="Locked" value={stats.locked} icon="🔒" color="text-red-600" />
-            <StatCard label="Custom" value={stats.custom} icon="🔧" color="text-purple-600" />
-            <StatCard label="System" value={stats.total - stats.custom} icon="⚙️" color="text-blue-600" />
+            <StatCard label={t("sectionList.total", "Total")} value={stats.total} icon="📊" />
+            <StatCard label={t("sectionList.visible", "Visible")} value={stats.visible} icon="👁️" color="text-green-600" />
+            <StatCard label={t("sectionList.hidden", "Hidden")} value={stats.hidden} icon="🙈" color="text-amber-600" />
+            <StatCard label={t("sectionList.locked", "Locked")} value={stats.locked} icon="🔒" color="text-red-600" />
+            <StatCard label={t("sectionList.custom", "Custom")} value={stats.custom} icon="🔧" color="text-purple-600" />
+            <StatCard label={t("sectionList.system", "System")} value={stats.total - stats.custom} icon="⚙️" color="text-blue-600" />
           </div>
         )}
 
@@ -184,10 +187,10 @@ export function SectionList({
           <div className="flex flex-wrap gap-3">
             <div className="relative flex-1 min-w-[200px] max-w-sm">
               <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Search sections..."
-                value={searchQuery}
+               <input
+                 type="text"
+                 placeholder={t("sectionList.searchPlaceholder", "Search sections...")}
+                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 rounded-lg border border-border bg-background/50 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
               />
@@ -197,7 +200,7 @@ export function SectionList({
               onChange={(e) => setFilterVisible(e.target.value)}
               className="rounded-lg border border-border bg-background/50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
             >
-              <option value="all">All Visibility</option>
+              <option value="all">{t("sectionList.allVisibility", "All Visibility")}</option>
               <option value="true">Visible</option>
               <option value="false">Hidden</option>
             </select>
@@ -206,7 +209,7 @@ export function SectionList({
               onChange={(e) => setFilterLocked(e.target.value)}
               className="rounded-lg border border-border bg-background/50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
             >
-              <option value="all">All Lock State</option>
+              <option value="all">{t("sectionList.allLockState", "All Lock State")}</option>
               <option value="true">Locked</option>
               <option value="false">Unlocked</option>
             </select>
@@ -215,13 +218,8 @@ export function SectionList({
       </div>
 
       {loading && sections.length === 0 ? (
-        <div className="flex items-center justify-center py-16">
-          <div className="space-y-3 text-center">
-            <div className="inline-flex items-center justify-center h-12 w-12 rounded-full bg-primary/10 animate-spin">
-              <div className="size-6 border-2 border-primary border-t-transparent rounded-full" />
-            </div>
-            <p className="text-sm text-muted-foreground font-medium">Loading sections...</p>
-          </div>
+        <div className="flex items-center justify-center py-32">
+          <CompactLoader />
         </div>
       ) : filteredSections.length === 0 ? (
         <div className="text-center py-16 space-y-4">
@@ -230,17 +228,17 @@ export function SectionList({
           </div>
           <div>
             <p className="text-base font-semibold text-foreground">
-              {sections.length === 0 ? "No sections yet" : "No matching sections"}
+              {sections.length === 0 ? t("sectionList.noSections", "No sections yet") : t("sectionList.noMatchingSections", "No matching sections")}
             </p>
             <p className="text-sm text-muted-foreground mt-1">
               {sections.length === 0
-                ? "Create your first landing page section"
-                : "Try adjusting your search or filters"}
+                ? t("sectionList.firstSection", "Create your first landing page section")
+                : t("sectionList.tryAdjusting", "Try adjusting your search or filters")}
             </p>
           </div>
           {sections.length === 0 && (
             <Button onClick={onAdd} className="mt-4 bg-gradient-to-r from-primary to-primary/80">
-              Create First Section
+              {t("sectionList.createFirstSection", "Create First Section")}
             </Button>
           )}
         </div>
@@ -272,12 +270,13 @@ export function SectionList({
                 }));
                 onReorder(newSections);
               }}
+              t={t}
             />
           ))}
           {undoStack.length > 0 && (
             <div className="flex items-center gap-2 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200/50">
               <span className="text-sm text-amber-700 dark:text-amber-300">
-                Section deleted. Undo within 5 seconds.
+                {t("sectionList.deletedUndo", "Section deleted. Undo within 5 seconds.")}
               </span>
               {undoStack.map((item) => (
                 <button
@@ -285,7 +284,7 @@ export function SectionList({
                   onClick={() => handleUndo(item.section)}
                   className="text-sm font-semibold text-amber-800 dark:text-amber-200 underline hover:no-underline"
                 >
-                  Undo
+                  {t("sectionList.undo", "Undo")}
                 </button>
               ))}
             </div>
@@ -318,6 +317,7 @@ function SortableSectionRow({
   onToggleLock,
   onMoveUp,
   onMoveDown,
+  t,
 }: {
   section: LandingSection;
   index: number;
@@ -328,6 +328,7 @@ function SortableSectionRow({
   onToggleLock: (s: LandingSection) => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
+  t: (key: string, fallback?: string) => string;
 }) {
   const {
     attributes,
@@ -410,8 +411,8 @@ function SortableSectionRow({
           className="size-8 hover:bg-muted"
           disabled={index === 0}
           onClick={onMoveUp}
-          aria-label="Move up"
-          title="Move up"
+          aria-label={t("sectionList.moveUp", "Move up")}
+          title={t("sectionList.moveUp", "Move up")}
         >
           <ArrowUp className="size-4" />
         </Button>
@@ -421,8 +422,8 @@ function SortableSectionRow({
           className="size-8 hover:bg-muted"
           disabled={index === totalCount - 1}
           onClick={onMoveDown}
-          aria-label="Move down"
-          title="Move down"
+          aria-label={t("sectionList.moveDown", "Move down")}
+          title={t("sectionList.moveDown", "Move down")}
         >
           <ArrowDown className="size-4" />
         </Button>
@@ -434,8 +435,8 @@ function SortableSectionRow({
           size="sm"
           className="size-8 hover:bg-muted"
           onClick={() => onToggleLock(section)}
-          aria-label={section.locked ? "Unlock section" : "Lock section"}
-          title={section.locked ? "Unlock" : "Lock"}
+          aria-label={section.locked ? t("sectionList.unlockSection", "Unlock section") : t("sectionList.lockSection", "Lock section")}
+          title={section.locked ? t("sectionList.unlockSection", "Unlock") : t("sectionList.lockSection", "Lock")}
         >
           {section.locked ? (
             <LockIcon />
@@ -449,8 +450,8 @@ function SortableSectionRow({
           size="sm"
           className="size-8 hover:bg-muted"
           onClick={() => onToggleVisibility(section)}
-          aria-label={section.visible ? "Hide section" : "Show section"}
-          title={section.visible ? "Hide" : "Show"}
+          aria-label={section.visible ? t("sectionList.hideSection", "Hide section") : t("sectionList.showSection", "Show section")}
+          title={section.visible ? t("sectionList.hideSection", "Hide") : t("sectionList.showSection", "Show")}
         >
           {section.visible ? (
             <EyeIcon />
@@ -464,8 +465,8 @@ function SortableSectionRow({
           size="sm"
           className="size-8 hover:bg-muted"
           onClick={() => onEdit(section)}
-          aria-label="Edit section"
-          title="Edit"
+          aria-label={t("sectionList.editSection", "Edit section")}
+          title={t("sectionList.editSection", "Edit")}
         >
           <EditIcon />
         </Button>
@@ -475,8 +476,8 @@ function SortableSectionRow({
           size="sm"
           className="size-8 text-destructive hover:text-destructive hover:bg-destructive/10"
           onClick={() => onDelete(section)}
-          aria-label="Delete section"
-          title="Delete"
+          aria-label={t("sectionList.deleteSection", "Delete section")}
+          title={t("sectionList.deleteSection", "Delete")}
           disabled={section.locked}
         >
           <TrashIcon />

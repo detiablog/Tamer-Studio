@@ -7,6 +7,7 @@ import { authClient } from "@/lib/auth/auth-client";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
+import { useLocalizationContext } from "@/providers/localization";
 
 type AppShellProps = {
   children?: React.ReactNode;
@@ -15,6 +16,7 @@ type AppShellProps = {
 export function AppShell({ children }: AppShellProps) {
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
   const router = useRouter();
+  const { t } = useLocalizationContext();
 
   const { data: session, isPending } = authClient.useSession();
 
@@ -25,7 +27,7 @@ export function AppShell({ children }: AppShellProps) {
   if (isPending) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">Checking session…</div>
+        <div className="animate-pulse text-muted-foreground">{t("appShell.checkingSession")}</div>
       </div>
     );
   }

@@ -17,6 +17,7 @@ import {
   Search,
   ArrowUpDown,
 } from "lucide-react";
+import { useLocalizationContext } from "@/providers/localization";
 
 type ColumnDef<T> = {
   key: string;
@@ -45,12 +46,13 @@ export function AdminDataTable<T>({
   data,
   columns,
   keyExtractor,
-  emptyTitle = "No data",
-  emptyDescription = "There are no records to display.",
-  searchPlaceholder = "Search...",
+  emptyTitle,
+  emptyDescription,
+  searchPlaceholder,
   onSearch,
   pageSize = 10,
 }: AdminDataTableProps<T>) {
+  const { t } = useLocalizationContext();
   const [search, setSearch] = React.useState("");
   const [sortKey, setSortKey] = React.useState<string | null>(null);
   const [sortDir, setSortDir] = React.useState<SortDirection>(null);
@@ -135,7 +137,7 @@ export function AdminDataTable<T>({
   const clearSelection = () => setSelectedIds(new Set());
 
   const bulkDelete = () => {
-    if (!confirm(`Delete ${selectedIds.size} selected item(s)?`)) return;
+    if (!confirm(t("adminDataTable.confirmDelete", "Delete {0} selected item(s)?").replace("{0}", String(selectedIds.size)))) return;
     clearSelection();
   };
 
@@ -155,6 +157,10 @@ export function AdminDataTable<T>({
 
   const hasActiveFilters = search.trim() || sortKey !== null || selectedIds.size > 0;
 
+  const effectiveEmptyTitle = emptyTitle ?? t("adminDataTable.noData", "No data");
+  const effectiveEmptyDescription = emptyDescription ?? t("adminDataTable.noRecords", "There are no records to display.");
+  const effectiveSearchPlaceholder = searchPlaceholder ?? t("adminDataTable.searchPlaceholder", "Search...");
+
   return (
     <div className="w-full space-y-4">
       <div className="flex items-center gap-2 flex-wrap">
@@ -164,7 +170,7 @@ export function AdminDataTable<T>({
             <Input
               value={search}
               onChange={(e) => handleSearchChange(e.target.value)}
-              placeholder={searchPlaceholder}
+              placeholder={effectiveSearchPlaceholder}
               className="pl-9"
             />
           </div>
@@ -177,30 +183,30 @@ export function AdminDataTable<T>({
           className="gap-1"
         >
           <Columns2 className="size-4" />
-          Columns
+          {t("adminDataTable.columns", "Columns")}
         </Button>
 
         {selectedIds.size > 0 && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>{selectedIds.size} selected</span>
+            <span>{t("adminDataTable.selected", "{0} selected").replace("{0}", String(selectedIds.size))}</span>
             <Button variant="ghost" size="sm" onClick={bulkDelete} className="text-destructive hover:text-destructive">
-              Delete Selected
+              {t("adminDataTable.deleteSelected", "Delete Selected")}
             </Button>
-            <Button variant="ghost" size="sm" onClick={clearSelection}>Clear</Button>
+            <Button variant="ghost" size="sm" onClick={clearSelection}>{t("adminDataTable.clear", "Clear")}</Button>
           </div>
         )}
 
         {hasActiveFilters && (
           <Button variant="ghost" size="sm" onClick={resetFilters} className="gap-1">
             <Filter className="size-4" />
-            Reset
+            {t("adminDataTable.reset", "Reset")}
           </Button>
         )}
       </div>
 
       {columnMenuOpen && (
         <div className="absolute z-50 mt-1 rounded-lg border border-border bg-card p-3 shadow-lg">
-          <div className="text-xs font-medium text-muted-foreground mb-2">Toggle Columns</div>
+          <div className="text-xs font-medium text-muted-foreground mb-2">{t("adminDataTable.toggleColumns", "Toggle Columns")}</div>
           <div className="space-y-1">
             {columns.map((col) => (
               <label key={col.key} className="flex items-center gap-2 text-sm cursor-pointer">
@@ -249,8 +255,8 @@ export function AdminDataTable<T>({
               <tr>
                 <td colSpan={visibleColumns.length + 1} className="px-4 py-12 text-center text-sm text-muted-foreground">
                   <div className="flex flex-col items-center gap-2">
-                    <p className="font-medium">{emptyTitle}</p>
-                    <p className="text-xs">{emptyDescription}</p>
+                    <p className="font-medium">{effectiveEmptyTitle}</p>
+                    <p className="text-xs">{effectiveEmptyDescription}</p>
                   </div>
                 </td>
               </tr>
@@ -288,7 +294,7 @@ export function AdminDataTable<T>({
 
       <div className="flex items-center justify-between text-sm text-muted-foreground">
         <span>
-          Showing {filteredData.length === 0 ? 0 : page * pageSize + 1}–{Math.min((page + 1) * pageSize, filteredData.length)} of {filteredData.length}
+          {t("adminDataTable.showing", "Showing {0}\u2013{1} of {2}").replace("{0}", String(filteredData.length === 0 ? 0 : page * pageSize + 1)).replace("{1}", String(Math.min((page + 1) * pageSize, filteredData.length))).replace("{2}", String(filteredData.length))}
         </span>
         <div className="flex items-center gap-1">
           <Button variant="outline" size="icon-xs" onClick={() => setPage(0)} disabled={page === 0}>

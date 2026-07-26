@@ -72,7 +72,7 @@ function LoadingFallback() {
         <div className="inline-flex items-center justify-center h-12 w-12 rounded-full bg-primary/10 animate-spin">
           <div className="size-8 border-2 border-primary border-t-transparent rounded-full" />
         </div>
-        <p className="text-muted-foreground">Loading landing page...</p>
+        <p className="text-muted-foreground">Loading...</p>
       </div>
     </div>
   );

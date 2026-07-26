@@ -1,13 +1,4 @@
-export type SupportedCurrency = "USD" | "IDR";
-
-export interface CurrencyInfo {
-  code: SupportedCurrency;
-  name: string;
-  symbol: string;
-  locale: string;
-  minimumFractionDigits: number;
-  maximumFractionDigits: number;
-}
+import type { SupportedCurrency, CurrencyInfo } from "@/lib/localization/types";
 
 export const SUPPORTED_CURRENCIES: Record<SupportedCurrency, CurrencyInfo> = {
   USD: {
@@ -25,6 +16,30 @@ export const SUPPORTED_CURRENCIES: Record<SupportedCurrency, CurrencyInfo> = {
     locale: "id-ID",
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
+  },
+  JPY: {
+    code: "JPY",
+    name: "Japanese Yen",
+    symbol: "¥",
+    locale: "ja-JP",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  },
+  EUR: {
+    code: "EUR",
+    name: "Euro",
+    symbol: "€",
+    locale: "de-DE",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  },
+  GBP: {
+    code: "GBP",
+    name: "British Pound",
+    symbol: "£",
+    locale: "en-GB",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   },
 };
 

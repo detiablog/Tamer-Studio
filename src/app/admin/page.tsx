@@ -195,19 +195,19 @@ export default function AdminDashboardRootPage() {
       id: "api",
       label: "API",
       status: (stats?.system?.api === "Online" ? "healthy" : "critical") as any,
-      detail: "All endpoints responding",
+      detail: t("admin.system.allEndpoints", "All endpoints responding"),
     },
     {
       id: "database",
       label: "Database",
       status: (stats?.system?.database === "Online" ? "healthy" : "critical") as any,
-      detail: "Connected and responsive",
+      detail: t("admin.database.connected", "Connected and responsive"),
     },
     {
       id: "queue",
       label: "Job Queue",
       status: (stats?.jobs?.failed === 0 ? "healthy" : "warning") as any,
-      detail: stats?.jobs?.failed ? `${stats.jobs.failed} failures` : "No errors",
+      detail: stats?.jobs?.failed ? `${stats.jobs.failed} failures` : t("admin.jobQueue.healthy", "No errors"),
     },
     {
       id: "workers",
@@ -219,7 +219,7 @@ export default function AdminDashboardRootPage() {
       id: "storage",
       label: "Storage",
       status: "healthy",
-      detail: "85% capacity",
+      detail: t("admin.storage.healthy", "85% capacity"),
     },
   ];
 
@@ -288,7 +288,7 @@ export default function AdminDashboardRootPage() {
           <DashboardHero
             title={t("admin.dashboard")}
             description={t("admin.dashboardDescription", "Manage your AI platform in real time")}
-            environment="Production"
+             environment={t("admin.system", "System Health")}
             lastUpdated={formatRelativeTime(new Date())}
             systemStatus={stats?.jobs?.failed ? "warning" : "healthy"}
           />
@@ -307,7 +307,7 @@ export default function AdminDashboardRootPage() {
             {/* Analytics Panel */}
             <AnalyticsPanel
               title={t("admin.analytics.label", "Analytics")}
-              description="Key metrics and performance indicators"
+              description={t("admin.analytics.description", "Key metrics and performance indicators")}
               metrics={analyticsMetrics}
               hasChart={true}
               chartHeight="md"

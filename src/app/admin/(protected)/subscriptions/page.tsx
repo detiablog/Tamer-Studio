@@ -38,7 +38,7 @@ export default function SubscriptionsPage() {
 
   return (
     <div className="space-y-6">
-      <Breadcrumbs items={[{ label: t("admin.subscriptions", "Subscriptions") }]} />
+      <Breadcrumbs items={[{ label: t("admin.subscriptions", t("admin.subscriptions", "Subscriptions")) }]} />
       <DashboardCard>
         <div className="mb-6 flex items-center justify-between">
           <div>

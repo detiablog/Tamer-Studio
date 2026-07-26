@@ -21,10 +21,10 @@ export default function WorkspacePage() {
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-3">
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <StatCard title={t("admin.workspaces")} value={3} delta="+1 this month" />
-              <StatCard title={t("admin.users")} value={12} delta="+2 new invites" />
-              <StatCard title={t("admin.roles")} value={4} delta="Admin, Editor, Viewer" />
-              <StatCard title={t("admin.storageLimit")} value="24.5 GB" delta="of 100 GB" />
+              <StatCard title={t("admin.workspaces")} value={3} delta={t("dashboard.delta.thisMonth", "+1 this month")} />
+              <StatCard title={t("admin.users")} value={12} delta={t("dashboard.delta.newInvites", "+2 new invites")} />
+              <StatCard title={t("admin.roles")} value={4} delta={t("dashboard.delta.roles", "Admin, Editor, Viewer")} />
+              <StatCard title={t("admin.storageLimit")} value="24.5 GB" delta={t("dashboard.delta.storage", "of 100 GB")} />
             </div>
           </div>
 

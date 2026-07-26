@@ -22,17 +22,17 @@ export default function SupportPage() {
           </div>
           <div className="rounded-2xl border border-border bg-card p-6">
             <h3 className="font-semibold">{t("marketing.supportFaq")}</h3>
-            <p className="mt-2 text-sm text-muted-foreground">Browse frequently asked questions about billing, credits, and AI models.</p>
+            <p className="mt-2 text-sm text-muted-foreground">{t("marketing.supportFaqDesc", "Browse frequently asked questions about billing, credits, and AI models.")}</p>
             <Link href="/pricing" className="text-sm text-primary hover:underline mt-2 inline-block">{t("marketing.supportDocs")}</Link>
           </div>
           <div className="rounded-2xl border border-border bg-card p-6">
             <h3 className="font-semibold">{t("marketing.supportDocs")}</h3>
-            <p className="mt-2 text-sm text-muted-foreground">Guides for workspace setup, projects, AI providers, and publishing.</p>
+            <p className="mt-2 text-sm text-muted-foreground">{t("marketing.supportDocsDesc", "Guides for workspace setup, projects, AI providers, and publishing.")}</p>
             <Link href="/docs" className="text-sm text-primary hover:underline mt-2 inline-block">{t("marketing.menuDocumentation")}</Link>
           </div>
           <div className="rounded-2xl border border-border bg-card p-6">
             <h3 className="font-semibold">{t("marketing.supportCommunity")}</h3>
-            <p className="mt-2 text-sm text-muted-foreground">Join the conversation, share workflows, and get help from other creators.</p>
+            <p className="mt-2 text-sm text-muted-foreground">{t("marketing.supportCommunityDesc", "Join the conversation, share workflows, and get help from other creators.")}</p>
             <div className="mt-2 text-sm text-primary">Discord</div>
           </div>
         </div>
@@ -43,7 +43,7 @@ export default function SupportPage() {
           </div>
           <div className="rounded-2xl border border-border bg-card p-6">
             <h3 className="font-semibold">{t("marketing.supportAvailability")}</h3>
-            <p className="mt-2 text-sm text-muted-foreground">Support is available Monday to Friday, 9am to 6pm ICT. Enterprise plans receive priority support.</p>
+            <p className="mt-2 text-sm text-muted-foreground">{t("marketing.supportAvailabilityDesc", "Support is available Monday to Friday, 9am to 6pm ICT. Enterprise plans receive priority support.")}</p>
           </div>
         </div>
       </div>

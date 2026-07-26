@@ -27,7 +27,14 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
   );
 
   const symbol = React.useMemo(() => {
-    return currency === "IDR" ? "Rp" : "$";
+    const symbols: Record<string, string> = {
+      USD: "$",
+      IDR: "Rp",
+      JPY: "¥",
+      EUR: "€",
+      GBP: "£",
+    };
+    return symbols[currency] ?? "$";
   }, [currency]);
 
   const value = React.useMemo(

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ChevronDown, Menu, X } from "lucide-react";
 import { useLocalizationContext } from "@/providers/localization";
 import { cn } from "@/lib/utils";
+import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 
 function Dropdown({ label, items, isOpen, onToggle, align = "left" }: {
   label: string;
@@ -98,9 +99,9 @@ export function Header() {
   ];
 
   const productItems = [
-    { label: "Features", href: "#features" },
+    { label: t("marketing.features", "Features"), href: "#features" },
     { label: t("marketing.menuPricing"), href: "#pricing" },
-    { label: "AI Platform", href: "#ai-platform" },
+    { label: t("marketing.aiPlatform", "AI Platform"), href: "#ai-platform" },
   ];
 
   return (
@@ -108,14 +109,14 @@ export function Header() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="flex h-16 items-center justify-between gap-4">
           <div className="flex items-center gap-8">
-            <Link href="/" className="flex items-center gap-2 transition hover:opacity-80" aria-label="Tamer Studio home">
+            <Link href="/" className="flex items-center gap-2 transition hover:opacity-80" aria-label={t("marketing.homeAria", "Tamer Studio home")}>
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/60 text-primary-foreground shadow-md">
                 <span className="text-sm font-bold">TS</span>
               </div>
               <span className="hidden sm:inline text-lg font-semibold tracking-tight">Tamer Studio</span>
             </Link>
 
-            <nav ref={navRef} className="hidden md:flex items-center gap-6" aria-label="Main">
+            <nav ref={navRef} className="hidden md:flex items-center gap-6" aria-label={t("marketing.mainNav", "Main")}>
               <Dropdown
                 label={t("marketing.menuProduct")}
                 items={productItems}
@@ -133,7 +134,7 @@ export function Header() {
                 type="button"
                 onClick={() => scrollTo("pricing")}
                 className="text-sm font-medium text-muted-foreground transition hover:text-primary"
-                title="Press P"
+                title={t("landing.shortcuts.pricingShortcut", "Press P")}
               >
                 {t("marketing.menuPricing")}
               </button>
@@ -141,7 +142,7 @@ export function Header() {
                 type="button"
                 onClick={() => scrollTo("contact")}
                 className="text-sm font-medium text-muted-foreground transition hover:text-primary"
-                title="Press C"
+                title={t("landing.shortcuts.contactShortcut", "Press C")}
               >
                 {t("marketing.menuContact")}
               </button>
@@ -149,6 +150,7 @@ export function Header() {
           </div>
 
           <div className="hidden md:flex items-center gap-3">
+            <LanguageSwitcher />
             <Link href="/login" className="text-sm font-medium text-muted-foreground transition hover:text-primary">
               {t("marketing.menuSignIn")}
             </Link>
@@ -177,7 +179,7 @@ export function Header() {
           className="md:hidden border-t border-border bg-background animate-in fade-in slide-in-from-top-2 duration-200"
           suppressHydrationWarning
         >
-          <nav className="mx-auto max-w-7xl px-4 py-4 space-y-1" aria-label="Mobile">
+          <nav className="mx-auto max-w-7xl px-4 py-4 space-y-1" aria-label={t("marketing.mobileNav", "Mobile")}>
             {productItems.map((item) => (
               <Link
                 key={item.label}

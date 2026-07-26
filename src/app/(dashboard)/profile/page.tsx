@@ -32,7 +32,7 @@ export default function ProfilePage() {
     return (
       <AppShell>
         <PageLayout title={t("profile.title")} description={t("profile.description")} breadcrumb={[{ label: t("profile.title") }]}>
-          <div className="text-destructive p-8">{t("common.failedToLoad")}</div>
+          <div className="text-destructive p-8">{t("common.failedToLoad", "Failed to load data")}</div>
         </PageLayout>
       </AppShell>
     );
