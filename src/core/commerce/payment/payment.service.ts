@@ -2,6 +2,10 @@ import type { PaymentIntent, PaymentResult, PaymentProvider } from "../types";
 import { DefaultTransactionRepository } from "../transactions/transaction.repository";
 import type { PaymentGateway } from "./gateway.interface";
 import { logger } from "@/core/logger";
+import { defaultEmailService } from "@/modules/email";
+import { db } from "@/lib/db";
+import { user } from "@/lib/db/schema/auth";
+import { eq } from "drizzle-orm";
 
 export interface PaymentService {
   initiatePayment(orderId: string, provider: PaymentProvider, amount: number, currency: string): Promise<PaymentResult>;
@@ -90,11 +94,34 @@ export class DefaultPaymentService implements PaymentService {
       throw new Error(`Payment verification failed for ${providerReference}`);
     }
 
-    return this.repository.updatePaymentStatus(paymentIntentId, "succeeded", {
+    const updated = await this.repository.updatePaymentStatus(paymentIntentId, "succeeded", {
       providerReference,
       succeededAt: new Date().toISOString(),
       lastAttemptAt: new Date().toISOString(),
     });
+
+    try {
+      const [userRecord] = await db.select().from(user).where(eq(user.id, updated.userId)).limit(1);
+      if (userRecord) {
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+        await defaultEmailService.sendPaymentSuccess({
+          email: userRecord.email,
+          userName: userRecord.name,
+          invoiceNumber: updated.id,
+          transactionNumber: providerReference,
+          paymentMethod: updated.provider,
+          paymentDate: new Date().toISOString(),
+          purchasedItem: `Order ${updated.orderId}`,
+          totalPayment: `${updated.currency} ${updated.amount}`,
+          invoiceUrl: `${appUrl}/billing/invoices/${updated.id}`,
+          dashboardUrl: `${appUrl}/dashboard`,
+        });
+      }
+    } catch (emailError) {
+      logger.warn("Payment success email failed", { paymentIntentId, error: String(emailError) });
+    }
+
+    return updated;
   }
 
   async failPayment(paymentIntentId: string, reason: string): Promise<PaymentIntent> {

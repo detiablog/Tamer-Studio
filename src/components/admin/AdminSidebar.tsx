@@ -22,6 +22,7 @@ import {
   RefreshCw,
   PanelLeftClose,
   PanelLeft,
+  Mail,
 } from "lucide-react"
 import { useLocalizationContext } from "@/providers/localization"
 
@@ -200,6 +201,13 @@ export function AdminSidebar({ pathname, collapsed, onToggle }: AdminSidebarProp
               </SidebarTooltip>
             ) : (
               <SidebarItem icon={Settings} label={t("admin.settings")} href="/admin/settings" active={isActive("/admin/settings")} />
+            ))}
+            {hasPermission("admin:email") && (collapsed ? (
+              <SidebarTooltip label={t("admin.email")}>
+                <SidebarItem icon={Mail} label="" href="/admin/email" active={isActive("/admin/email")} />
+              </SidebarTooltip>
+            ) : (
+              <SidebarItem icon={Mail} label={t("admin.email")} href="/admin/email" active={isActive("/admin/email")} />
             ))}
           </>
         ) : (

@@ -9,10 +9,8 @@ import { SUPPORTED_LOCALES } from "@/lib/localization/types";
 const LANGUAGES: { code: SupportedLocale; label: string; flag: string }[] = [
   { code: "en", label: "English", flag: "🇺🇸" },
   { code: "id", label: "Bahasa Indonesia", flag: "🇮🇩" },
-  { code: "ja", label: "日本語", flag: "🇯🇵" },
-  { code: "fr", label: "Français", flag: "🇫🇷" },
-  { code: "de", label: "Deutsch", flag: "🇩🇪" },
 ];
+
 
 export function LanguageSwitcher() {
   const { locale, setLocale, t } = useLocalizationContext();

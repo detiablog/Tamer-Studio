@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/core/auth";
 import { authLimiter, checkRateLimit } from "@/core/security/ratelimit";
 
 export async function POST(request: NextRequest) {
@@ -8,7 +9,6 @@ export async function POST(request: NextRequest) {
       request.headers.get("x-real-ip") ||
       "unknown";
 
-    // Check rate limit (5 attempts per 15 minutes)
     const rateLimit = await checkRateLimit(authLimiter, ip);
 
     if (!rateLimit.success) {
@@ -31,7 +31,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { email, password, name } = body;
 
-    // Validate input
     if (!email || !password || !name) {
       return NextResponse.json(
         { error: "Email, password, and name are required" },
@@ -39,7 +38,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return NextResponse.json(
@@ -48,7 +46,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate password strength (minimum 8 characters)
     if (password.length < 8) {
       return NextResponse.json(
         { error: "Password must be at least 8 characters" },
@@ -56,23 +53,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // TODO: Implement actual registration logic with Better Auth
-    // const result = await registerUser(email, password, name);
+    const result = await auth.api.signUpEmail({
+      body: { email, password, name },
+      headers: {},
+    });
 
-    return NextResponse.json(
-      {
-        success: true,
-        message: "Registration successful",
-        // user: result.user,
-      },
-      {
-        status: 201,
-        headers: {
-          "X-RateLimit-Remaining": rateLimit.remaining.toString(),
-          "X-RateLimit-Reset": new Date(rateLimit.resetTime).toISOString(),
-        },
-      }
-    );
+    if (result instanceof Response) {
+      return result;
+    }
+
+    return NextResponse.json(result);
   } catch (error) {
     console.error("Registration error:", error);
     return NextResponse.json(

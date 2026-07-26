@@ -14,7 +14,7 @@ export const landingSection = pgTable(
   "landing_section",
   {
     id: text("id").primaryKey(),
-    sectionKey: text("section_key").notNull().unique(),
+    sectionKey: text("section_key").notNull(),
     title: text("title").notNull().default(""),
     description: text("description"),
     component: text("component").default(""),

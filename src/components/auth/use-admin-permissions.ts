@@ -18,6 +18,7 @@ const ADMIN_PERMISSIONS = [
   "admin:audit_logs",
   "admin:feature_flags",
   "admin:system",
+  "admin:email",
 ] as const;
 
 export type AdminPermission = typeof ADMIN_PERMISSIONS[number];
