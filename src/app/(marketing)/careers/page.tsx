@@ -4,41 +4,41 @@ import * as React from "react";
 import { useLocalizationContext } from "@/providers/localization";
 import { Badge } from "@/components/ui/Badge";
 
-const benefits = [
-  "Competitive salary",
-  "Remote-first culture",
-  "Health and wellness benefits",
-  "Learning and development budget",
-  "Flexible working hours",
-  "Annual team retreats",
-];
-
-const positions = [
-  {
-    id: 1,
-    title: "Senior Frontend Engineer",
-    location: "Jakarta, Indonesia",
-    type: "Full-time",
-    description: "Build and scale the Tamer Studio marketing and dashboard experience with Next.js and React.",
-  },
-  {
-    id: 2,
-    title: "Product Designer",
-    location: "Remote",
-    type: "Full-time",
-    description: "Design intuitive interfaces for complex AI workflows and production tools.",
-  },
-  {
-    id: 3,
-    title: "Backend Engineer",
-    location: "Singapore",
-    type: "Full-time",
-    description: "Design APIs and background job infrastructure for AI-powered production pipelines.",
-  },
-];
-
 export default function CareersPage() {
   const { t } = useLocalizationContext();
+
+  const benefits = [
+    t("marketing.benefits.competitiveSalary", "Competitive salary"),
+    t("marketing.benefits.remoteFirst", "Remote-first culture"),
+    t("marketing.benefits.healthWellness", "Health and wellness benefits"),
+    t("marketing.benefits.learningBudget", "Learning and development budget"),
+    t("marketing.benefits.flexibleHours", "Flexible working hours"),
+    t("marketing.benefits.teamRetreats", "Annual team retreats"),
+  ];
+
+  const positions = [
+    {
+      id: 1,
+      title: "Senior Frontend Engineer",
+      location: "Jakarta, Indonesia",
+      type: "Full-time",
+      description: t("marketing.positions.frontend", "Build and scale the Tamer Studio marketing and dashboard experience with Next.js and React."),
+    },
+    {
+      id: 2,
+      title: "Product Designer",
+      location: "Remote",
+      type: "Full-time",
+      description: t("marketing.positions.designer", "Design intuitive interfaces for complex AI workflows and production tools."),
+    },
+    {
+      id: 3,
+      title: "Backend Engineer",
+      location: "Singapore",
+      type: "Full-time",
+      description: t("marketing.positions.backend", "Design APIs and background job infrastructure for AI-powered production pipelines."),
+    },
+  ];
 
   return (
     <div className="w-full">

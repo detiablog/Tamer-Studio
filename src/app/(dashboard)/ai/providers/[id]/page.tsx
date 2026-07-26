@@ -12,9 +12,11 @@ export default function AIProviderDetailPage({ params }: { params: Promise<{ id:
   const { id } = React.use(params);
   return (
     <AppShell>
-        <PageLayout title={"AI Provider"} breadcrumb={[{ label: "AI Platform", href: "/ai" }, { label: id }]}>
-          <AIProviderDetail id={id} />
-      </PageLayout>
+        <PageLayout title="AI Provider" breadcrumb={[{ label: "AI Platform", href: "/ai" }, { label: id }]}>
+          <div className="rounded-3xl border border-border bg-muted/20 p-8 text-center text-sm text-muted-foreground">
+            Provider detail coming soon.
+          </div>
+        </PageLayout>
     </AppShell>
   );
 }

@@ -5,6 +5,7 @@ import { useLandingSections, type LandingSection } from "@/hooks/use-landing-sec
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CompactLoader } from "@/components/ui/ElegantLoader";
+import { useLocalizationContext } from "@/providers/localization";
 
 type LivePreviewProps = {
   open: boolean;
@@ -16,6 +17,7 @@ type LivePreviewProps = {
  * Shows real-time preview of the landing page as it appears to users
  */
 export function LivePreview({ open, onClose }: LivePreviewProps) {
+  const { t } = useLocalizationContext();
   const { sections, loading, error } = useLandingSections();
   const [refreshing, setRefreshing] = React.useState(false);
 
@@ -42,9 +44,9 @@ export function LivePreview({ open, onClose }: LivePreviewProps) {
         {/* Header */}
         <div className="flex items-center justify-between gap-3 p-4 border-b border-border bg-muted/30">
           <div>
-            <h2 className="font-bold text-lg">📱 Live Preview</h2>
+            <h2 className="font-bold text-lg">📱 {t("livePreview.title", "Live Preview")}</h2>
             <p className="text-xs text-muted-foreground mt-0.5">
-              {loading ? "Loading..." : error ? "Error loading" : `${sections.length} sections`}
+              {loading ? t("common.loading", "Loading...") : error ? t("livePreview.errorLoading", "Error loading") : `${sections.length} ${t("livePreview.sections", "sections")}`}
             </p>
           </div>
           <div className="flex gap-2">
@@ -55,12 +57,12 @@ export function LivePreview({ open, onClose }: LivePreviewProps) {
               disabled={refreshing || loading}
               className="text-xs"
             >
-              {refreshing ? "↻ Refreshing..." : "↻ Refresh"}
+              {refreshing ? "↻ " + t("livePreview.refreshing", "Refreshing...") : "↻ " + t("livePreview.refresh", "Refresh")}
             </Button>
             <button
               onClick={onClose}
               className="text-muted-foreground hover:text-foreground rounded-lg p-2 hover:bg-muted transition"
-              aria-label="Close preview"
+              aria-label={t("livePreview.closePreview", "Close preview")}
             >
               <X className="size-5" />
             </button>
@@ -76,18 +78,18 @@ export function LivePreview({ open, onClose }: LivePreviewProps) {
           ) : error ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center space-y-2 max-w-xs">
-                <p className="text-sm font-semibold text-destructive">⚠️ Failed to load preview</p>
+                <p className="text-sm font-semibold text-destructive">⚠️ {t("livePreview.failedToLoad", "Failed to load preview")}</p>
                 <p className="text-xs text-muted-foreground">
-                  Check your database connection and try again.
+                  {t("livePreview.checkDatabase", "Check your database connection and try again.")}
                 </p>
               </div>
             </div>
           ) : sections.length === 0 ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center space-y-2 max-w-xs">
-                <p className="text-sm font-semibold">No sections to preview</p>
+                <p className="text-sm font-semibold">{t("livePreview.noSections", "No sections to preview")}</p>
                 <p className="text-xs text-muted-foreground">
-                  Create and publish sections in the editor to see them here.
+                  {t("livePreview.createAndPublish", "Create and publish sections in the editor to see them here.")}
                 </p>
               </div>
             </div>

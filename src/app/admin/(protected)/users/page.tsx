@@ -254,7 +254,7 @@ export default function AdminUsersPage() {
                       <option value="all">{t("admin.allStatus", "All Status")}</option>
                       <option value="active">{t("admin.active", "Active")}</option>
                       <option value="pending">{t("admin.pending", "Pending")}</option>
-                      <option value="suspended">Suspended</option>
+                      <option value="suspended">t("admin.suspended", "Suspended")</option>
                     </select>
                   </div>
                   <div>
@@ -265,8 +265,8 @@ export default function AdminUsersPage() {
                       className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
                     >
                       <option value="all">{t("admin.allRoles", "All Roles")}</option>
-                      <option value="admin">Admin</option>
-                      <option value="user">User</option>
+                      <option value="admin">{t("admin.roleAdmin", "Admin")}</option>
+                      <option value="user">{t("admin.roleUser", "User")}</option>
                     </select>
                   </div>
                 </div>
@@ -357,31 +357,31 @@ export default function AdminUsersPage() {
             </div>
 
             <form onSubmit={handleAddUser} className="space-y-4">
-              <div>
-                <label className="text-sm font-medium mb-1.5 block">{t("common.name", "Name")}</label>
-                <Input type="text" placeholder="John Doe" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-1.5 block">{t("common.email", "Email")}</label>
-                <Input type="email" placeholder="john@example.com" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required />
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-1.5 block">{t("common.password", "Password")}</label>
-                <Input type="password" placeholder="••••••••" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} required />
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-1.5 block">{t("admin.role", "Role")}</label>
-                <select value={formData.role} onChange={(e) => setFormData({ ...formData, role: e.target.value })} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm">
-                  <option value="admin">Admin</option>
-                  <option value="user">User</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-1.5 block">{t("admin.status", "Status")}</label>
-                <select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm">
-                  <option value="active">{t("admin.active", "Active")}</option>
-                  <option value="pending">{t("admin.pending", "Pending")}</option>
-                  <option value="suspended">Suspended</option>
+               <div>
+                 <label className="text-sm font-medium mb-1.5 block">{t("common.name", "Name")}</label>
+                 <Input type="text" placeholder={t("admin.namePlaceholder", "John Doe")} value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
+               </div>
+               <div>
+                 <label className="text-sm font-medium mb-1.5 block">{t("common.email", "Email")}</label>
+                 <Input type="email" placeholder={t("admin.emailPlaceholder", "john@example.com")} value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required />
+               </div>
+               <div>
+                 <label className="text-sm font-medium mb-1.5 block">{t("common.password", "Password")}</label>
+                 <Input type="password" placeholder={t("admin.passwordPlaceholder", "••••••••")} value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} required />
+               </div>
+               <div>
+                 <label className="text-sm font-medium mb-1.5 block">{t("admin.role", "Role")}</label>
+                 <select value={formData.role} onChange={(e) => setFormData({ ...formData, role: e.target.value })} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm">
+                   <option value="admin">{t("admin.roleAdmin", "Admin")}</option>
+                   <option value="user">{t("admin.roleUser", "User")}</option>
+                 </select>
+               </div>
+               <div>
+                 <label className="text-sm font-medium mb-1.5 block">{t("admin.status", "Status")}</label>
+                 <select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm">
+                   <option value="active">{t("admin.active", "Active")}</option>
+                   <option value="pending">{t("admin.pending", "Pending")}</option>
+                   <option value="suspended">{t("admin.suspended", "Suspended")}</option>
                 </select>
               </div>
               <div className="flex gap-2 pt-4">

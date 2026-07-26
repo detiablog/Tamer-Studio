@@ -74,13 +74,13 @@ export default function QueuesPage() {
           data={filtered}
           keyExtractor={(q) => q.id}
           columns={[
-            { key: "name", header: "Queue", render: (q: any) => <p className="font-medium text-sm">{q.name}</p> },
-            { key: "status", header: "Status", render: (q: any) => <Badge tone={q.status === "Active" ? "success" : "muted"}>{q.status}</Badge> },
-            { key: "jobsTotal", header: "Total", render: (q: any) => <span className="text-sm">{q.jobsTotal}</span> },
-            { key: "jobsActive", header: "Active", render: (q: any) => <Badge tone="info">{q.jobsActive}</Badge> },
-            { key: "jobsCompleted", header: "Completed", render: (q: any) => <span className="text-sm">{q.jobsCompleted}</span> },
-            { key: "jobsFailed", header: "Failed", render: (q: any) => <Badge tone={q.jobsFailed > 0 ? "warning" : "success"}>{q.jobsFailed}</Badge> },
-            { key: "ratePerSec", header: "Rate/s", render: (q: any) => <span className="text-sm">{q.ratePerSec}</span> },
+            { key: "name", header: t("admin.queue", "Queue"), render: (q: any) => <p className="font-medium text-sm">{q.name}</p> },
+            { key: "status", header: t("common.status", "Status"), render: (q: any) => <Badge tone={q.status === "Active" ? "success" : "muted"}>{q.status}</Badge> },
+            { key: "jobsTotal", header: t("admin.total", "Total"), render: (q: any) => <span className="text-sm">{q.jobsTotal}</span> },
+            { key: "jobsActive", header: t("admin.active", "Active"), render: (q: any) => <Badge tone="info">{q.jobsActive}</Badge> },
+            { key: "jobsCompleted", header: t("admin.completed", "Completed"), render: (q: any) => <span className="text-sm">{q.jobsCompleted}</span> },
+            { key: "jobsFailed", header: t("admin.failed", "Failed"), render: (q: any) => <Badge tone={q.jobsFailed > 0 ? "warning" : "success"}>{q.jobsFailed}</Badge> },
+            { key: "ratePerSec", header: t("admin.ratePerSec", "Rate/s"), render: (q: any) => <span className="text-sm">{q.ratePerSec}</span> },
             { key: "actions", header: "", align: "right", render: (q: any) => (
               <div className="flex items-center gap-1 justify-end">
                 <Button variant="ghost" size="icon-xs" onClick={() => handleToggleStatus(q.id)} aria-label={t("admin.toggleQueueStatus", "Toggle queue status")}>

@@ -3,16 +3,22 @@ import { AppShell } from "@/components/ui/AppShell";
 import { PageLayout } from "@/components/ui/PageLayout";
 import { StatCard } from "@/components/ui/StatCard";
 import { DashboardCard } from "@/components/ui/DashboardCard";
-import { ActionButton } from "@/components/ui/ActionButton";
 import { ProjectList } from "@/features/project/ProjectList";
 import { Clock, TrendingUp, Archive } from "lucide-react";
+import { ProjectsActions } from "./Actions";
 
 export const metadata = { title: "Projects - Tamer Studio", description: "Create and manage production projects, assets, and schedules." };
+export const dynamic = 'force-dynamic';
 
 export default function ProjectsPage() {
   return (
     <AppShell>
-      <PageLayout title={"Projects"} description={"Organize and manage your production projects."} breadcrumb={[{ label: "Projects" }]} actions={<ActionButton>New Project</ActionButton>}>
+      <PageLayout 
+        title="Projects" 
+        description="Organize and manage your production projects." 
+        breadcrumb={[{ label: "Projects" }]} 
+        actions={<ProjectsActions />}
+      >
         <div className="grid gap-6">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard title="Total Projects" value={12} delta="+2 this month" />
@@ -49,11 +55,11 @@ export default function ProjectsPage() {
               </DashboardCard>
 
               <DashboardCard title="Popular Tags">
-              <div className="flex flex-wrap gap-2">
-                {["affiliate", "video", "social", "product", "tutorial", "review", "promo", "launch"].map((tag) => (
-                  <span key={tag} className="cursor-pointer rounded-full bg-muted/60 px-2 py-0.5 text-xs font-medium text-muted-foreground hover:bg-muted">#{tag}</span>
-                ))}
-              </div>
+                <div className="flex flex-wrap gap-2">
+                  {["affiliate", "video", "social", "product", "tutorial", "review", "promo", "launch"].map((tag) => (
+                    <span key={tag} className="cursor-pointer rounded-full bg-muted/60 px-2 py-0.5 text-xs font-medium text-muted-foreground hover:bg-muted">#{tag}</span>
+                  ))}
+                </div>
               </DashboardCard>
             </div>
           </div>

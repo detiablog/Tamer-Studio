@@ -30,7 +30,7 @@ const fetcher = async (url: string) => {
 };
 
 export default function AdminLandingBuilderPage() {
-  const { t: _t } = useLocalizationContext();
+  const { t } = useLocalizationContext();
   const { data, error, isLoading, mutate } = useSWR("/api/landing/sections", fetcher, {
     revalidateOnFocus: false,
     shouldRetryOnError: false,
@@ -96,13 +96,13 @@ export default function AdminLandingBuilderPage() {
 
       const result = await response.json();
       if (!response.ok) {
-        toast.error(result.error || "Failed to delete section");
+        toast.error(result.error || t("landingBuilder.failedToDelete", "Failed to delete section"));
         return;
       }
 
-      toast.success("Section deleted", {
+      toast.success(t("landingBuilder.sectionDeleted", "Section deleted"), {
         action: {
-          label: "Undo",
+          label: t("landingBuilder.undo", "Undo"),
           onClick: () => handleUndoDelete(section),
         },
       });
@@ -134,13 +134,13 @@ export default function AdminLandingBuilderPage() {
 
       const result = await response.json();
       if (response.ok) {
-        toast.success("Section restored");
+        toast.success(t("landingBuilder.sectionRestored", "Section restored"));
         await mutate();
       } else {
-        toast.error(result.error || "Failed to restore section");
+        toast.error(result.error || t("landingBuilder.failedToRestore", "Failed to restore section"));
       }
     } catch {
-      toast.error("Error restoring section");
+      toast.error(t("landingBuilder.errorRestoring", "Error restoring section"));
     }
   };
 
@@ -154,14 +154,14 @@ export default function AdminLandingBuilderPage() {
 
       const result = await response.json();
       if (!response.ok) {
-        toast.error(result.error || "Failed to update visibility");
+        toast.error(result.error || t("landingBuilder.failedToUpdateVisibility", "Failed to update visibility"));
         return;
       }
 
-      toast.success(section.visible ? "Section hidden" : "Section is now visible");
+      toast.success(section.visible ? t("landingBuilder.sectionHidden", "Section hidden") : t("landingBuilder.sectionVisible", "Section is now visible"));
       await mutate();
     } catch {
-      toast.error("Error updating visibility");
+      toast.error(t("landingBuilder.errorUpdatingVisibility", "Error updating visibility"));
     }
   };
 
@@ -175,14 +175,14 @@ export default function AdminLandingBuilderPage() {
 
       const result = await response.json();
       if (!response.ok) {
-        toast.error(result.error || "Failed to update lock state");
+        toast.error(result.error || t("landingBuilder.failedToUpdateLockState", "Failed to update lock state"));
         return;
       }
 
-      toast.success(section.locked ? "Section unlocked" : "Section locked");
+      toast.success(section.locked ? t("landingBuilder.sectionUnlocked", "Section unlocked") : t("landingBuilder.sectionLocked", "Section locked"));
       await mutate();
     } catch {
-      toast.error("Error updating lock state");
+      toast.error(t("landingBuilder.errorUpdatingLockState", "Error updating lock state"));
     }
   };
 
@@ -198,14 +198,14 @@ export default function AdminLandingBuilderPage() {
 
       const result = await response.json();
       if (!response.ok) {
-        toast.error(result.error || "Failed to duplicate section");
+        toast.error(result.error || t("landingBuilder.failedToDuplicate", "Failed to duplicate section"));
         return;
       }
 
-      toast.success("Section duplicated");
+      toast.success(t("landingBuilder.sectionDuplicated", "Section duplicated"));
       await mutate();
     } catch {
-      toast.error("Error duplicating section");
+      toast.error(t("landingBuilder.errorDuplicating", "Error duplicating section"));
     }
   };
 
@@ -219,15 +219,15 @@ export default function AdminLandingBuilderPage() {
 
       const result = await response.json();
       if (!response.ok) {
-        toast.error(result.error || "Failed to reorder sections");
+        toast.error(result.error || t("landingBuilder.failedToReorder", "Failed to reorder sections"));
         await mutate();
         return;
       }
 
-      toast.success("Sections reordered");
+      toast.success(t("landingBuilder.sectionsReordered", "Sections reordered"));
       await mutate();
     } catch {
-      toast.error("Error reordering sections");
+      toast.error(t("landingBuilder.errorReordering", "Error reordering sections"));
       await mutate();
     }
   };
@@ -261,15 +261,15 @@ export default function AdminLandingBuilderPage() {
 
   return (
     <div className="space-y-6">
-      <Breadcrumbs items={[{ label: "Landing Builder" }]} />
+      <Breadcrumbs items={[{ label: t("admin.landingBuilder", "Landing Builder") }]} />
 
       <DashboardCard>
         <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-background border-primary/20 rounded-lg p-6">
           <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Landing Page Builder</h1>
+            <h1 className="text-3xl font-bold tracking-tight">{t("landingBuilder.pageTitle", "Landing Page Builder")}</h1>
             <p className="text-muted-foreground text-sm mt-2 leading-relaxed">
-              Manage and customize landing page sections. Drag to reorder, click to edit. All changes save automatically.
+              {t("landingBuilder.pageDescription", "Manage and customize landing page sections. Drag to reorder, click to edit. All changes save automatically.")}
             </p>
           </div>
           <div className="flex gap-2 flex-wrap">
@@ -280,7 +280,7 @@ export default function AdminLandingBuilderPage() {
               className="whitespace-nowrap"
             >
               <Eye className="mr-2 size-4" />
-              Live Preview
+              {t("landingBuilder.livePreview", "Live Preview")}
             </Button>
             <Button
               variant="outline"
@@ -289,7 +289,7 @@ export default function AdminLandingBuilderPage() {
               disabled={isRefreshing}
             >
               <RefreshCw className={`mr-2 size-4 ${isRefreshing ? "animate-spin" : ""}`} />
-              Refresh
+              {t("landingBuilder.refresh", "Refresh")}
             </Button>
             <Button
               size="sm"
@@ -297,7 +297,7 @@ export default function AdminLandingBuilderPage() {
               className="bg-gradient-to-r from-primary to-primary/80 whitespace-nowrap"
             >
               <Plus className="mr-2 size-4" />
-              New Section
+              {t("landingBuilder.newSection", "New Section")}
             </Button>
           </div>
           </div>
@@ -314,8 +314,8 @@ export default function AdminLandingBuilderPage() {
             }`}
           >
             {error.message?.toLowerCase().includes("not found") || error.message?.toLowerCase().includes("migration")
-              ? "Landing CMS tables are missing. Run: pnpm db:migrate"
-              : error.message || "Database connection failed."}
+              ? t("landingBuilder.missingTables", "Landing CMS tables are missing. Run: pnpm db:migrate")
+              : error.message || t("landingBuilder.dbConnectionFailed", "Database connection failed.")}
           </div>
         )}
 

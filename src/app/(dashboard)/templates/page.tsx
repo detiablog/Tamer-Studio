@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react"
 import { AppShell } from "@/components/ui/AppShell"
 import { PageLayout } from "@/components/ui/PageLayout"
@@ -6,8 +8,7 @@ import { ActionButton } from "@/components/ui/ActionButton"
 import { Badge } from "@/components/ui/Badge"
 import { Button } from "@/components/ui/button"
 import { FileText, Star, Copy, Search } from "lucide-react"
-
-export const metadata = { title: "Templates - Tamer Studio", description: "Manage prompt and production templates." }
+import { useLocalizationContext } from "@/providers/localization"
 
 const TEMPLATES = [
   { id: "1", name: "YouTube Script Template", category: "Script", uses: 24, favorite: true },
@@ -18,27 +19,28 @@ const TEMPLATES = [
 ]
 
 export default function TemplatesPage() {
+  const { t } = useLocalizationContext();
   return (
     <AppShell>
       <PageLayout
-        title={"Templates"}
-        description={"Reusable prompt and production templates."}
-        breadcrumb={[{ label: "Templates" }]}
-        actions={<ActionButton>Create Template</ActionButton>}
+        title={t("templates.pageTitle", "Templates")}
+        description={t("templates.description", "Reusable prompt and production templates.")}
+        breadcrumb={[{ label: t("templates.pageTitle", "Templates") }]}
+        actions={<ActionButton>{t("templates.createTemplate", "Create Template")}</ActionButton>}
       >
         <div className="space-y-6">
-          <DashboardCard title="Templates" description="Quick-start templates for common workflows">
+          <DashboardCard title={t("templates.templatesList", "Templates")} description={t("templates.templatesListDesc", "Quick-start templates for common workflows")}>
             <div className="flex items-center gap-2 pb-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
                 <input
                   type="text"
-                  placeholder="Search templates..."
+                  placeholder={t("templates.searchPlaceholder", "Search templates...")}
                   aria-label="Search templates"
                   className="w-full rounded-lg border bg-background pl-9 pr-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
                 />
               </div>
-              <Button variant="outline" size="sm">Filter</Button>
+              <Button variant="outline" size="sm">{t("templates.filter", "Filter")}</Button>
             </div>
 
             <div className="space-y-3">
@@ -55,7 +57,7 @@ export default function TemplatesPage() {
                       </div>
                       <div className="flex items-center gap-2 mt-1">
                         <Badge tone="muted">{template.category}</Badge>
-                        <span className="text-xs text-muted-foreground">{template.uses} uses</span>
+                        <span className="text-xs text-muted-foreground">{template.uses} {t("templates.uses", "uses")}</span>
                       </div>
                     </div>
                   </div>
@@ -63,7 +65,7 @@ export default function TemplatesPage() {
                     <Button variant="ghost" size="icon" className="size-8">
                       <Copy className="size-4" />
                     </Button>
-                    <Button variant="ghost" size="sm">Use</Button>
+                    <Button variant="ghost" size="sm">{t("templates.use", "Use")}</Button>
                   </div>
                 </div>
               ))}

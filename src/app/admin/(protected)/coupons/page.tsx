@@ -116,8 +116,8 @@ export default function CouponsPage() {
               <button onClick={() => setAddOpen(false)} className="text-muted-foreground hover:text-foreground"><X className="size-5" /></button>
             </div>
             <form onSubmit={handleAdd} className="space-y-4">
-              <div><label className="text-sm font-medium mb-1.5 block">{t("admin.coupons.code", "Code")}</label><Input value={formData.code} onChange={(e) => setFormData({ ...formData, code: e.target.value })} placeholder="SAVE20" required /></div>
-              <div><label className="text-sm font-medium mb-1.5 block">{t("admin.coupons.discount", "Discount")}</label><Input value={formData.discount} onChange={(e) => setFormData({ ...formData, discount: e.target.value })} placeholder="20%" required /></div>
+              <div><label className="text-sm font-medium mb-1.5 block">{t("admin.coupons.code", "Code")}</label><Input value={formData.code} onChange={(e) => setFormData({ ...formData, code: e.target.value })} placeholder={t("admin.coupons.codePlaceholder", "SAVE20")} required /></div>
+              <div><label className="text-sm font-medium mb-1.5 block">{t("admin.coupons.discount", "Discount")}</label><Input value={formData.discount} onChange={(e) => setFormData({ ...formData, discount: e.target.value })} placeholder={t("admin.coupons.discountPlaceholder", "20%")} required /></div>
               <div><label className="text-sm font-medium mb-1.5 block">{t("admin.coupons.type", "Type")}</label><select value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"><option value="Percentage">{t("admin.coupons.percentage", "Percentage")}</option><option value="Fixed">{t("admin.coupons.fixed", "Fixed")}</option></select></div>
               <div><label className="text-sm font-medium mb-1.5 block">{t("admin.coupons.expiry", "Expires")}</label><Input type="date" value={formData.expires} onChange={(e) => setFormData({ ...formData, expires: e.target.value })} required /></div>
               <div className="flex gap-2 pt-4">

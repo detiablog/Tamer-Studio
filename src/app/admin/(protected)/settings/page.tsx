@@ -94,7 +94,7 @@ export default function SettingsPage() {
             <div><Label>{t("admin.storageLimit")}</Label><Input type="number" value={formData.storageLimit} onChange={(e) => setFormData({ ...formData, storageLimit: e.target.value })} className="mt-1" /></div>
           )}
           {activeTab === "ai" && (
-            <div><Label>{t("admin.defaultAIProvider")}</Label><select value={formData.aiProvider} onChange={(e) => setFormData({ ...formData, aiProvider: e.target.value })} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm mt-1"><option value="openai">OpenAI</option><option value="anthropic">Anthropic</option><option value="google">Google</option><option value="cohere">Cohere</option></select></div>
+            <div><Label>{t("admin.defaultAIProvider")}</Label><select value={formData.aiProvider} onChange={(e) => setFormData({ ...formData, aiProvider: e.target.value })} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm mt-1"><option value="openai">{t("admin.providerOpenAI", "OpenAI")}</option><option value="anthropic">{t("admin.providerAnthropic", "Anthropic")}</option><option value="google">{t("admin.providerGoogle", "Google")}</option><option value="cohere">{t("admin.providerCohere", "Cohere")}</option></select></div>
           )}
           {activeTab === "billing" && (
             <div className="text-center py-8 text-muted-foreground"><CreditCard className="size-8 mx-auto mb-2 opacity-40" /><p>{t("admin.noBillingConfigured")}</p><Button variant="link" className="mt-2">{t("admin.manageBilling")}</Button></div>
@@ -109,7 +109,7 @@ export default function SettingsPage() {
 
         <div className="flex gap-2 pt-6 border-t border-border mt-6">
           <Button onClick={handleSave} disabled={saving}><Save className="mr-2 size-4" />{saving ? t("admin.saving") : t("admin.saveChanges")}</Button>
-          <Button variant="outline" onClick={() => { if (confirm("Reset all settings to defaults? This cannot be undone.")) { setFormData({ siteName: "Tamer Studio", timezone: "UTC", language: "en", twoFactor: true, sessionTimeout: "30", emailNotifications: true, storageLimit: "10", aiProvider: "openai", apiRateLimit: "1000", debugMode: false }); toast.success(t("settings.saved")); } }}><RefreshCw className="mr-2 size-4" />{t("admin.reset")}</Button>
+          <Button variant="outline" onClick={() => { if (confirm(t("admin.resetConfirm", "Reset all settings to defaults? This cannot be undone."))) { setFormData({ siteName: "Tamer Studio", timezone: "UTC", language: "en", twoFactor: true, sessionTimeout: "30", emailNotifications: true, storageLimit: "10", aiProvider: "openai", apiRateLimit: "1000", debugMode: false }); toast.success(t("settings.saved")); } }}><RefreshCw className="mr-2 size-4" />{t("admin.reset")}</Button>
         </div>
       </DashboardCard>
     </div>

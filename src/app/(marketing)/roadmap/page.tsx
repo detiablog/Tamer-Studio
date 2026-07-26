@@ -5,25 +5,25 @@ import { useLocalizationContext } from "@/providers/localization";
 import { Badge } from "@/components/ui/Badge";
 import { ArrowUp } from "lucide-react";
 
-const roadmap = {
-  planned: [
-    { id: 1, title: "Batch generation queues", description: "Run multiple AI jobs in sequence with automatic retries and notifications." },
-    { id: 2, title: "Team permissions v2", description: "Granular workspace roles with provider and budget limits per member." },
-  ],
-  inProgress: [
-    { id: 3, title: "Prompt library migration", description: "Move prompts into versioned collections with sharing and rollback." },
-    { id: 4, title: "Provider health dashboard", description: "Real-time latency, success rate, and cost per provider/model." },
-  ],
-  completed: [
-    { id: 5, title: "Multi-provider AI", description: "Connect OpenAI, Gemini, Claude, OpenRouter, and Kilo." },
-    { id: 6, title: "Usage analytics", description: "Track spend, jobs, credits, and queue depth in real time." },
-  ],
-};
-
 export default function RoadmapPage() {
   const { t } = useLocalizationContext();
   const [votes, setVotes] = React.useState<Record<number, number>>({});
   const [userVotes, setUserVotes] = React.useState<Record<number, boolean>>({});
+
+  const roadmap = {
+    planned: [
+      { id: 1, title: t("marketing.roadmap.planned1.title", "Batch generation queues"), description: t("marketing.roadmap.planned1.desc", "Run multiple AI jobs in sequence with automatic retries and notifications.") },
+      { id: 2, title: t("marketing.roadmap.planned2.title", "Team permissions v2"), description: t("marketing.roadmap.planned2.desc", "Granular workspace roles with provider and budget limits per member.") },
+    ],
+    inProgress: [
+      { id: 3, title: t("marketing.roadmap.inProgress1.title", "Prompt library migration"), description: t("marketing.roadmap.inProgress1.desc", "Move prompts into versioned collections with sharing and rollback.") },
+      { id: 4, title: t("marketing.roadmap.inProgress2.title", "Provider health dashboard"), description: t("marketing.roadmap.inProgress2.desc", "Real-time latency, success rate, and cost per provider/model.") },
+    ],
+    completed: [
+      { id: 5, title: t("marketing.roadmap.completed1.title", "Multi-provider AI"), description: t("marketing.roadmap.completed1.desc", "Connect OpenAI, Gemini, Claude, OpenRouter, and Kilo.") },
+      { id: 6, title: t("marketing.roadmap.completed2.title", "Usage analytics"), description: t("marketing.roadmap.completed2.desc", "Track spend, jobs, credits, and queue depth in real time.") },
+    ],
+  };
 
   const handleVote = (id: number) => {
     setVotes((v) => ({ ...v, [id]: (v[id] || 0) + 1 }));
@@ -46,7 +46,7 @@ export default function RoadmapPage() {
                   <h3 className="font-medium">{item.title}</h3>
                   <p className="mt-2 text-sm text-muted-foreground">{item.description}</p>
                   <div className="mt-4 flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">{votes[item.id] || 0} votes</span>
+                    <span className="text-xs text-muted-foreground">{votes[item.id] || 0} {t("marketing.roadmapVotes", "votes")}</span>
                     <button
                       onClick={() => handleVote(item.id)}
                       disabled={userVotes[item.id]}
@@ -64,11 +64,11 @@ export default function RoadmapPage() {
             <div className="mt-4 space-y-4">
               {roadmap.inProgress.map((item) => (
                 <div key={item.id} className="rounded-2xl border border-border bg-card p-5">
-                  <Badge tone="warning">{t("marketing.monthly")}</Badge>
+                  <Badge tone="warning">{t("marketing.inProgress", "In Progress")}</Badge>
                   <h3 className="font-medium">{item.title}</h3>
                   <p className="mt-2 text-sm text-muted-foreground">{item.description}</p>
                   <div className="mt-4 flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">{votes[item.id] || 0} votes</span>
+                    <span className="text-xs text-muted-foreground">{votes[item.id] || 0} {t("marketing.roadmapVotes", "votes")}</span>
                     <button
                       onClick={() => handleVote(item.id)}
                       disabled={userVotes[item.id]}

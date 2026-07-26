@@ -129,7 +129,7 @@ export function AdminAvatarDropdown() {
         className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring/50"
         aria-expanded={open}
         aria-haspopup="true"
-        aria-label="Account menu"
+        aria-label={t("admin.accountMenu", "Account menu")}
       >
         <Avatar name={initials} size={32} />
         {!loading && (

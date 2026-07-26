@@ -2,8 +2,10 @@
 
 import * as React from "react";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
+import { useLocalizationContext } from "@/providers/localization";
 
 export function LandingKeyboardShortcuts() {
+  const { t } = useLocalizationContext();
   useKeyboardShortcuts([
     {
       key: "p",
@@ -13,7 +15,7 @@ export function LandingKeyboardShortcuts() {
           el.scrollIntoView({ behavior: "smooth", block: "start" });
         }
       },
-      description: "Scroll to pricing",
+      description: t("landing.shortcuts.scrollToPricing", "Scroll to pricing"),
     },
     {
       key: "f",
@@ -23,7 +25,7 @@ export function LandingKeyboardShortcuts() {
           el.scrollIntoView({ behavior: "smooth", block: "start" });
         }
       },
-      description: "Scroll to features",
+      description: t("landing.shortcuts.scrollToFeatures", "Scroll to features"),
     },
     {
       key: "c",
@@ -33,28 +35,28 @@ export function LandingKeyboardShortcuts() {
           el.scrollIntoView({ behavior: "smooth", block: "start" });
         }
       },
-      description: "Scroll to contact",
+      description: t("landing.shortcuts.scrollToContact", "Scroll to contact"),
     },
     {
       key: "h",
       action: () => {
         window.scrollTo({ top: 0, behavior: "smooth" });
       },
-      description: "Scroll to home",
+      description: t("landing.shortcuts.scrollToHome", "Scroll to home"),
     },
     {
       key: "r",
       action: () => {
         window.location.href = "/register";
       },
-      description: "Go to register",
+      description: t("landing.shortcuts.goToRegister", "Go to register"),
     },
     {
       key: "l",
       action: () => {
         window.location.href = "/login";
       },
-      description: "Go to login",
+      description: t("landing.shortcuts.goToLogin", "Go to login"),
     },
   ]);
 

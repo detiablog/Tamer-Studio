@@ -28,20 +28,20 @@ export default function MediaPage() {
       <PageLayout title={t("dashboard.mediaLibrary")} description={t("dashboard.mediaLibraryDesc")} breadcrumb={[{ label: t("dashboard.media") }]} actions={<ActionButton>{t("dashboard.uploadMedia")}</ActionButton>}>
         <div className="space-y-6">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <StatCard title="Total Assets" value={48} delta="+6 this week" />
-            <StatCard title="Images" value={24} delta="12 MB avg" />
-            <StatCard title="Videos" value={12} delta="45 MB avg" />
-            <StatCard title="Audio" value={12} delta="8 MB avg" />
+            <StatCard title={t("media.totalAssets", "Total Assets")} value={48} delta={t("dashboard.delta.thisWeek", "+6 this week")} />
+            <StatCard title={t("media.images", "Images")} value={24} delta={t("media.imagesAvg", "12 MB avg")} />
+            <StatCard title={t("media.videos", "Videos")} value={12} delta={t("media.videosAvg", "45 MB avg")} />
+            <StatCard title={t("media.audio", "Audio")} value={12} delta={t("media.audioAvg", "8 MB avg")} />
           </div>
 
-          <DashboardCard title={t("dashboard.mediaLibrary")} description="Browse and manage your media assets">
+          <DashboardCard title={t("dashboard.mediaLibrary")} description={t("media.browseAndManage", "Browse and manage your media assets")}>
             <div className="flex items-center gap-2 pb-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
                 <input
                   type="text"
-                  placeholder="Search media..."
-                  aria-label="Search media"
+                  placeholder={t("media.searchPlaceholder", "Search media...")}
+                  aria-label={t("media.searchAria", "Search media")}
                   className="w-full rounded-lg border bg-background pl-9 pr-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
                 />
               </div>
@@ -77,7 +77,7 @@ export default function MediaPage() {
             </div>
 
             <div className="mt-4 flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">Showing {MEDIA_ITEMS.length} of 48 assets</p>
+              <p className="text-sm text-muted-foreground">{t("media.showingCount", "Showing {0} of {1} assets").replace("{0}", String(MEDIA_ITEMS.length)).replace("{1}", "48")}</p>
               <div className="flex gap-2">
                 <Button variant="ghost" size="sm" disabled>{t("common.previous")}</Button>
                 <Button variant="ghost" size="sm">{t("common.next")}</Button>

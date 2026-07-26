@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { X } from "lucide-react";
+import { useLocalizationContext } from "@/providers/localization";
 
 const AVAILABLE_SECTIONS = [
   { key: "hero", label: "Hero", description: "Main hero section with CTA", icon: "🚀" },
@@ -32,6 +33,7 @@ type AddSectionDialogProps = {
 };
 
 export function AddSectionDialog({ open, onClose, onCreated }: AddSectionDialogProps) {
+  const { t } = useLocalizationContext();
   const [selected, setSelected] = React.useState<string | null>(null);
   const [title, setTitle] = React.useState("");
   const [key, setKey] = React.useState("");
@@ -69,15 +71,15 @@ export function AddSectionDialog({ open, onClose, onCreated }: AddSectionDialogP
 
       const result = await response.json();
       if (!response.ok) {
-        toast.error(result.error || "Failed to create section");
+        toast.error(result.error || t("addSectionDialog.failedCreate", "Failed to create section"));
         return;
       }
 
-      toast.success("Section created successfully");
+      toast.success(t("addSectionDialog.success", "Section created successfully"));
       onCreated({ key: result.data.sectionKey, title: result.data.title });
       onClose();
     } catch {
-      toast.error("Error creating section");
+      toast.error(t("addSectionDialog.errorCreate", "Error creating section"));
     } finally {
       setSaving(false);
     }
@@ -95,9 +97,9 @@ export function AddSectionDialog({ open, onClose, onCreated }: AddSectionDialogP
       <div className="relative z-50 w-full max-w-2xl max-h-[85vh] overflow-hidden rounded-2xl border border-border bg-card shadow-2xl flex flex-col">
         <div className="flex items-center justify-between p-4 border-b border-border">
           <div>
-            <h2 className="text-lg font-bold">Add New Section</h2>
+            <h2 className="text-lg font-bold">{t("addSectionDialog.title", "Add New Section")}</h2>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Choose a block type and configure its settings
+              {t("addSectionDialog.description", "Choose a block type and configure its settings")}
             </p>
           </div>
           <button
@@ -175,24 +177,24 @@ export function AddSectionDialog({ open, onClose, onCreated }: AddSectionDialogP
           )}
         </div>
 
-        {selected && (
-          <div className="flex gap-2 p-4 border-t border-border bg-muted/20">
-            <Button
-              variant="outline"
-              onClick={() => setSelected(null)}
-              className="flex-1"
-            >
-              Back
-            </Button>
-            <Button
-              onClick={handleCreate}
-              disabled={saving || !title.trim()}
-              className="flex-1 bg-gradient-to-r from-primary to-primary/80"
-            >
-              {saving ? "Creating..." : "Create Section"}
-            </Button>
-          </div>
-        )}
+          {selected && (
+            <div className="flex gap-2 p-4 border-t border-border bg-muted/20">
+              <Button
+                variant="outline"
+                onClick={() => setSelected(null)}
+                className="flex-1"
+              >
+                {t("addSectionDialog.back", "Back")}
+              </Button>
+              <Button
+                onClick={handleCreate}
+                disabled={saving || !title.trim()}
+                className="flex-1 bg-gradient-to-r from-primary to-primary/80"
+              >
+                {saving ? t("addSectionDialog.creating", "Creating...") : t("addSectionDialog.createSection", "Create Section")}
+              </Button>
+            </div>
+          )}
       </div>
     </div>
   );

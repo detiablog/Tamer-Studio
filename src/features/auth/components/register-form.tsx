@@ -73,16 +73,16 @@ export function RegisterForm() {
       {/* Name Field */}
       <div className="space-y-2">
         <Label htmlFor="name" className="text-sm font-semibold">{t("auth.nameLabel")}</Label>
-        <Input 
-          id="name" 
-          type="text" 
-          placeholder="John Doe" 
-          {...register("name")} 
-          autoComplete="name" 
-          aria-invalid={!!errors.name}
-          disabled={submitting}
-          className="h-10 bg-background/50 border-border focus:border-primary transition"
-        />
+         <Input 
+           id="name" 
+           type="text" 
+           placeholder={t("auth.registerForm.namePlaceholder")} 
+           {...register("name")} 
+           autoComplete="name" 
+           aria-invalid={!!errors.name}
+           disabled={submitting}
+           className="h-10 bg-background/50 border-border focus:border-primary transition"
+         />
         {errors.name && (
           <p className="text-xs text-destructive font-medium">{errors.name.message}</p>
         )}
@@ -91,16 +91,16 @@ export function RegisterForm() {
       {/* Email Field */}
       <div className="space-y-2">
         <Label htmlFor="email" className="text-sm font-semibold">{t("auth.emailLabel")}</Label>
-        <Input 
-          id="email" 
-          type="email" 
-          placeholder="you@company.com" 
-          {...register("email")} 
-          autoComplete="email" 
-          aria-invalid={!!errors.email}
-          disabled={submitting}
-          className="h-10 bg-background/50 border-border focus:border-primary transition"
-        />
+         <Input 
+           id="email" 
+           type="email" 
+           placeholder={t("auth.registerForm.emailPlaceholder")} 
+           {...register("email")} 
+           autoComplete="email" 
+           aria-invalid={!!errors.email}
+           disabled={submitting}
+           className="h-10 bg-background/50 border-border focus:border-primary transition"
+         />
         {errors.email && (
           <p className="text-xs text-destructive font-medium">{errors.email.message}</p>
         )}
@@ -110,23 +110,23 @@ export function RegisterForm() {
       <div className="space-y-2">
         <Label htmlFor="password" className="text-sm font-semibold">{t("auth.passwordLabel")}</Label>
         <div className="relative">
-          <Input
-            id="password"
-            type={showPassword ? "text" : "password"}
-            placeholder="••••••••"
-            {...register("password")}
-            autoComplete="new-password"
-            aria-invalid={!!errors.password}
-            disabled={submitting}
-            className="h-10 bg-background/50 border-border focus:border-primary transition pr-10"
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword((v) => !v)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
-            aria-label={showPassword ? "Hide password" : "Show password"}
-            disabled={submitting}
-          >
+           <Input
+             id="password"
+             type={showPassword ? "text" : "password"}
+             placeholder={t("auth.registerForm.passwordPlaceholder")}
+             {...register("password")}
+             autoComplete="new-password"
+             aria-invalid={!!errors.password}
+             disabled={submitting}
+             className="h-10 bg-background/50 border-border focus:border-primary transition pr-10"
+           />
+           <button
+             type="button"
+             onClick={() => setShowPassword((v) => !v)}
+             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+             aria-label={showPassword ? t("auth.registerForm.hidePassword") : t("auth.registerForm.showPassword")}
+             disabled={submitting}
+           >
             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>
         </div>
@@ -138,21 +138,21 @@ export function RegisterForm() {
         <div className="space-y-1.5 mt-3 p-3 rounded-lg bg-muted/50 border border-border/50">
           <div className="flex items-center gap-2 text-xs">
             <CheckCircle2 className={`h-3.5 w-3.5 ${hasLengthRequirement ? "text-green-500" : "text-muted-foreground"}`} />
-            <span className={hasLengthRequirement ? "text-foreground" : "text-muted-foreground"}>
-              At least 8 characters
-            </span>
+             <span className={hasLengthRequirement ? "text-foreground" : "text-muted-foreground"}>
+               {t("auth.registerForm.passwordRequirements.length")}
+             </span>
           </div>
           <div className="flex items-center gap-2 text-xs">
             <CheckCircle2 className={`h-3.5 w-3.5 ${hasUpperCase ? "text-green-500" : "text-muted-foreground"}`} />
-            <span className={hasUpperCase ? "text-foreground" : "text-muted-foreground"}>
-              One uppercase letter
-            </span>
+             <span className={hasUpperCase ? "text-foreground" : "text-muted-foreground"}>
+               {t("auth.registerForm.passwordRequirements.uppercase")}
+             </span>
           </div>
           <div className="flex items-center gap-2 text-xs">
             <CheckCircle2 className={`h-3.5 w-3.5 ${hasNumber ? "text-green-500" : "text-muted-foreground"}`} />
-            <span className={hasNumber ? "text-foreground" : "text-muted-foreground"}>
-              One number
-            </span>
+             <span className={hasNumber ? "text-foreground" : "text-muted-foreground"}>
+               {t("auth.registerForm.passwordRequirements.number")}
+             </span>
           </div>
         </div>
       </div>

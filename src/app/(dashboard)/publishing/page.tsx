@@ -27,13 +27,13 @@ export default function PublishingPage() {
       <PageLayout title={t("dashboard.publishing")} description={t("dashboard.publishingDesc")} breadcrumb={[{ label: t("dashboard.publishing") }]} actions={<ActionButton>{t("dashboard.newPublication")}</ActionButton>}>
         <div className="space-y-6">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <StatCard title="Total Publications" value={24} delta="+3 this month" />
-            <StatCard title="Published" value={18} delta="75% success" />
-            <StatCard title="Scheduled" value={4} delta="Next: Oct 25" />
-            <StatCard title="Total Views" value="45.2K" delta="+12% vs last month" />
+            <StatCard title={t("publishing.totalPublications", "Total Publications")} value={24} delta="+3 this month" />
+            <StatCard title={t("publishing.published", "Published")} value={18} delta="75% success" />
+            <StatCard title={t("publishing.scheduled", "Scheduled")} value={4} delta="Next: Oct 25" />
+            <StatCard title={t("publishing.totalViews", "Total Views")} value="45.2K" delta="+12% vs last month" />
           </div>
 
-          <DashboardCard title={t("dashboard.publishing")} description="Manage your scheduled and published content">
+          <DashboardCard title={t("dashboard.publishing")} description={t("publishing.manageScheduled", "Manage your scheduled and published content")}>
             <div className="space-y-3">
               {PUBLICATIONS.map((pub) => (
                 <div key={pub.id} className="flex items-center justify-between rounded-xl border border-border bg-muted/20 p-4">
@@ -49,7 +49,7 @@ export default function PublishingPage() {
                       </Badge>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {pub.platform} • {pub.date} • {pub.views !== "—" ? `${pub.views} views` : "Not yet published"}
+                      {pub.platform} • {pub.date} • {pub.views !== "—" ? `${pub.views} views` : t("publishing.notYetPublished", "Not yet published")}
                     </p>
                   </div>
                   <div className="flex items-center gap-2 ml-4">

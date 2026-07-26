@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Lock, Unlock, Copy, Trash2 } from "lucide-react";
+import { useLocalizationContext } from "@/providers/localization";
 
 import type { LandingSection } from "./SectionList";
 
@@ -37,6 +38,7 @@ type SectionDrawerProps = {
 };
 
 export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDuplicate }: SectionDrawerProps) {
+  const { t } = useLocalizationContext();
   const [form, setForm] = React.useState<Partial<LandingSection>>({});
   const [saving, setSaving] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState("general");
@@ -83,7 +85,7 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
 
       const result = await response.json();
       if (!response.ok) {
-        toast.error(result.error || "Failed to save section");
+        toast.error(result.error || t("sectionDrawer.failedToSave", "Failed to save section"));
         return;
       }
 
@@ -102,7 +104,7 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
         media: result.data.media ?? section?.media ?? [],
       });
     } catch {
-      toast.error("Error saving section");
+      toast.error(t("sectionDrawer.errorSaving", "Error saving section"));
     } finally {
       setSaving(false);
     }
@@ -156,7 +158,7 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
   return (
     <Sheet open={open} onClose={handleClose}>
       <SheetHeader>
-        <SheetTitle>{isNew ? "New Section" : `Edit: ${section.title || section.sectionKey}`}</SheetTitle>
+        <SheetTitle>{isNew ? t("sectionDrawer.newSection", "New Section") : t("sectionDrawer.edit", "Edit") + ": " + (section.title || section.sectionKey)}</SheetTitle>
         <SheetCloseButton onClick={handleClose} />
       </SheetHeader>
       <SheetContent>
@@ -164,7 +166,7 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
           {saving && (
             <div className="flex items-center gap-2 text-sm text-primary">
               <span className="inline-block animate-spin">⏳</span>
-              Saving...
+              {t("sectionDrawer.saving", "Saving...")}
             </div>
           )}
 
@@ -186,10 +188,10 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
 
           {activeTab === "general" && (
             <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">General</h3>
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("sectionDrawer.general", "General")}</h3>
               <div className="space-y-3">
                 <div>
-                  <Label htmlFor="title">Title</Label>
+                  <Label htmlFor="title">{t("sectionDrawer.title", "Title")}</Label>
                   <Input
                     id="title"
                     value={form.title ?? ""}
@@ -198,7 +200,7 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
                   />
                 </div>
                 <div>
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description">{t("sectionDrawer.description", "Description")}</Label>
                   <textarea
                     id="description"
                     value={form.description ?? ""}
@@ -209,7 +211,7 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
                   />
                 </div>
                 <div>
-                  <Label htmlFor="sectionKey">Section Key</Label>
+                  <Label htmlFor="sectionKey">{t("sectionDrawer.sectionKey", "Section Key")}</Label>
                   <Input
                     id="sectionKey"
                     value={form.sectionKey ?? ""}
@@ -218,10 +220,10 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
                     disabled={!isNew}
                     className="font-mono text-sm"
                   />
-                  <p className="text-xs text-muted-foreground mt-1">Unique identifier for this section</p>
+                  <p className="text-xs text-muted-foreground mt-1">{t("sectionDrawer.uniqueIdentifier", "Unique identifier for this section")}</p>
                 </div>
                 <div>
-                  <Label htmlFor="primary-button">Primary Button Text</Label>
+                  <Label htmlFor="primary-button">{t("sectionDrawer.primaryButtonText", "Primary Button Text")}</Label>
                   <Input
                     id="primary-button"
                     value={(form.config?.primaryButtonText as string) ?? ""}
@@ -230,7 +232,7 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
                   />
                 </div>
                 <div>
-                  <Label htmlFor="secondary-button">Secondary Button Text</Label>
+                  <Label htmlFor="secondary-button">{t("sectionDrawer.secondaryButtonText", "Secondary Button Text")}</Label>
                   <Input
                     id="secondary-button"
                     value={(form.config?.secondaryButtonText as string) ?? ""}
@@ -239,7 +241,7 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
                   />
                 </div>
                 <div>
-                  <Label htmlFor="primary-url">Primary Button URL</Label>
+                  <Label htmlFor="primary-url">{t("sectionDrawer.primaryButtonUrl", "Primary Button URL")}</Label>
                   <Input
                     id="primary-url"
                     value={(form.config?.primaryButtonUrl as string) ?? ""}
@@ -248,7 +250,7 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
                   />
                 </div>
                 <div>
-                  <Label htmlFor="secondary-url">Secondary Button URL</Label>
+                  <Label htmlFor="secondary-url">{t("sectionDrawer.secondaryButtonUrl", "Secondary Button URL")}</Label>
                   <Input
                     id="secondary-url"
                     value={(form.config?.secondaryButtonUrl as string) ?? ""}
@@ -262,10 +264,10 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
 
           {activeTab === "layout" && (
             <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Layout</h3>
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("sectionDrawer.layout", "Layout")}</h3>
               <div className="space-y-3">
                 <div>
-                  <Label htmlFor="padding">Padding</Label>
+                  <Label htmlFor="padding">{t("sectionDrawer.padding", "Padding")}</Label>
                   <Input
                     id="padding"
                     value={(form.styles?.padding as string) ?? ""}
@@ -274,7 +276,7 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
                   />
                 </div>
                 <div>
-                  <Label htmlFor="margin">Margin</Label>
+                  <Label htmlFor="margin">{t("sectionDrawer.margin", "Margin")}</Label>
                   <Input
                     id="margin"
                     value={(form.styles?.margin as string) ?? ""}
@@ -283,7 +285,7 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
                   />
                 </div>
                 <div>
-                  <Label htmlFor="gap">Gap</Label>
+                  <Label htmlFor="gap">{t("sectionDrawer.gap", "Gap")}</Label>
                   <Input
                     id="gap"
                     value={(form.styles?.gap as string) ?? ""}
@@ -292,7 +294,7 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
                   />
                 </div>
                 <div>
-                  <Label htmlFor="columns">Columns</Label>
+                  <Label htmlFor="columns">{t("sectionDrawer.columns", "Columns")}</Label>
                   <Input
                     id="columns"
                     type="number"
@@ -302,7 +304,7 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
                   />
                 </div>
                 <div>
-                  <Label htmlFor="container-width">Container Width</Label>
+                  <Label htmlFor="container-width">{t("sectionDrawer.containerWidth", "Container Width")}</Label>
                   <Input
                     id="container-width"
                     value={(form.styles?.containerWidth as string) ?? ""}
@@ -311,7 +313,7 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
                   />
                 </div>
                 <div>
-                  <Label htmlFor="alignment">Alignment</Label>
+                  <Label htmlFor="alignment">{t("sectionDrawer.alignment", "Alignment")}</Label>
                   <select
                     id="alignment"
                     value={(form.config?.alignment as string) ?? "center"}
@@ -329,10 +331,10 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
 
           {activeTab === "style" && (
             <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Style</h3>
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("sectionDrawer.style", "Style")}</h3>
               <div className="space-y-3">
                 <div>
-                  <Label htmlFor="background">Background</Label>
+                  <Label htmlFor="background">{t("sectionDrawer.background", "Background")}</Label>
                   <Input
                     id="background"
                     value={(form.styles?.background as string) ?? ""}
@@ -341,7 +343,7 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
                   />
                 </div>
                 <div>
-                  <Label htmlFor="border-radius">Border Radius</Label>
+                  <Label htmlFor="border-radius">{t("sectionDrawer.borderRadius", "Border Radius")}</Label>
                   <Input
                     id="border-radius"
                     value={(form.styles?.borderRadius as string) ?? ""}
@@ -350,7 +352,7 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
                   />
                 </div>
                 <div>
-                  <Label htmlFor="shadow">Shadow</Label>
+                  <Label htmlFor="shadow">{t("sectionDrawer.shadow", "Shadow")}</Label>
                   <Input
                     id="shadow"
                     value={(form.styles?.shadow as string) ?? ""}
@@ -359,7 +361,7 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
                   />
                 </div>
                 <div>
-                  <Label htmlFor="gradient">Gradient</Label>
+                  <Label htmlFor="gradient">{t("sectionDrawer.gradient", "Gradient")}</Label>
                   <Input
                     id="gradient"
                     value={(form.styles?.gradient as string) ?? ""}
@@ -368,7 +370,7 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
                   />
                 </div>
                 <div>
-                  <Label htmlFor="typography">Typography</Label>
+                  <Label htmlFor="typography">{t("sectionDrawer.typography", "Typography")}</Label>
                   <Input
                     id="typography"
                     value={(form.styles?.typography as string) ?? ""}
@@ -382,10 +384,10 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
 
           {activeTab === "seo" && (
             <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">SEO</h3>
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("sectionDrawer.seo", "SEO")}</h3>
               <div className="space-y-3">
                 <div>
-                  <Label htmlFor="heading-tag">Heading Tag</Label>
+                  <Label htmlFor="heading-tag">{t("sectionDrawer.headingTag", "Heading Tag")}</Label>
                   <select
                     id="heading-tag"
                     value={(form.config?.headingTag as string) ?? "h2"}
@@ -399,7 +401,7 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
                   </select>
                 </div>
                 <div>
-                  <Label htmlFor="aria-label">ARIA Label</Label>
+                  <Label htmlFor="aria-label">{t("sectionDrawer.ariaLabel", "ARIA Label")}</Label>
                   <Input
                     id="aria-label"
                     value={(form.config?.ariaLabel as string) ?? ""}
@@ -408,7 +410,7 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
                   />
                 </div>
                 <div>
-                  <Label htmlFor="schema">Schema JSON</Label>
+                  <Label htmlFor="schema">{t("sectionDrawer.schema", "Schema JSON")}</Label>
                   <textarea
                     id="schema"
                     value={JSON.stringify(form.config?.schema ?? {}, null, 2)}
@@ -430,10 +432,10 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
 
           {activeTab === "advanced" && (
             <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Advanced</h3>
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("sectionDrawer.advanced", "Advanced")}</h3>
               <div className="space-y-3">
                 <div>
-                  <Label htmlFor="component">Component</Label>
+                  <Label htmlFor="component">{t("sectionDrawer.component", "Component")}</Label>
                   <Input
                     id="component"
                     value={form.component ?? ""}
@@ -443,7 +445,7 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
                   />
                 </div>
                 <div>
-                  <Label htmlFor="type">Type</Label>
+                  <Label htmlFor="type">{t("sectionDrawer.type", "Type")}</Label>
                   <select
                     id="type"
                     value={form.type ?? "hero"}
@@ -458,7 +460,7 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
                   </select>
                 </div>
                 <div>
-                  <Label htmlFor="visibility">Visibility</Label>
+                  <Label htmlFor="visibility">{t("sectionDrawer.visibility", "Visibility")}</Label>
                   <div className="flex items-center gap-3 mt-1.5">
                     <Button
                       type="button"
@@ -481,7 +483,7 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="locked">Locked</Label>
+                  <Label htmlFor="locked">{t("sectionDrawer.locked", "Locked")}</Label>
                   <div className="flex items-center gap-3 mt-1.5">
                     <Button
                       type="button"
@@ -502,12 +504,12 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
                       <Unlock className="size-4" /> Unlocked
                     </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Locked sections cannot be dragged, deleted, or hidden. Content can still be edited.
-                  </p>
+                   <p className="text-xs text-muted-foreground mt-1">
+                     {t("sectionDrawer.lockedMessage", "Locked sections cannot be dragged, deleted, or hidden. Content can still be edited.")}
+                   </p>
                 </div>
                 <div>
-                  <Label htmlFor="order">Order</Label>
+                  <Label htmlFor="order">{t("sectionDrawer.order", "Order")}</Label>
                   <Input
                     id="order"
                     type="number"
@@ -516,7 +518,7 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
                   />
                 </div>
                 <div>
-                  <Label>JSON Config</Label>
+                  <Label>{t("sectionDrawer.jsonConfig", "JSON Config")}</Label>
                   <textarea
                     value={JSON.stringify(form.config ?? {}, null, 2)}
                     onChange={(e) => {
@@ -532,7 +534,7 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
                   />
                 </div>
                 <div>
-                  <Label>JSON Styles</Label>
+                  <Label>{t("sectionDrawer.jsonStyles", "JSON Styles")}</Label>
                   <textarea
                     value={JSON.stringify(form.styles ?? {}, null, 2)}
                     onChange={(e) => {
@@ -560,7 +562,7 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
                   onClick={() => onDuplicate(section)}
                   className="gap-2"
                 >
-                  <Copy className="size-4" /> Duplicate
+                  <Copy className="size-4" /> {t("sectionDrawer.duplicate", "Duplicate")}
                 </Button>
                 <Button
                   variant="outline"
@@ -569,13 +571,13 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
                   disabled={section.locked}
                   className="gap-2 text-destructive hover:text-destructive"
                 >
-                  <Trash2 className="size-4" /> Delete
+                  <Trash2 className="size-4" /> {t("sectionDrawer.delete", "Delete")}
                 </Button>
               </>
             )}
             <div className="flex-1" />
             <Button variant="outline" onClick={handleClose}>
-              Close
+              {t("sectionDrawer.close", "Close")}
             </Button>
           </div>
         </div>

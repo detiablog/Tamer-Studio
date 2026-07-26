@@ -28,13 +28,13 @@ export default function ProductionPage() {
       <PageLayout title={t("dashboard.production")} description={t("dashboard.productionPipelineDesc")} breadcrumb={[{ label: t("dashboard.production") }]} actions={<ActionButton>{t("dashboard.newJob")}</ActionButton>}>
         <div className="space-y-6">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <StatCard title="Total Jobs" value={24} delta="+3 today" />
-            <StatCard title="Running" value={3} delta="2 queued" />
-            <StatCard title="Completed" value={18} delta="75% success rate" />
-            <StatCard title="Failed" value={2} delta="Retry available" />
+            <StatCard title={t("production.totalJobs", "Total Jobs")} value={24} delta="+3 today" />
+            <StatCard title={t("production.running", "Running")} value={3} delta="2 queued" />
+            <StatCard title={t("production.completed", "Completed")} value={18} delta="75% success rate" />
+            <StatCard title={t("production.failed", "Failed")} value={2} delta="Retry available" />
           </div>
 
-          <DashboardCard title={t("dashboard.productionPipeline")} description="Monitor and manage your production jobs">
+          <DashboardCard title={t("dashboard.productionPipeline")} description={t("production.monitorAndManage", "Monitor and manage your production jobs")}>
             <div className="space-y-3">
               {JOBS.map((job) => (
                 <div key={job.id} className="flex items-center justify-between rounded-xl border border-border bg-muted/20 p-4">
