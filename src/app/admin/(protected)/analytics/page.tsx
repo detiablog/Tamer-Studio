@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useLocalizationContext } from "@/providers/localization";
+import { useCurrencyContext } from "@/providers/currency";
 import { cn } from "@/lib/utils";
 import { DashboardCard } from "@/components/ui/DashboardCard";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
@@ -13,11 +14,11 @@ import { toast } from "sonner";
 import { Breadcrumbs } from "@/components/admin/Breadcrumbs";
 
 const MOCK_ANALYTICS = [
-  { id: "a_1", date: "23/07/2026", pageViews: 12450, uniqueVisitors: 8230, bounceRate: "32.4%", avgDuration: "4m 23s", conversions: 342, revenue: "$8,420" },
-  { id: "a_2", date: "22/07/2026", pageViews: 11890, uniqueVisitors: 7890, bounceRate: "34.1%", avgDuration: "3m 58s", conversions: 298, revenue: "$7,150" },
-  { id: "a_3", date: "21/07/2026", pageViews: 13200, uniqueVisitors: 8750, bounceRate: "31.8%", avgDuration: "4m 45s", conversions: 389, revenue: "$9,210" },
-  { id: "a_4", date: "20/07/2026", pageViews: 10980, uniqueVisitors: 7320, bounceRate: "35.2%", avgDuration: "3m 42s", conversions: 267, revenue: "$6,340" },
-  { id: "a_5", date: "19/07/2026", pageViews: 11560, uniqueVisitors: 7650, bounceRate: "33.7%", avgDuration: "4m 10s", conversions: 312, revenue: "$7,890" },
+  { id: "a_1", date: "23/07/2026", pageViews: 12450, uniqueVisitors: 8230, bounceRate: "32.4%", avgDuration: "4m 23s", conversions: 342, revenue: 8420 },
+  { id: "a_2", date: "22/07/2026", pageViews: 11890, uniqueVisitors: 7890, bounceRate: "34.1%", avgDuration: "3m 58s", conversions: 298, revenue: 7150 },
+  { id: "a_3", date: "21/07/2026", pageViews: 13200, uniqueVisitors: 8750, bounceRate: "31.8%", avgDuration: "4m 45s", conversions: 389, revenue: 9210 },
+  { id: "a_4", date: "20/07/2026", pageViews: 10980, uniqueVisitors: 7320, bounceRate: "35.2%", avgDuration: "3m 42s", conversions: 267, revenue: 6340 },
+  { id: "a_5", date: "19/07/2026", pageViews: 11560, uniqueVisitors: 7650, bounceRate: "33.7%", avgDuration: "4m 10s", conversions: 312, revenue: 7890 },
 ];
 
 // Helper to format numbers consistently across server and client
@@ -27,6 +28,7 @@ const formatNumber = (num: number): string => {
 
 export default function AnalyticsPage() {
   const { t } = useLocalizationContext();
+  const { formatCurrency } = useCurrencyContext();
   const [data, setData] = React.useState(MOCK_ANALYTICS);
   const [search, setSearch] = React.useState("");
   const [loading, setLoading] = React.useState(false);
@@ -71,10 +73,7 @@ export default function AnalyticsPage() {
     toast.success(t("admin.analytics.jsonExported", "JSON exported"));
   };
 
-  const parseRevenue = (revenueStr: string): number => {
-    const parsed = parseInt(revenueStr.replace(/[$,]/g, ""), 10);
-    return isNaN(parsed) ? 0 : parsed;
-  };
+  const parseRevenue = (revenue: number): number => revenue;
 
   const handleExportPNG = () => {
     const canvas = document.createElement("canvas");
@@ -147,7 +146,7 @@ export default function AnalyticsPage() {
           </div>
           <div className="rounded-xl border border-border bg-muted/20 p-4">
             <p className="text-xs text-muted-foreground">{t("admin.analytics.revenue", "Revenue")}</p>
-            <p className="mt-2 text-2xl font-semibold">${isHydrated ? formatNumber(revenueTotal) : revenueTotal}</p>
+            <p className="mt-2 text-2xl font-semibold">{isHydrated ? formatCurrency(revenueTotal) : revenueTotal}</p>
             <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1 mt-1"><TrendingUp className="size-3" />+15% {t("admin.analytics.thanLastPeriod", "vs last period")}</p>
           </div>
         </div>
@@ -169,7 +168,7 @@ export default function AnalyticsPage() {
             { key: "bounceRate", header: t("admin.analytics.bounceRate", "Bounce Rate"), sortable: true, render: (item: typeof MOCK_ANALYTICS[0]) => <Badge tone={parseFloat(item.bounceRate) > 35 ? "warning" : "success"}>{item.bounceRate}</Badge> },
             { key: "avgDuration", header: t("admin.analytics.avgDuration", "Avg Duration"), render: (item: typeof MOCK_ANALYTICS[0]) => <span className="text-sm">{item.avgDuration}</span> },
             { key: "conversions", header: t("admin.analytics.conversions", "Conversions"), sortable: true, render: (item: typeof MOCK_ANALYTICS[0]) => <span className="text-sm">{formatNumber(item.conversions)}</span> },
-            { key: "revenue", header: t("admin.analytics.revenue", "Revenue"), render: (item: typeof MOCK_ANALYTICS[0]) => <span className="text-sm font-medium">{item.revenue}</span> },
+            { key: "revenue", header: t("admin.analytics.revenue", "Revenue"), render: (item: typeof MOCK_ANALYTICS[0]) => <span className="text-sm font-medium">{formatCurrency(item.revenue)}</span> },
           ]}
         />
       </DashboardCard>

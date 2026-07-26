@@ -16,3 +16,4 @@ export * from "./workflows";
 export * from "./feature-flags";
 export * from "./ai-providers";
 export * from "./landing";
+export * from "./localization";

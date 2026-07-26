@@ -1,16 +1,71 @@
 import { SUPPORTED_CURRENCIES } from "./constants";
+import type { CurrencyProfile } from "@/lib/localization/types";
+
+const FALLBACK_SYMBOLS: Record<string, string> = {
+  USD: "$",
+  IDR: "Rp",
+  EUR: "€",
+  GBP: "£",
+  JPY: "¥",
+  SGD: "S$",
+  MYR: "RM",
+  THB: "฿",
+  PHP: "₱",
+  VND: "₫",
+  AED: "د.إ",
+  SAR: "﷼",
+  CNY: "¥",
+  KRW: "₩",
+  INR: "₹",
+  AUD: "A$",
+  CAD: "C$",
+  BRL: "R$",
+  MXN: "MX$",
+  RUB: "₽",
+  ZAR: "R",
+};
+
+export function resolveCurrencyInfo(
+  currency: string,
+  profile?: CurrencyProfile | null
+): { symbol: string; minimumFractionDigits: number; maximumFractionDigits: number; locale: string } {
+  if (profile) {
+    return {
+      symbol: profile.symbol,
+      minimumFractionDigits: profile.minimumFractionDigits,
+      maximumFractionDigits: profile.maximumFractionDigits,
+      locale: profile.locale,
+    };
+  }
+  const info = SUPPORTED_CURRENCIES[currency as keyof typeof SUPPORTED_CURRENCIES];
+  if (info) {
+    return {
+      symbol: info.symbol,
+      minimumFractionDigits: info.minimumFractionDigits,
+      maximumFractionDigits: info.maximumFractionDigits,
+      locale: info.locale,
+    };
+  }
+  return {
+    symbol: FALLBACK_SYMBOLS[currency] ?? currency,
+    minimumFractionDigits: currency === "JPY" || currency === "KRW" || currency === "VND" || currency === "IDR" ? 0 : 2,
+    maximumFractionDigits: currency === "JPY" || currency === "KRW" || currency === "VND" || currency === "IDR" ? 0 : 2,
+    locale: "en-US",
+  };
+}
 
 export function formatCurrency(
   amount: number | string,
   currency: string = "USD",
-  locale: string = "en-US"
+  locale: string = "en-US",
+  profile?: CurrencyProfile | null
 ): string {
   const numericAmount = typeof amount === "string" ? parseFloat(amount) : amount;
   if (isNaN(numericAmount)) return "";
 
-  const info = SUPPORTED_CURRENCIES[currency as keyof typeof SUPPORTED_CURRENCIES];
+  const info = resolveCurrencyInfo(currency, profile);
   try {
-    return new Intl.NumberFormat(locale, {
+    return new Intl.NumberFormat(locale || info.locale, {
       style: "currency",
       currency,
       minimumFractionDigits: info.minimumFractionDigits,
@@ -81,7 +136,11 @@ export function formatDateTime(
 }
 
 export function getCurrencySymbol(currency: string = "USD"): string {
-  return SUPPORTED_CURRENCIES[currency as keyof typeof SUPPORTED_CURRENCIES]?.symbol ?? "$";
+  return (
+    SUPPORTED_CURRENCIES[currency as keyof typeof SUPPORTED_CURRENCIES]?.symbol ??
+    FALLBACK_SYMBOLS[currency] ??
+    currency
+  );
 }
 
 export { SUPPORTED_CURRENCIES } from "./constants";

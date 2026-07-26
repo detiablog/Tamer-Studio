@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useLocalizationContext } from "@/providers/localization";
+import { useCurrencyContext } from "@/providers/currency";
 import { cn } from "@/lib/utils";
 import { DashboardCard } from "@/components/ui/DashboardCard";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
@@ -15,12 +16,13 @@ import { Breadcrumbs } from "@/components/admin/Breadcrumbs";
 const MOCK_COUPONS = [
   { id: "c_1", code: "SAVE20", discount: "20%", type: "Percentage", expires: "Dec 31, 2026", usageCount: 142, maxUsage: 500, status: "Active" },
   { id: "c_2", code: "WELCOME10", discount: "10%", type: "Percentage", expires: "Jan 31, 2027", usageCount: 89, maxUsage: 200, status: "Active" },
-  { id: "c_3", code: "FLAT50", discount: "$50", type: "Fixed", expires: "Nov 15, 2026", usageCount: 23, maxUsage: 100, status: "Active" },
+  { id: "c_3", code: "FLAT50", discount: 50, type: "Fixed", expires: "Nov 15, 2026", usageCount: 23, maxUsage: 100, status: "Active" },
   { id: "c_4", code: "EXPIRED5", discount: "5%", type: "Percentage", expires: "Jun 30, 2026", usageCount: 45, maxUsage: 100, status: "Expired" },
 ];
 
 export default function CouponsPage() {
   const { t } = useLocalizationContext();
+  const { formatCurrency } = useCurrencyContext();
   const [coupons, setCoupons] = React.useState(MOCK_COUPONS);
   const [search, setSearch] = React.useState("");
   const [filterOpen, setFilterOpen] = React.useState(false);
@@ -91,7 +93,7 @@ export default function CouponsPage() {
           keyExtractor={(c) => c.id}
           columns={[
             { key: "code", header: t("admin.coupons.code", "Code"), render: (c: any) => <p className="font-medium text-sm">{c.code}</p> },
-            { key: "discount", header: t("admin.coupons.discount", "Discount"), render: (c: any) => <span className="text-sm">{c.discount} ({c.type})</span> },
+            { key: "discount", header: t("admin.coupons.discount", "Discount"), render: (c: any) => <span className="text-sm">{c.type === "Fixed" ? formatCurrency(c.discount) : c.discount} ({c.type})</span> },
             { key: "status", header: t("common.status", "Status"), render: (c: any) => <Badge tone={c.status === "Active" ? "success" : "muted"}>{c.status}</Badge> },
             { key: "usageCount", header: t("admin.coupons.usage", "Usage"), render: (c: any) => <span className="text-sm">{c.usageCount} / {c.maxUsage}</span> },
             { key: "expires", header: t("admin.coupons.expires", "Expires"), render: (c: any) => <span className="text-sm">{c.expires}</span> },

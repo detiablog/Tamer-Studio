@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useLocalizationContext } from "@/providers/localization";
+import { useCurrencyContext } from "@/providers/currency";
 import { cn } from "@/lib/utils";
 import { DashboardCard } from "@/components/ui/DashboardCard";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
@@ -13,13 +14,14 @@ import { toast } from "sonner";
 import { Breadcrumbs } from "@/components/admin/Breadcrumbs";
 
 const MOCK_SUBSCRIPTIONS = [
-  { id: "sub_1", plan: "Pro", workspace: "Acme Studio", status: "Active", billingCycle: "monthly", amount: "$99.00", nextBilling: "23/08/2026", startedAt: "15/07/2026" },
-  { id: "sub_2", plan: "Enterprise", workspace: "Marketing Team", status: "Active", billingCycle: "monthly", amount: "$299.00", nextBilling: "22/08/2026", startedAt: "10/07/2026" },
-  { id: "sub_3", plan: "Starter", workspace: "Solo Creator", status: "Cancelled", billingCycle: "monthly", amount: "$29.00", nextBilling: "â€" , startedAt: "05/07/2026" },
+  { id: "sub_1", plan: "Pro", workspace: "Acme Studio", status: "Active", billingCycle: "monthly", amount: 99.0, nextBilling: "23/08/2026", startedAt: "15/07/2026" },
+  { id: "sub_2", plan: "Enterprise", workspace: "Marketing Team", status: "Active", billingCycle: "monthly", amount: 299.0, nextBilling: "22/08/2026", startedAt: "10/07/2026" },
+  { id: "sub_3", plan: "Starter", workspace: "Solo Creator", status: "Cancelled", billingCycle: "monthly", amount: 29.0, nextBilling: "N/A", startedAt: "05/07/2026" },
 ];
 
 export default function SubscriptionsPage() {
   const { t } = useLocalizationContext();
+  const { formatCurrency } = useCurrencyContext();
   const [subscriptions, setSubscriptions] = React.useState(MOCK_SUBSCRIPTIONS);
   const [search, setSearch] = React.useState("");
 
@@ -62,7 +64,7 @@ export default function SubscriptionsPage() {
             { key: "plan", header: t("admin.subscriptions.plan", "Plan"), render: (s: any) => <Badge>{s.plan}</Badge> },
             { key: "workspace", header: t("admin.subscriptions.workspace", "Workspace"), render: (s: any) => <span className="text-sm">{s.workspace}</span> },
             { key: "status", header: t("common.status", "Status"), render: (s: any) => <Badge tone={s.status === "Active" ? "success" : "muted"}>{s.status}</Badge> },
-            { key: "amount", header: t("common.amount", "Amount"), render: (s: any) => <span className="font-medium text-sm">{s.amount}</span> },
+            { key: "amount", header: t("common.amount", "Amount"), render: (s: any) => <span className="font-medium text-sm">{formatCurrency(s.amount)}</span> },
             { key: "billingCycle", header: t("admin.subscriptions.cycle", "Cycle"), render: (s: any) => <span className="text-sm capitalize">{s.billingCycle}</span> },
             { key: "nextBilling", header: t("admin.subscriptions.nextBilling", "Next Billing"), render: (s: any) => <span className="text-sm text-muted-foreground">{s.nextBilling}</span> },
             { key: "actions", header: "", align: "right", render: (s: any) => (

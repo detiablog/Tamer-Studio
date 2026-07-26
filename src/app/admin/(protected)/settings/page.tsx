@@ -8,12 +8,12 @@ import { DashboardCard } from "@/components/ui/DashboardCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Save, RefreshCw, User, Mail, Shield, Database, Sparkles, CreditCard, Key, Server, ChevronDown, ChevronRight, Trash2, TestTube, Loader2 } from "lucide-react";
+import { Save, RefreshCw, User, Mail, Shield, Database, Sparkles, CreditCard, Key, Server, Globe, ChevronDown, ChevronRight, Trash2, TestTube, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Breadcrumbs } from "@/components/admin/Breadcrumbs";
 import { useLocalizationContext } from "@/providers/localization";
 
-type TabId = "general" | "security" | "email" | "storage" | "ai" | "billing" | "api" | "advanced";
+type TabId = "general" | "security" | "email" | "storage" | "ai" | "billing" | "api" | "advanced" | "localization";
 
 const TABS: { id: TabId; labelKey: string; icon: React.ReactNode }[] = [
   { id: "general", labelKey: "admin.general", icon: <User className="size-4" /> },
@@ -24,6 +24,7 @@ const TABS: { id: TabId; labelKey: string; icon: React.ReactNode }[] = [
   { id: "billing", labelKey: "admin.billing", icon: <CreditCard className="size-4" /> },
   { id: "api", labelKey: "admin.api", icon: <Key className="size-4" /> },
   { id: "advanced", labelKey: "admin.advanced", icon: <Server className="size-4" /> },
+  { id: "localization", labelKey: "admin.localization", icon: <Globe className="size-4" /> },
 ];
 
 const PROVIDER_TYPES = [
@@ -663,6 +664,46 @@ export default function SettingsPage() {
                 <Button variant={formData.debugMode ? "default" : "outline"} size="sm" onClick={() => setFormData({ ...formData, debugMode: !formData.debugMode })} className="min-w-[88px]">
                   {formData.debugMode ? t("admin.enabled") : t("admin.disabled")}
                 </Button>
+              </div>
+            </DashboardCard>
+          )}
+
+          {activeTab === "localization" && (
+            <DashboardCard title={t("admin.localization", "Localization")} description={t("admin.localizationDesc", "Manage business localization profiles")}>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t("admin.language")}</Label>
+                    <select value={formData.language} onChange={(e) => setFormData({ ...formData, language: e.target.value })} className="mt-1.5 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm">
+                      <option value="en">English</option>
+                      <option value="id">Bahasa Indonesia</option>
+                    </select>
+                  </div>
+                  <div>
+                    <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t("settings.currency", "Currency")}</Label>
+                    <select value={formData.language} onChange={(e) => setFormData({ ...formData, language: e.target.value })} className="mt-1.5 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm">
+                      <option value="USD">USD ($)</option>
+                      <option value="IDR">IDR (Rp)</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t("settings.country", "Country")}</Label>
+                    <select className="mt-1.5 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm">
+                      <option value="US">United States</option>
+                      <option value="ID">Indonesia</option>
+                    </select>
+                  </div>
+                  <div>
+                    <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t("settings.timezone", "Timezone")}</Label>
+                    <select className="mt-1.5 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm">
+                      <option value="UTC">UTC</option>
+                      <option value="Asia/Jakarta">Asia/Jakarta</option>
+                    </select>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">{t("admin.localizationDesc", "Configure default language, currency, and region settings")}</p>
               </div>
             </DashboardCard>
           )}

@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useLocalizationContext } from "@/providers/localization";
+import { useCurrencyContext } from "@/providers/currency";
 import { cn } from "@/lib/utils";
 import { DashboardCard } from "@/components/ui/DashboardCard";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
@@ -13,26 +14,27 @@ import { toast } from "sonner";
 import { Breadcrumbs } from "@/components/admin/Breadcrumbs";
 
 const MOCK_INVOICES = [
-  { id: "inv_1", invoiceNo: "INV-001", workspace: "Acme Studio", amount: "$99.00", date: "23/07/2026", status: "Paid", dueDate: "23/08/2026" },
-  { id: "inv_2", invoiceNo: "INV-002", workspace: "Marketing Team", amount: "$299.00", date: "22/07/2026", status: "Paid", dueDate: "22/08/2026" },
-  { id: "inv_3", invoiceNo: "INV-003", workspace: "Solo Creator", amount: "$29.00", date: "21/07/2026", status: "Pending", dueDate: "21/08/2026" },
+  { id: "inv_1", invoiceNo: "INV-001", workspace: "Acme Studio", amount: 99.0, date: "23/07/2026", status: "Paid", dueDate: "23/08/2026" },
+  { id: "inv_2", invoiceNo: "INV-002", workspace: "Marketing Team", amount: 299.0, date: "22/07/2026", status: "Paid", dueDate: "22/08/2026" },
+  { id: "inv_3", invoiceNo: "INV-003", workspace: "Solo Creator", amount: 29.0, date: "21/07/2026", status: "Pending", dueDate: "21/08/2026" },
 ];
 
 const MOCK_PAYMENTS = [
-  { id: "pay_1", method: "Credit Card", last4: "4242", amount: "$99.00", date: "23/07/2026", status: "Completed" },
-  { id: "pay_2", method: "Bank Transfer", last4: "****", amount: "$299.00", date: "22/07/2026", status: "Completed" },
-  { id: "pay_3", method: "Credit Card", last4: "4242", amount: "$29.00", date: "21/07/2026", status: "Pending" },
+  { id: "pay_1", method: "Credit Card", last4: "4242", amount: 99.0, date: "23/07/2026", status: "Completed" },
+  { id: "pay_2", method: "Bank Transfer", last4: "****", amount: 299.0, date: "22/07/2026", status: "Completed" },
+  { id: "pay_3", method: "Credit Card", last4: "4242", amount: 29.0, date: "21/07/2026", status: "Pending" },
 ];
 
 export default function BillingPage() {
   const { t } = useLocalizationContext();
+  const { formatCurrency } = useCurrencyContext();
   const [activeTab, setActiveTab] = React.useState("invoices");
   const [search, setSearch] = React.useState("");
 
   const handleExportCSV = () => {
     const data = activeTab === "invoices" ? MOCK_INVOICES : MOCK_PAYMENTS;
     const headers = activeTab === "invoices" ? "Invoice #,Workspace,Amount,Date,Status,Due Date\n" : "Method,Amount,Date,Status\n";
-    const rows = data.map((item: any) => activeTab === "invoices" ? `${item.invoiceNo},${item.workspace},${item.amount},${item.date},${item.status},${item.dueDate}` : `${item.method},${item.amount},${item.date},${item.status}`).join("\n");
+    const rows = data.map((item: any) => activeTab === "invoices" ? `${item.invoiceNo},${item.workspace},${formatCurrency(item.amount)},${item.date},${item.status},${item.dueDate}` : `${item.method},${formatCurrency(item.amount)},${item.date},${item.status}`).join("\n");
     const csv = headers + rows;
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
@@ -74,12 +76,12 @@ export default function BillingPage() {
               columns={[
                 { key: "invoiceNo", header: t("admin.billing.invoiceNo", "Invoice #"), render: (i: any) => <span className="font-medium text-sm">{i.invoiceNo}</span> },
                 { key: "workspace", header: t("admin.billing.workspace", "Workspace"), render: (i: any) => <span className="text-sm">{i.workspace}</span> },
-                { key: "amount", header: t("common.amount", "Amount"), render: (i: any) => <span className="font-medium text-sm">{i.amount}</span> },
+                { key: "amount", header: t("common.amount", "Amount"), render: (i: any) => <span className="font-medium text-sm">{formatCurrency(i.amount)}</span> },
                 { key: "date", header: t("common.date", "Date"), render: (i: any) => <span className="text-sm">{i.date}</span> },
                 { key: "status", header: t("common.status", "Status"), render: (i: any) => <Badge tone={i.status === "Paid" ? "success" : "warning"}>{i.status}</Badge> },
                 { key: "dueDate", header: t("admin.billing.dueDate", "Due Date"), render: (i: any) => <span className="text-sm text-muted-foreground">{i.dueDate}</span> },
                 { key: "actions", header: "", align: "right", render: (i: any) => (
-                  <Button variant="ghost" size="icon-xs" onClick={() => { const blob = new Blob([`Invoice ${i.invoiceNo}\nWorkspace: ${i.workspace}\nAmount: ${i.amount}\nDate: ${i.date}\nStatus: ${i.status}`], { type: "text/plain" }); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = `${i.invoiceNo}.txt`; link.click(); URL.revokeObjectURL(url); toast.success(t("admin.billing.toastInvoiceExported", "Invoice {0} exported").replace("{0}", i.invoiceNo)); }} aria-label={t("admin.billing.exportInvoice", "Export invoice")}><Receipt className="size-3.5" /></Button>
+                  <Button variant="ghost" size="icon-xs" onClick={() => { const blob = new Blob([`Invoice ${i.invoiceNo}\nWorkspace: ${i.workspace}\nAmount: ${formatCurrency(i.amount)}\nDate: ${i.date}\nStatus: ${i.status}`], { type: "text/plain" }); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = `${i.invoiceNo}.txt`; link.click(); URL.revokeObjectURL(url); toast.success(t("admin.billing.toastInvoiceExported", "Invoice {0} exported").replace("{0}", i.invoiceNo)); }} aria-label={t("admin.billing.exportInvoice", "Export invoice")}><Receipt className="size-3.5" /></Button>
                 )},
               ]}
             />
@@ -92,7 +94,7 @@ export default function BillingPage() {
             keyExtractor={(p) => p.id}
             columns={[
               { key: "method", header: t("admin.billing.paymentMethod", "Method"), render: (p: any) => <span className="text-sm">{p.method} ****{p.last4}</span> },
-              { key: "amount", header: t("common.amount", "Amount"), render: (p: any) => <span className="font-medium text-sm">{p.amount}</span> },
+              { key: "amount", header: t("common.amount", "Amount"), render: (p: any) => <span className="font-medium text-sm">{formatCurrency(p.amount)}</span> },
               { key: "date", header: t("common.date", "Date"), render: (p: any) => <span className="text-sm">{p.date}</span> },
               { key: "status", header: t("common.status", "Status"), render: (p: any) => <Badge tone={p.status === "Completed" ? "success" : "warning"}>{p.status}</Badge> },
             ]}

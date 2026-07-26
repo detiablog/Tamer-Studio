@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useLocalizationContext } from "@/providers/localization";
+import { useCurrencyContext } from "@/providers/currency";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { FAQ } from "@/components/landing/FAQ";
 import { CreditCalculator } from "@/components/landing/CreditCalculator";
@@ -10,15 +11,22 @@ import { CreditUsageTable } from "@/components/landing/CreditUsageTable";
 import { cn } from "@/lib/utils";
 import { useLandingSections } from "@/hooks/use-landing-sections";
 
-const creditPacks = [
-  { key: "marketing.creditPackSmall", credits: 100, price: "$9" },
-  { key: "marketing.creditPackMedium", credits: 500, price: "$39" },
-  { key: "marketing.creditPackLarge", credits: 2000, price: "$149" },
+interface CreditPack {
+  key: string;
+  credits: number | null;
+  price: number | null;
+}
+
+const creditPacks: CreditPack[] = [
+  { key: "marketing.creditPackSmall", credits: 100, price: 9 },
+  { key: "marketing.creditPackMedium", credits: 500, price: 39 },
+  { key: "marketing.creditPackLarge", credits: 2000, price: 149 },
   { key: "marketing.creditPackCustom", credits: null, price: null },
 ];
 
 export default function PricingPage() {
   const { t } = useLocalizationContext();
+  const { formatCurrency } = useCurrencyContext();
   const { sections } = useLandingSections();
   const pricingSection = sections.find((s) => s.sectionKey === "pricing");
   const faqSection = sections.find((s) => s.sectionKey === "faq");
@@ -45,9 +53,9 @@ export default function PricingPage() {
               className="rounded-3xl border border-border bg-card p-6"
             >
               <h3 className="text-lg font-semibold">{t(pack.key)}</h3>
-              {pack.credits ? (
+              {pack.credits && pack.price ? (
                 <>
-                  <p className="mt-2 text-3xl font-semibold">{pack.price}</p>
+                  <p className="mt-2 text-3xl font-semibold">{formatCurrency(pack.price)}</p>
                   <p className="text-sm text-muted-foreground">
                     {pack.credits} {t("marketing.credits")}
                   </p>
