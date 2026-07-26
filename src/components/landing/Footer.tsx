@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useLocalizationContext } from "@/providers/localization";
+import { useLandingData } from "@/hooks/use-landing-data";
 import { ArrowRight } from "lucide-react";
 import type { SectionRendererProps } from "@/lib/landing-section-renderer";
 
@@ -26,6 +27,7 @@ function toFooterLink(item: string | { label: string; href?: string; external?: 
 
 export function Footer({ section }: SectionRendererProps) {
   const { t } = useLocalizationContext();
+  const { locale, currency } = useLandingData();
 
   const companyName = (section.config.companyName as string) || section.title || "Tamer Studio";
   const tagline = (section.config.tagline as string) || "";
@@ -172,7 +174,7 @@ export function Footer({ section }: SectionRendererProps) {
 
         <div className="border-t border-border pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-muted-foreground">
-            © 2026 Tamer Studio. All rights reserved.
+            © {new Date().getFullYear()} {companyName}. All rights reserved.
           </p>
           <p className="text-xs text-muted-foreground">
             {t("marketing.footerPoweredBy")} • {t("marketing.footerVersion")} 1.0.0 • {t("marketing.footerBuild")} 2026.07.25
