@@ -5,6 +5,7 @@ export * from "./audit";
 export * from "./billing";
 export * from "./billing-admin";
 export * from "./commerce";
+export * from "./email";
 export * from "./identity";
 export * from "./notification";
 export * from "./support";

@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Eye, EyeOff, CheckCircle2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import { authClient } from "@/lib/auth/auth-client";
 import { registerSchema, type RegisterSchema } from "@/features/auth/schemas/register.schema";
@@ -18,6 +19,7 @@ import { useLocalizationContext } from "@/providers/localization";
 
 export function RegisterForm() {
   const { t } = useLocalizationContext();
+  const router = useRouter();
   const [submitting, setSubmitting] = React.useState(false);
   const [showPassword, setShowPassword] = React.useState(false);
 
@@ -40,7 +42,7 @@ export function RegisterForm() {
         name: values.name,
         email: values.email,
         password: values.password,
-        callbackURL: "/dashboard",
+        callbackURL: "/verify-email",
       });
 
       if (hasAuthError(result) && result.error?.message) {
@@ -56,6 +58,7 @@ export function RegisterForm() {
       }
 
       toast.success(t("auth.accountCreated"));
+      router.push(`/verify-email?email=${encodeURIComponent(values.email)}`);
     } catch (err) {
       if (err instanceof Error) {
         logger.error("Unexpected registration error", err);

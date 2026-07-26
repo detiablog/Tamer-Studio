@@ -6,7 +6,7 @@ export const featureFlag = pgTable(
   "feature_flag",
   {
     id: text("id").primaryKey(),
-    key: text("key").notNull().unique(),
+    key: text("key").notNull(),
     description: text("description").notNull().default(""),
     enabled: boolean("enabled").notNull().default(false),
     scope: text("scope").notNull().default("global"),

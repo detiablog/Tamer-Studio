@@ -1,17 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
-import crypto from "node:crypto";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { user, account } from "@/lib/db/schema/auth";
+import { emailToken } from "@/lib/db/schema/email";
+import { eq } from "drizzle-orm";
+import { hashToken, generateId, generateSecureToken } from "@/modules/email";
+import { defaultEmailService } from "@/modules/email";
 
-/**
- * POST /api/auth/forgot-password
- * 
- * Sends a password reset email to the user
- * 
- * Body:
- * - email: string
- * 
- * Response:
- * - message: string
- */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -24,7 +19,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return NextResponse.json(
@@ -33,19 +27,49 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // TODO: Implement actual password reset flow
-    // 1. Check if user exists
-    // 2. Generate reset token
-    // 3. Save token with expiration (1 hour)
-    // 4. Send email with reset link
-    // 5. Return success message
+    const [existingUser] = await db.select().from(user).where(eq(user.email, email)).limit(1);
 
-    console.log(`[TODO] Send password reset email to: ${email}`);
+    if (!existingUser) {
+      return NextResponse.json({
+        message: "If an account exists for this email, you will receive a password reset link shortly.",
+      });
+    }
 
-    // For now, return success
+    const [credentialAccount] = await db
+      .select()
+      .from(account)
+      .where(eq(account.userId, existingUser.id))
+      .limit(1);
+
+    if (!credentialAccount) {
+      return NextResponse.json({
+        message: "If an account exists for this email, you will receive a password reset link shortly.",
+      });
+    }
+
+    const plainToken = generateSecureToken(32);
+    const hashedToken = hashToken(plainToken);
+    const tokenId = generateId("reset");
+    const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
+
+    await db.insert(emailToken).values({
+      id: tokenId,
+      type: "reset_password",
+      email: existingUser.email,
+      token: hashedToken,
+      userId: existingUser.id,
+      expiresAt,
+      payload: { accountId: credentialAccount.id },
+    });
+
+    try {
+      await defaultEmailService.sendResetPassword(existingUser.email, plainToken, existingUser.name || "User");
+    } catch (sendError) {
+      console.error("[Forgot Password] Email send failed:", sendError);
+    }
+
     return NextResponse.json({
       message: "If an account exists for this email, you will receive a password reset link shortly.",
-      email: email,
     });
   } catch (error) {
     console.error("Forgot password error:", error);

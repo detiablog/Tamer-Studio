@@ -6,7 +6,7 @@ export const admin = pgTable(
   "admin",
   {
     id: text("id").primaryKey(),
-    email: text("email").notNull().unique(),
+    email: text("email").notNull(),
     passwordHash: text("password_hash").notNull(),
     name: text("name").notNull(),
     role: text("role").notNull().default("admin"),
@@ -29,7 +29,7 @@ export const adminSession = pgTable(
   "admin_session",
   {
     id: text("id").primaryKey(),
-    token: text("token").notNull().unique(),
+    token: text("token").notNull(),
     adminId: text("admin_id").notNull().references(() => admin.id, { onDelete: "cascade" }),
     expiresAt: timestamp("expires_at").notNull(),
     ipAddress: text("ip_address"),

@@ -119,7 +119,7 @@ export const voucher = pgTable(
   "voucher",
   {
     id: text("id").primaryKey(),
-    code: text("code").notNull().unique(),
+    code: text("code").notNull(),
     type: text("type").notNull(),
     value: text("value").notNull(),
     currency: text("currency").notNull().default("USD"),
@@ -168,7 +168,7 @@ export const coupon = pgTable(
   "coupon",
   {
     id: text("id").primaryKey(),
-    code: text("code").notNull().unique(),
+    code: text("code").notNull(),
     type: text("type").notNull(),
     value: text("value").notNull(),
     currency: text("currency").notNull().default("USD"),

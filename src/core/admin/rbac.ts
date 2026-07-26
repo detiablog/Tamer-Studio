@@ -15,6 +15,13 @@ export const ADMIN_ROUTE_PERMISSIONS: Record<string, string> = {
   "/admin/settings": "admin:system",
   "/admin/stats": "admin:stats",
   "/admin/cache": "admin:system",
+  "/admin/email": "admin:email",
+  "/admin/email/providers": "admin:email",
+  "/admin/email/templates": "admin:email",
+  "/admin/email/queue": "admin:email",
+  "/admin/email/logs": "admin:email",
+  "/admin/email/health": "admin:email",
+  "/admin/email/statistics": "admin:email",
 };
 
 export const ADMIN_ROLE_PERMISSIONS: Record<string, string[]> = {
@@ -34,6 +41,7 @@ export const ADMIN_ROLE_PERMISSIONS: Record<string, string[]> = {
     "admin:feature_flags",
     "admin:system",
     "admin:stats",
+    "admin:email",
   ],
   super_admin: [
     "admin:read",
@@ -51,5 +59,6 @@ export const ADMIN_ROLE_PERMISSIONS: Record<string, string[]> = {
     "admin:feature_flags",
     "admin:system",
     "admin:stats",
+    "admin:email",
   ],
 };

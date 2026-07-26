@@ -127,7 +127,7 @@ function ResetPasswordFormInner({ token }: { token: string }) {
                 type="button"
                 onClick={() => setShowConfirm((v) => !v)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors hover:bg-muted rounded-md p-1"
-                aria-label={showConfirm ? t("auth.loginForm.hidePassword") : t("auth.loginForm.showPassword")}
+                aria-label={showPassword ? t("auth.loginForm.hidePassword") : t("auth.loginForm.showPassword")}
                 disabled={submitting}
               >
                 {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -185,8 +185,13 @@ function ResetPasswordFormWithToken() {
   return <ResetPasswordFormInner token={token} />;
 }
 
-export function ResetPasswordForm() {
+export function ResetPasswordForm({ token }: { token?: string } = {}) {
   const { t } = useLocalizationContext();
+
+  if (token) {
+    return <ResetPasswordFormInner token={token} />;
+  }
+
   return (
     <React.Suspense fallback={<div className="text-sm text-muted-foreground">{t("common.loading")}</div>}>
       <ResetPasswordFormWithToken />

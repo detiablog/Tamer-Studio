@@ -36,7 +36,7 @@ export const queue = pgTable(
   "queue",
   {
     id: text("id").primaryKey(),
-    name: text("name").notNull().unique(),
+    name: text("name").notNull(),
     depth: integer("depth").notNull().default(0),
     throughput: text("throughput"),
     avgWait: text("avg_wait"),

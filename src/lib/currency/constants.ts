@@ -17,30 +17,6 @@ export const SUPPORTED_CURRENCIES: Record<SupportedCurrency, CurrencyInfo> = {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   },
-  JPY: {
-    code: "JPY",
-    name: "Japanese Yen",
-    symbol: "¥",
-    locale: "ja-JP",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  },
-  EUR: {
-    code: "EUR",
-    name: "Euro",
-    symbol: "€",
-    locale: "de-DE",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  },
-  GBP: {
-    code: "GBP",
-    name: "British Pound",
-    symbol: "£",
-    locale: "en-GB",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  },
 };
 
 export const DEFAULT_CURRENCY: SupportedCurrency = "USD";

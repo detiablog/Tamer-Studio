@@ -62,7 +62,7 @@ export const role = pgTable(
   "role",
   {
     id: text("id").primaryKey(),
-    name: text("name").notNull().unique(),
+    name: text("name").notNull(),
     description: text("description"),
     level: text("level").notNull().default("0"),
     isSystem: boolean("is_system").default(false).notNull(),
@@ -79,7 +79,7 @@ export const permission = pgTable(
   "permission",
   {
     id: text("id").primaryKey(),
-    key: text("key").notNull().unique(),
+    key: text("key").notNull(),
     description: text("description"),
     category: text("category"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -109,7 +109,7 @@ export const organization = pgTable(
   {
     id: text("id").primaryKey(),
     name: text("name").notNull(),
-    slug: text("slug").notNull().unique(),
+    slug: text("slug").notNull(),
     ownerId: text("owner_id").notNull().references(() => user.id),
     settings: jsonb("settings").$type<Record<string, unknown>>().notNull().default({}),
     status: text("status").notNull().default("active"),
@@ -131,7 +131,7 @@ export const workspace = pgTable(
   {
     id: text("id").primaryKey(),
     name: text("name").notNull(),
-    slug: text("slug").notNull().unique(),
+    slug: text("slug").notNull(),
     description: text("description"),
     type: text("type").notNull().default("personal"),
     ownerId: text("owner_id").notNull().references(() => user.id),
@@ -199,7 +199,7 @@ export const invitation = pgTable(
     workspaceId: text("workspace_id").references(() => workspace.id, { onDelete: "cascade" }),
     organizationId: text("organization_id").references(() => organization.id, { onDelete: "cascade" }),
     roleId: text("role_id").references(() => role.id),
-    token: text("token").notNull().unique(),
+    token: text("token").notNull(),
     invitedBy: text("invited_by").notNull().references(() => user.id),
     status: text("status").notNull().default("pending"),
     expiresAt: timestamp("expires_at").notNull(),

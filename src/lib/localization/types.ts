@@ -1,5 +1,5 @@
-export type SupportedLocale = "en" | "id" | "ja" | "fr" | "de";
-export type SupportedCurrency = "USD" | "IDR" | "JPY" | "EUR" | "GBP";
+export type SupportedLocale = "en" | "id";
+export type SupportedCurrency = "USD" | "IDR";
 export type SupportedTimezone = string;
 
 export interface LocaleInfo {
@@ -57,24 +57,6 @@ export const SUPPORTED_LOCALES: Record<SupportedLocale, LocaleInfo> = {
     nativeName: "Bahasa Indonesia",
     direction: "ltr",
   },
-  ja: {
-    code: "ja",
-    name: "Japanese",
-    nativeName: "日本語",
-    direction: "ltr",
-  },
-  fr: {
-    code: "fr",
-    name: "French",
-    nativeName: "Français",
-    direction: "ltr",
-  },
-  de: {
-    code: "de",
-    name: "German",
-    nativeName: "Deutsch",
-    direction: "ltr",
-  },
 };
 
 export const SUPPORTED_CURRENCIES: Record<SupportedCurrency, CurrencyInfo> = {
@@ -93,30 +75,6 @@ export const SUPPORTED_CURRENCIES: Record<SupportedCurrency, CurrencyInfo> = {
     locale: "id-ID",
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  },
-  JPY: {
-    code: "JPY",
-    name: "Japanese Yen",
-    symbol: "¥",
-    locale: "ja-JP",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  },
-  EUR: {
-    code: "EUR",
-    name: "Euro",
-    symbol: "€",
-    locale: "de-DE",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  },
-  GBP: {
-    code: "GBP",
-    name: "British Pound",
-    symbol: "£",
-    locale: "en-GB",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
   },
 };
 

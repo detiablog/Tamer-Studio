@@ -1,8 +1,5 @@
 import enTranslations from "../../../locales/en.json";
 import idTranslations from "../../../locales/id.json";
-import jaTranslations from "../../../locales/ja.json";
-import frTranslations from "../../../locales/fr.json";
-import deTranslations from "../../../locales/de.json";
 
 type TranslationDict = Record<string, string>;
 
@@ -27,15 +24,9 @@ function flattenObject(
 
 const FLATTENED_EN = flattenObject(enTranslations as Record<string, unknown>);
 const FLATTENED_ID = flattenObject(idTranslations as Record<string, unknown>);
-const FLATTENED_JA = flattenObject(jaTranslations as Record<string, unknown>);
-const FLATTENED_FR = flattenObject(frTranslations as Record<string, unknown>);
-const FLATTENED_DE = flattenObject(deTranslations as Record<string, unknown>);
 
 CACHE["translations_en"] = FLATTENED_EN;
 CACHE["translations_id"] = FLATTENED_ID;
-CACHE["translations_ja"] = FLATTENED_JA;
-CACHE["translations_fr"] = FLATTENED_FR;
-CACHE["translations_de"] = FLATTENED_DE;
 
 function getEnglishFallback(key: string, fallback?: string): string {
   return FLATTENED_EN[key] ?? fallback ?? key;
@@ -60,9 +51,6 @@ export function getTranslations(locale: string): TranslationDict {
   const map: Record<string, TranslationDict> = {
     en: FLATTENED_EN,
     id: FLATTENED_ID,
-    ja: FLATTENED_JA,
-    fr: FLATTENED_FR,
-    de: FLATTENED_DE,
   };
 
   CACHE[cacheKey] = map[locale] || FLATTENED_EN;
