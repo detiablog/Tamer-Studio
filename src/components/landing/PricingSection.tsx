@@ -4,14 +4,9 @@ import * as React from "react";
 import Link from "next/link";
 import { ArrowRight, Check, Zap } from "lucide-react";
 import { useLocalizationContext } from "@/providers/localization";
+import { useLandingData } from "@/hooks/use-landing-data";
 import { cn } from "@/lib/utils";
 import type { SectionRendererProps } from "@/lib/landing-section-renderer";
-
-// Landing-page specific translations (isolated from global translations)
-const LANDING_PAGE_TRANSLATIONS = {
-  getStartedButton: "Get Started Free",
-  contactSalesButton: "Contact Sales",
-} as const;
 
 interface Plan {
   name: string;
@@ -25,38 +20,37 @@ interface Plan {
   href?: string;
   popular?: boolean;
   topUp?: boolean;
+  campaignBadge?: string;
 }
 
 export function PricingSection({ section }: SectionRendererProps) {
   const { t } = useLocalizationContext();
+  const { formatPrice, currency, pricingRules } = useLandingData();
   const [yearly, setYearly] = React.useState(false);
 
   const heading = (section.config.heading as string) || section.title || t("marketing.pricingTitle");
   const description = (section.config.description as string) || section.description || t("marketing.pricingDescription");
   const plans = (section.config.plans as Plan[]) || [];
 
-  const formatPrice = (price: number | null) => {
-    if (price === null) return t("marketing.contactSales");
-    return `$${price}`;
-  };
-
-  const formatCredits = (credits: number) => {
-    if (credits < 0) return t("marketing.contactSales");
-    const formatted = Math.abs(credits).toLocaleString("en-US");
-    return `${formatted} ${t("marketing.creditsPerMonth")}`;
-  };
-
   const getCtaText = (ctaKey?: string) => {
-    if (ctaKey === "marketing.getStarted") {
-      return LANDING_PAGE_TRANSLATIONS.getStartedButton;
+    if (ctaKey === "marketing.getStarted") return t("marketing.getStarted");
+    if (ctaKey === "marketing.contactSales") return t("marketing.contactSales");
+    if (ctaKey) return t(ctaKey);
+    return t("marketing.getStarted");
+  };
+
+  const getPlanPrice = (plan: Plan) => {
+    if (pricingRules && pricingRules.length > 0) {
+      const rule = pricingRules.find((r) => r.planId === plan.name);
+      if (rule) {
+        const cyclePrice = yearly ? rule.yearly : rule.monthly;
+        if (cyclePrice) {
+          const parsed = parseFloat(cyclePrice.displayPrice);
+          if (!isNaN(parsed)) return parsed;
+        }
+      }
     }
-    if (ctaKey === "marketing.contactSales") {
-      return LANDING_PAGE_TRANSLATIONS.contactSalesButton;
-    }
-    if (ctaKey) {
-      return t(ctaKey);
-    }
-    return LANDING_PAGE_TRANSLATIONS.getStartedButton;
+    return yearly ? plan.priceYearly : plan.priceMonthly;
   };
 
   return (
@@ -74,8 +68,8 @@ export function PricingSection({ section }: SectionRendererProps) {
               onClick={() => setYearly(false)}
               className={cn(
                 "rounded-full px-4 py-2 text-sm font-semibold transition duration-200",
-                !yearly 
-                  ? "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-md" 
+                !yearly
+                  ? "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-md"
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
@@ -86,19 +80,19 @@ export function PricingSection({ section }: SectionRendererProps) {
               onClick={() => setYearly(true)}
               className={cn(
                 "inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold transition duration-200",
-                yearly 
-                  ? "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-md" 
+                yearly
+                  ? "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-md"
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
               {t("marketing.yearly")}
               <span className={cn(
                 "rounded-full px-2 py-0.5 text-xs font-bold",
-                yearly 
-                  ? "bg-primary-foreground/20 text-primary-foreground" 
+                yearly
+                  ? "bg-primary-foreground/20 text-primary-foreground"
                   : "bg-green-500/20 text-green-600"
               )}>
-                Save 20%
+                {t("marketing.save20", "Save 20%")}
               </span>
             </button>
           </div>
@@ -106,12 +100,12 @@ export function PricingSection({ section }: SectionRendererProps) {
 
         <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-5 auto-rows-max">
           {plans.map((plan, idx) => {
-            const price = yearly ? plan.priceYearly : plan.priceMonthly;
+            const price = getPlanPrice(plan);
             const credits = yearly ? plan.includedCreditsYearly : plan.includedCreditsMonthly;
 
             return (
               <div
-                key={String(plan.name || '') + idx}
+                key={String(plan.name || "") + idx}
                 className={cn(
                   "relative rounded-2xl border border-border bg-card p-6 transition-all duration-300 hover:shadow-lg hover:border-foreground/10 flex flex-col h-full",
                   plan.popular && "ring-2 ring-primary scale-105 lg:scale-100 shadow-xl"
@@ -120,6 +114,11 @@ export function PricingSection({ section }: SectionRendererProps) {
                 {plan.popular && (
                   <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-primary to-primary/80 px-3 py-1 text-xs font-bold text-primary-foreground shadow-lg">
                     {t("marketing.mostPopular")}
+                  </span>
+                )}
+                {plan.campaignBadge && (
+                  <span className="absolute -top-3 right-3 rounded-full bg-green-500/20 px-2 py-0.5 text-[10px] font-bold text-green-600">
+                    {plan.campaignBadge}
                   </span>
                 )}
                 <h3 className="text-lg font-bold text-foreground">{plan.name}</h3>
@@ -137,7 +136,7 @@ export function PricingSection({ section }: SectionRendererProps) {
 
                 <div className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-muted/50 px-3 py-2 text-xs font-semibold w-fit">
                   <Zap className="size-3.5 text-primary" />
-                  <span>{formatCredits(credits)}</span>
+                  <span>{credits.toLocaleString("en-US")} {t("marketing.creditsPerMonth")}</span>
                 </div>
 
                 {plan.topUp && (
@@ -152,7 +151,7 @@ export function PricingSection({ section }: SectionRendererProps) {
 
                 <ul className="mt-6 space-y-3 flex-grow">
                   {plan.features.map((feature, fidx) => (
-                    <li key={String(feature || '') + fidx} className="flex items-start gap-3 text-sm text-muted-foreground">
+                    <li key={String(feature || "") + fidx} className="flex items-start gap-3 text-sm text-muted-foreground">
                       <Check className="size-4 text-primary flex-shrink-0 mt-0.5" />
                       <span>{fidx === 0 ? t("marketing.platformAccess") : feature}</span>
                     </li>
@@ -185,7 +184,7 @@ export function PricingSection({ section }: SectionRendererProps) {
             href="/pricing"
             className="inline-flex items-center text-sm font-semibold text-primary hover:text-primary/80 group"
           >
-            View Detailed Comparison
+            {t("marketing.viewDetailedComparison", "View Detailed Comparison")}
             <ArrowRight className="ml-2 size-4 group-hover:translate-x-1 transition" />
           </Link>
         </div>

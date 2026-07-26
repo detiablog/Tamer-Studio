@@ -6,10 +6,14 @@ import { renderLandingSections } from '@/lib/landing-section-renderer';
 import { Header } from '@/components/landing/Header';
 import { ElegantLoader } from '@/components/ui/ElegantLoader';
 import { useLocalizationContext } from '@/providers/localization';
+import { useLandingData } from '@/hooks/use-landing-data';
 
 export function LandingPageContent() {
   const { t } = useLocalizationContext();
-  const { sections, loading, error } = useLandingSections();
+  const { locale, currency, campaign, pricingProfile, seo, loading: dataLoading } = useLandingData();
+  const { sections, loading: sectionsLoading, error } = useLandingSections();
+
+  const loading = dataLoading || sectionsLoading;
 
   if (loading) {
     return <ElegantLoader />;

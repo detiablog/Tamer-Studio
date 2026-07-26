@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { ArrowRight, Rocket, Sparkles } from "lucide-react";
 import { useLocalizationContext } from "@/providers/localization";
+import { useLandingData } from "@/hooks/use-landing-data";
 import { cn } from "@/lib/utils";
 import type { SectionRendererProps } from "@/lib/landing-section-renderer";
 
@@ -17,12 +18,16 @@ const providers = [
 
 export function Hero({ section }: SectionRendererProps) {
   const { t } = useLocalizationContext();
+  const { formatPrice, currency, campaign, resolvedCurrency } = useLandingData();
 
-  const heading = (section.config.heading as string) || section.title;
-  const description = (section.config.description as string) || section.description || "";
+  const heading = (section.config.heading as string) || section.title || t("marketing.heroTitle");
+  const description = (section.config.description as string) || section.description || t("marketing.heroDescription");
   const ctaPrimary = (section.config.ctaPrimary as string) || t("marketing.heroCtaPrimary");
   const ctaSecondary = (section.config.ctaSecondary as string) || t("marketing.heroCtaSecondary");
   const showProviders = section.config.showProviders !== false;
+  const badge = (section.config.badge as string) || t("marketing.heroBadge", "AI-Powered");
+  const campaignBadge = (section.config.campaignBadge as string) || (campaign?.badge as string) || "";
+  const campaignDiscount = (section.config.campaignDiscount as number) || (campaign?.discount as number) || 0;
 
   return (
     <section className="relative overflow-hidden" aria-labelledby="hero-heading">
@@ -37,8 +42,14 @@ export function Hero({ section }: SectionRendererProps) {
         <div className="mx-auto max-w-3xl text-center">
           <div className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm font-medium text-primary hover:bg-primary/10 transition cursor-default">
             <Sparkles className="size-4" />
-            AI-Powered Production Platform
+            {badge}
           </div>
+
+          {campaignBadge && campaignDiscount > 0 && (
+            <div className="mx-auto mb-4 inline-flex items-center gap-2 rounded-full bg-green-500/10 border border-green-500/20 px-4 py-1 text-sm font-bold text-green-600">
+              {campaignBadge} -{campaignDiscount}%
+            </div>
+          )}
 
           <h1
             id="hero-heading"
@@ -71,18 +82,18 @@ export function Hero({ section }: SectionRendererProps) {
           </div>
 
           <p className="mt-6 text-xs text-muted-foreground">
-            Trusted by creators, agencies, and businesses worldwide
+            {t("marketing.heroTrusted", "Trusted by creators, agencies, and businesses worldwide")}
           </p>
 
           <div className="mt-3 flex flex-wrap items-center justify-center gap-2 text-xs text-muted-foreground">
             <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 font-semibold">P</kbd>
-            <span>Pricing</span>
+            <span>{t("marketing.pricing")}</span>
             <span className="text-muted-foreground/40">•</span>
             <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 font-semibold">F</kbd>
-            <span>Features</span>
+            <span>{t("marketing.features")}</span>
             <span className="text-muted-foreground/40">•</span>
             <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 font-semibold">C</kbd>
-            <span>Contact</span>
+            <span>{t("marketing.contact")}</span>
           </div>
 
           {showProviders && (
@@ -119,7 +130,7 @@ export function Hero({ section }: SectionRendererProps) {
                   <div className="inline-flex items-center justify-center h-12 w-12 rounded-full bg-primary/10 mb-3">
                     <Rocket className="size-6 text-primary animate-bounce" />
                   </div>
-                  <p className="text-sm text-muted-foreground/60">Coming Soon: Live Product Preview</p>
+                  <p className="text-sm text-muted-foreground/60">{t("marketing.heroPreview", "Coming Soon: Live Product Preview")}</p>
                 </div>
               </div>
             </div>
