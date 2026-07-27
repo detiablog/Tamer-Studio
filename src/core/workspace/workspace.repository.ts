@@ -5,6 +5,11 @@ import type { Workspace, CreateWorkspaceInput, UpdateWorkspaceInput } from "./wo
 import { randomUUID } from "crypto";
 
 export class WorkspaceRepository {
+  async getAllWorkspaces(): Promise<Workspace[]> {
+    const rows = await db.select().from(workspace).orderBy(desc(workspace.createdAt));
+    return rows.map(this.mapWorkspace);
+  }
+
   async getWorkspace(workspaceId: string): Promise<Workspace | undefined> {
     const rows = await db.select().from(workspace).where(eq(workspace.id, workspaceId)).limit(1);
     if (rows.length === 0) return undefined;
@@ -84,6 +89,11 @@ export class WorkspaceRepository {
   async softDelete(workspaceId: string, deletedBy: string): Promise<void> {
     const now = new Date();
     await db.update(workspace).set({ status: "deleted", updatedAt: now }).where(eq(workspace.id, workspaceId));
+  }
+
+  async deleteWorkspace(workspaceId: string): Promise<boolean> {
+    const [row] = await db.delete(workspace).where(eq(workspace.id, workspaceId)).returning({ id: workspace.id });
+    return !!row;
   }
 
   async isOwner(workspaceId: string, userId: string): Promise<boolean> {

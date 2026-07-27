@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { landingSection } from "@/lib/db/schema/landing";
-import { eq } from "drizzle-orm";
-import { db } from "@/lib/db";
 import { cookies } from "next/headers";
+import { LandingService } from "@/core/landing/landing.service";
+import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
+import { successResponse, errorResponse } from "@/app/api/mappers/response";
 
 export async function GET(request: NextRequest) {
   try {
@@ -24,17 +24,18 @@ export async function GET(request: NextRequest) {
       regionProfile = null;
     }
 
+    const service = new LandingService();
     const whereClause = regionProfile?.pricingProfile
-      ? eq(landingSection.sectionKey, "pricing")
-      : eq(landingSection.sectionKey, "pricing");
+      ? { sectionKey: "pricing" }
+      : { sectionKey: "pricing" };
 
-    const section = await db.select().from(landingSection).where(whereClause).limit(1);
+    const section = await service.getSectionByKey("pricing");
 
-    if (!section || section.length === 0) {
-      return NextResponse.json({ success: true, data: { plans: [] } });
+    if (!section) {
+      return NextResponse.json(successResponse({ data: { plans: [] } }));
     }
 
-    const config = (section[0].config ?? {}) as Record<string, unknown>;
+    const config = (section.config ?? {}) as Record<string, unknown>;
     const plans = (config.plans as Array<{
       id: string;
       name: string;
@@ -49,9 +50,8 @@ export async function GET(request: NextRequest) {
       campaignBadge?: string;
     }>) || [];
 
-    return NextResponse.json({ success: true, data: { plans } });
+    return NextResponse.json(successResponse({ data: { plans } }));
   } catch (error) {
-    console.error("[GET /api/landing/subscription] Error:", error);
-    return NextResponse.json({ success: true, data: { plans: [] } });
+    return NextResponse.json(successResponse({ data: { plans: [] } }));
   }
 }

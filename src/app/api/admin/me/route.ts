@@ -1,13 +1,11 @@
-import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { adminAuthentication } from "@/core/middleware";
+import type { NextRequest } from "next/server";
 import type { RequestContext } from "@/core/middleware/types";
 import { runMiddleware } from "@/core/middleware/compose";
-import { db } from "@/lib/db";
-import { admin } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
-
-export const dynamic = "force-dynamic";
+import { adminAuthentication } from "@/core/middleware";
+import { AdminService } from "@/core/admin/admin.service";
+import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
+import { successResponse } from "@/app/api/mappers/response";
 
 export async function GET(request: NextRequest) {
   const ctx: RequestContext = {
@@ -36,37 +34,27 @@ export async function GET(request: NextRequest) {
     const session = ctx.state.adminSession;
 
     if (session?.adminId) {
-      const adminRecord = await db.select().from(admin).where(eq(admin.id, session.adminId)).limit(1);
-      if (adminRecord.length > 0 && adminRecord[0].isActive) {
-        const record = adminRecord[0];
-        const initials = record.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
-        return NextResponse.json({
-          id: record.id,
-          email: record.email,
-          name: record.name,
-          role: record.role,
-          initials,
-          isActive: record.isActive,
-          lastLoginAt: record.lastLoginAt,
-        });
+      const service = new AdminService();
+      const profile = await service.getAdminProfile(session.adminId);
+      if (profile?.isActive) {
+        return NextResponse.json(successResponse(profile));
       }
     }
 
     if (process.env.NODE_ENV === "development") {
-      return NextResponse.json({
+      return NextResponse.json(successResponse({
         id: "dev-admin",
         email: "admin@tamer.studio",
         name: "Admin User",
         role: "super_admin",
-        initials: "AU",
         isActive: true,
-        lastLoginAt: new Date().toISOString(),
-      });
+        lastLoginAt: new Date(),
+        initials: "AU",
+      }));
     }
 
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
   } catch (error) {
-    console.error("[Admin Me] Error:", error);
-    return NextResponse.json({ error: "Failed to fetch admin profile" }, { status: 500 });
+    return mapErrorToResponse(error);
   }
 }

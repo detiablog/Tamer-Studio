@@ -1,77 +1,70 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { db } from "@/lib/db";
-import { user } from "@/lib/db/schema/auth";
-import { eq } from "drizzle-orm";
+import type { RequestContext } from "@/core/middleware/types";
+import { runMiddleware } from "@/core/middleware/compose";
+import { adminAuthentication, requireAdminPermission } from "@/core/middleware";
+import { UserService } from "@/core/users/user.service";
+import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
+import { successResponse } from "@/app/api/mappers/response";
+import { z } from "zod";
+
+const UpdateUserSchema = z.object({
+  name: z.string().min(1, "Name is required").max(255).optional(),
+  email: z.string().email("Invalid email format").optional(),
+  role: z.string().optional(),
+  status: z.string().optional(),
+});
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const resolvedParams = await params;
+  const ctx: RequestContext = {
+    request,
+    params: resolvedParams,
+    state: {
+      rateLimit: undefined,
+      origin: undefined,
+      adminSession: undefined,
+      userSession: undefined,
+      authError: undefined,
+      permissionError: undefined,
+      csrfError: undefined,
+      rateLimitError: undefined,
+      auditContext: undefined,
+    },
+    method: "PUT",
+    pathname: request.nextUrl.pathname,
+    ip: request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0].trim() || undefined,
+  };
+
+  const middlewareError = await runMiddleware([adminAuthentication(), requireAdminPermission("users.write")], ctx);
+  if (middlewareError) return middlewareError;
+
   try {
     const { id } = await params;
     const body = await request.json();
+    const parsed = UpdateUserSchema.safeParse(body);
 
-    if (!id) {
+    if (!parsed.success) {
       return NextResponse.json(
-        { success: false, error: "User ID required" },
-        { status: 400 }
+        { success: false, error: { code: "VALIDATION_ERROR", message: "Invalid input", details: { fieldErrors: parsed.error.flatten().fieldErrors } } },
+        { status: 422 }
       );
     }
 
-    const updateData: Record<string, unknown> = {};
-    if (body.name !== undefined) updateData.name = body.name;
-    if (body.email !== undefined) updateData.email = body.email;
-    if (body.role !== undefined) updateData.role = body.role;
-    if (body.status !== undefined) updateData.status = body.status;
-
-    if (Object.keys(updateData).length === 0) {
-      return NextResponse.json(
-        { success: false, error: "No fields to update" },
-        { status: 400 }
-      );
-    }
-
-    const updated = await db.update(user).set(updateData).where(eq(user.id, id)).returning({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      status: user.status,
-      emailVerified: user.emailVerified,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
+    const service = new UserService();
+    const user = await service.updateUser(id, {
+      name: parsed.data.name,
+      email: parsed.data.email,
+      role: parsed.data.role,
+      status: parsed.data.status,
     });
 
-    if (!updated || updated.length === 0) {
-      return NextResponse.json(
-        { success: false, error: "User not found" },
-        { status: 404 }
-      );
-    }
-
-    const u = updated[0];
-
-    return NextResponse.json({
-      success: true,
-      message: "User updated successfully",
-      data: {
-        id: u.id,
-        name: u.name,
-        email: u.email,
-        role: u.role,
-        status: u.status,
-        emailVerified: u.emailVerified,
-        joined: u.createdAt ? new Date(u.createdAt).toLocaleDateString() : "N/A",
-        lastActive: u.updatedAt ? new Date(u.updatedAt).toLocaleDateString() : "Never",
-      },
-    });
+    return NextResponse.json(successResponse(user, "User updated successfully"));
   } catch (error) {
-    console.error("[PUT Error]", error);
-    return NextResponse.json(
-      { success: false, error: String(error) },
-      { status: 500 }
-    );
+    return mapErrorToResponse(error);
   }
 }
 
@@ -79,34 +72,42 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const ctx: RequestContext = {
+    request,
+    params: await params,
+    state: {
+      rateLimit: undefined,
+      origin: undefined,
+      adminSession: undefined,
+      userSession: undefined,
+      authError: undefined,
+      permissionError: undefined,
+      csrfError: undefined,
+      rateLimitError: undefined,
+      auditContext: undefined,
+    },
+    method: "DELETE",
+    pathname: request.nextUrl.pathname,
+    ip: request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0].trim() || undefined,
+  };
+
+  const middlewareError = await runMiddleware([adminAuthentication(), requireAdminPermission("users.write")], ctx);
+  if (middlewareError) return middlewareError;
+
   try {
     const { id } = await params;
+    const service = new UserService();
+    const deleted = await service.deleteUser(id);
 
-    if (!id) {
+    if (!deleted) {
       return NextResponse.json(
-        { success: false, error: "User ID required" },
-        { status: 400 }
-      );
-    }
-
-    const deleted = await db.delete(user).where(eq(user.id, id)).returning({ id: user.id });
-
-    if (!deleted || deleted.length === 0) {
-      return NextResponse.json(
-        { success: false, error: "User not found" },
+        { success: false, error: { code: "NOT_FOUND", message: "User not found" } },
         { status: 404 }
       );
     }
 
-    return NextResponse.json({
-      success: true,
-      message: "User deleted successfully",
-    });
+    return NextResponse.json(successResponse({ message: "User deleted successfully" }));
   } catch (error) {
-    console.error("[DELETE Error]", error);
-    return NextResponse.json(
-      { success: false, error: String(error) },
-      { status: 500 }
-    );
+    return mapErrorToResponse(error);
   }
 }

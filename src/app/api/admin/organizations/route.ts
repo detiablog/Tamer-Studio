@@ -1,76 +1,103 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { db } from "@/lib/db";
-import { organization } from "@/lib/db/schema/identity";
-import { sql, eq, desc } from "drizzle-orm";
+import type { RequestContext } from "@/core/middleware/types";
+import { runMiddleware } from "@/core/middleware/compose";
+import { adminAuthentication, requireAdminPermission } from "@/core/middleware";
+import { OrganizationService } from "@/core/organization/organization.service";
+import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
+import { successResponse } from "@/app/api/mappers/response";
+import { z } from "zod";
 
-const MOCK_ORGS = [
-  { id: "1", name: "Acme Studio", plan: "Pro", status: "Active", members: 5, createdAt: "Oct 1, 2026" },
-  { id: "2", name: "Marketing Team", plan: "Enterprise", status: "Active", members: 12, createdAt: "Sep 15, 2026" },
-  { id: "3", name: "Solo Creator", plan: "Starter", status: "Active", members: 1, createdAt: "Aug 20, 2026" },
-];
+const CreateOrganizationSchema = z.object({
+  name: z.string().min(1, "Organization name is required").max(255),
+  plan: z.string().default("Starter"),
+  status: z.string().optional(),
+});
+
+const UpdateOrganizationSchema = z.object({
+  name: z.string().min(1, "Name is required").max(255).optional(),
+  plan: z.string().optional(),
+  status: z.string().optional(),
+});
 
 export async function GET(request: NextRequest) {
+  const ctx: RequestContext = {
+    request,
+    params: {},
+    state: {
+      rateLimit: undefined,
+      origin: undefined,
+      adminSession: undefined,
+      userSession: undefined,
+      authError: undefined,
+      permissionError: undefined,
+      csrfError: undefined,
+      rateLimitError: undefined,
+      auditContext: undefined,
+    },
+    method: "GET",
+    pathname: request.nextUrl.pathname,
+    ip: request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0].trim() || undefined,
+  };
+
+  const middlewareError = await runMiddleware([adminAuthentication(), requireAdminPermission("organizations.read")], ctx);
+  if (middlewareError) return middlewareError;
+
   try {
-    const rows = await db.select().from(organization).orderBy(desc(organization.createdAt));
-    if (rows.length > 0) {
-      const data = rows.map((o) => ({
-        id: o.id,
-        name: o.name,
-        plan: (o.settings as Record<string, unknown>)?.plan || "Starter",
-        status: o.status.charAt(0).toUpperCase() + o.status.slice(1),
-        members: 0,
-        createdAt: new Date(o.createdAt).toLocaleDateString(),
-      }));
-      return NextResponse.json({ success: true, data, count: data.length, source: "database" });
-    }
-    return NextResponse.json({ success: true, data: MOCK_ORGS, count: MOCK_ORGS.length, source: "mock" });
+    const service = new OrganizationService();
+    const organizations = await service.listOrganizations();
+
+    return NextResponse.json(successResponse(organizations));
   } catch (error) {
-    return NextResponse.json({ success: true, data: MOCK_ORGS, count: MOCK_ORGS.length, source: "mock" });
+    return mapErrorToResponse(error);
   }
 }
 
 export async function POST(request: NextRequest) {
+  const ctx: RequestContext = {
+    request,
+    params: {},
+    state: {
+      rateLimit: undefined,
+      origin: undefined,
+      adminSession: undefined,
+      userSession: undefined,
+      authError: undefined,
+      permissionError: undefined,
+      csrfError: undefined,
+      rateLimitError: undefined,
+      auditContext: undefined,
+    },
+    method: "POST",
+    pathname: request.nextUrl.pathname,
+    ip: request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0].trim() || undefined,
+  };
+
+  const middlewareError = await runMiddleware([adminAuthentication(), requireAdminPermission("organizations.write")], ctx);
+  if (middlewareError) return middlewareError;
+
   try {
     const body = await request.json();
-    const { name, plan, status } = body;
+    const parsed = CreateOrganizationSchema.safeParse(body);
 
-    if (!name) {
+    if (!parsed.success) {
       return NextResponse.json(
-        { success: false, error: "Organization name is required" },
-        { status: 400 }
+        { success: false, error: { code: "VALIDATION_ERROR", message: "Invalid input", details: { fieldErrors: parsed.error.flatten().fieldErrors } } },
+        { status: 422 }
       );
     }
 
-    const id = `org_${Date.now()}`;
-    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").substring(0, 63);
-    const settings = { plan: plan || "Starter" };
-
-    const [row] = await db.insert(organization).values({
-      id,
-      name,
+    const service = new OrganizationService();
+    const slug = parsed.data.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").substring(0, 63);
+    const organization = await service.createOrganization({
+      name: parsed.data.name,
       slug,
       ownerId: "user_admin_default",
-      settings,
-      status: status || "active",
-    }).returning();
-
-    return NextResponse.json({
-      success: true,
-      message: "Organization created successfully",
-      data: {
-        id: row.id,
-        name: row.name,
-        plan: (row.settings as Record<string, unknown>)?.plan || "Starter",
-        status: row.status,
-        members: 0,
-        createdAt: new Date(row.createdAt).toLocaleDateString(),
-      },
+      settings: { plan: parsed.data.plan || "Starter" },
     });
+
+    return NextResponse.json(successResponse(organization, "Organization created successfully"));
   } catch (error) {
-    return NextResponse.json(
-      { success: false, error: String(error) },
-      { status: 500 }
-    );
+    return mapErrorToResponse(error);
   }
 }

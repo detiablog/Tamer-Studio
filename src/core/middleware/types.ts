@@ -4,7 +4,13 @@ export interface RequestContext {
   state: SecurityState;
   method: string;
   pathname: string;
+  traceId?: string;
+  requestId?: string;
+  locale?: string;
+  currency?: string;
+  timezone?: string;
   ip?: string;
+  userAgent?: string;
 }
 
 export interface SecurityState {
@@ -20,6 +26,9 @@ export interface SecurityState {
     expiresAt: Date;
     role: string;
   };
+  workspaceId?: string;
+  organizationId?: string;
+  subscriptionId?: string;
   authError?: {
     status: number;
     message: string;

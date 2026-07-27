@@ -1,12 +1,11 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { emailTemplate } from "@/lib/db/schema/email";
-import { eq } from "drizzle-orm";
 import type { RequestContext } from "@/core/middleware/types";
 import { runMiddleware } from "@/core/middleware/compose";
 import { adminAuthentication } from "@/core/middleware";
-import type { EmailType } from "@/modules/email";
+import { EmailAdminService } from "@/core/email/email-admin.service";
+import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
+import { successResponse } from "@/app/api/mappers/response";
 
 export async function GET(
   request: NextRequest,
@@ -36,37 +35,16 @@ export async function GET(
 
   try {
     const { id } = await params;
-
-    const [template] = await db.select().from(emailTemplate).where(eq(emailTemplate.id, id)).limit(1);
+    const service = new EmailAdminService();
+    const template = await service.getTemplate(id);
 
     if (!template) {
       return NextResponse.json({ success: false, error: "Template not found" }, { status: 404 });
     }
 
-    return NextResponse.json({
-      success: true,
-      data: {
-        id: template.id,
-        key: template.key,
-        name: template.name,
-        type: template.type as EmailType,
-        subject: template.subject,
-        html: template.html,
-        text: template.text,
-        variables: template.variables,
-        isActive: template.isActive,
-        createdBy: template.createdBy,
-        updatedBy: template.updatedBy,
-        createdAt: template.createdAt,
-        updatedAt: template.updatedAt,
-      },
-    });
+    return NextResponse.json(successResponse(template));
   } catch (error) {
-    console.error("[Admin Email Template] Error:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to fetch template", details: String(error) },
-      { status: 500 }
-    );
+    return mapErrorToResponse(error);
   }
 }
 
@@ -100,11 +78,6 @@ export async function PUT(
     const { id } = await params;
     const body = await request.json();
 
-    const [existing] = await db.select().from(emailTemplate).where(eq(emailTemplate.id, id)).limit(1);
-    if (!existing) {
-      return NextResponse.json({ success: false, error: "Template not found" }, { status: 404 });
-    }
-
     const updateData: Record<string, unknown> = {};
     if (body.key !== undefined) updateData.key = body.key;
     if (body.name !== undefined) updateData.name = body.name;
@@ -120,33 +93,16 @@ export async function PUT(
       return NextResponse.json({ success: false, error: "No fields to update" }, { status: 400 });
     }
 
-    const [updated] = await db.update(emailTemplate).set(updateData).where(eq(emailTemplate.id, id)).returning({
-      id: emailTemplate.id,
-      key: emailTemplate.key,
-      name: emailTemplate.name,
-      type: emailTemplate.type,
-      subject: emailTemplate.subject,
-      html: emailTemplate.html,
-      text: emailTemplate.text,
-      variables: emailTemplate.variables,
-      isActive: emailTemplate.isActive,
-      createdBy: emailTemplate.createdBy,
-      updatedBy: emailTemplate.updatedBy,
-      createdAt: emailTemplate.createdAt,
-      updatedAt: emailTemplate.updatedAt,
-    });
+    const service = new EmailAdminService();
+    const updated = await service.updateTemplate(id, updateData);
 
-    return NextResponse.json({
-      success: true,
-      message: "Template updated successfully",
-      data: updated,
-    });
+    if (!updated) {
+      return NextResponse.json({ success: false, error: "Template not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(successResponse(updated, "Template updated successfully"));
   } catch (error) {
-    console.error("[Admin Email Template Update] Error:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to update template", details: String(error) },
-      { status: 500 }
-    );
+    return mapErrorToResponse(error);
   }
 }
 
@@ -178,22 +134,16 @@ export async function DELETE(
 
   try {
     const { id } = await params;
-
-    const [deleted] = await db.update(emailTemplate).set({ isActive: false }).where(eq(emailTemplate.id, id)).returning({ id: emailTemplate.id });
-
-    if (!deleted || (deleted as unknown as { length: number }).length === 0) {
+    const service = new EmailAdminService();
+    const existing = await service.getTemplate(id);
+    if (!existing) {
       return NextResponse.json({ success: false, error: "Template not found" }, { status: 404 });
     }
 
-    return NextResponse.json({
-      success: true,
-      message: "Template deleted successfully",
-    });
+    const deleted = await service.deleteTemplate(id);
+
+    return NextResponse.json(successResponse({ message: "Template deleted successfully" }));
   } catch (error) {
-    console.error("[Admin Email Template Delete] Error:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to delete template", details: String(error) },
-      { status: 500 }
-    );
+    return mapErrorToResponse(error);
   }
 }

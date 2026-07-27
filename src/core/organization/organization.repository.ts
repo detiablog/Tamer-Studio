@@ -54,6 +54,11 @@ export class OrganizationRepository {
     return { ...existing, ...updates } as Organization;
   }
 
+  async deleteOrganization(organizationId: string): Promise<boolean> {
+    const [row] = await db.delete(organization).where(eq(organization.id, organizationId)).returning({ id: organization.id });
+    return !!row;
+  }
+
   private mapOrganization(row: typeof organization.$inferSelect): Organization {
     return {
       id: row.id,

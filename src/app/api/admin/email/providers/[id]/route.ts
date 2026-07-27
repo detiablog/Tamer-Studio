@@ -1,13 +1,31 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { emailProvider, emailProviderHealth, emailQueue } from "@/lib/db/schema/email";
-import { eq, sql } from "drizzle-orm";
 import type { RequestContext } from "@/core/middleware/types";
 import { runMiddleware } from "@/core/middleware/compose";
 import { adminAuthentication } from "@/core/middleware";
-import { encrypt, decrypt, maskSensitive } from "@/modules/email";
-import type { ProviderType } from "@/modules/email";
+import { EmailAdminService } from "@/core/email/email-admin.service";
+import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
+import { successResponse } from "@/app/api/mappers/response";
+import { z } from "zod";
+
+const UpdateProviderSchema = z.object({
+  name: z.string().optional(),
+  type: z.string().optional(),
+  description: z.string().optional(),
+  senderName: z.string().optional(),
+  senderEmail: z.string().optional(),
+  replyTo: z.string().optional(),
+  isActive: z.boolean().optional(),
+  priority: z.number().optional(),
+  routingMode: z.string().optional(),
+  timeout: z.number().optional(),
+  retryCount: z.number().optional(),
+  dailyLimit: z.number().optional(),
+  monthlyLimit: z.number().optional(),
+  webhookSecret: z.string().optional(),
+  domain: z.string().optional(),
+  config: z.record(z.unknown()).optional(),
+});
 
 export async function GET(
   request: NextRequest,
@@ -37,65 +55,16 @@ export async function GET(
 
   try {
     const { id } = await params;
+    const service = new EmailAdminService();
+    const provider = await service.getProvider(id);
 
-    const [provider, health, queueCount] = await Promise.all([
-      db.select().from(emailProvider).where(eq(emailProvider.id, id)).limit(1),
-      db.select().from(emailProviderHealth).where(eq(emailProviderHealth.providerId, id)).limit(1),
-      db.select({ count: sql<number>`count(*)` }).from(emailQueue).where(eq(emailQueue.providerId, id)).then((r) => r[0]?.count ?? 0).catch(() => 0) as Promise<number>,
-    ]);
-
-    if (!provider || provider.length === 0) {
+    if (!provider) {
       return NextResponse.json({ success: false, error: "Provider not found" }, { status: 404 });
     }
 
-    const p = provider[0];
-
-    let credentials: Record<string, unknown> | null = null;
-    if (p.credentialsEncrypted) {
-      try {
-        const decrypted = decrypt(p.credentialsEncrypted);
-        credentials = JSON.parse(decrypted);
-      } catch {
-        credentials = { error: "Failed to decrypt credentials" };
-      }
-    }
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        id: p.id,
-        name: p.name,
-        type: p.type as ProviderType,
-        description: p.description,
-        isActive: p.isActive,
-        priority: p.priority,
-        routingMode: p.routingMode,
-        senderName: p.senderName,
-        senderEmail: p.senderEmail,
-        replyTo: p.replyTo,
-        dailyLimit: p.dailyLimit,
-        monthlyLimit: p.monthlyLimit,
-        timeout: p.timeout,
-        retryCount: p.retryCount,
-        webhookSecret: p.webhookSecret ? maskSensitive(p.webhookSecret) : null,
-        domain: p.domain,
-        credentials,
-        lastTestedAt: p.lastTestedAt,
-        lastTestStatus: p.lastTestStatus,
-        lastTestError: p.lastTestError,
-        config: p.config,
-        health: health[0] || null,
-        queueCount: typeof queueCount === "number" ? queueCount : Number(queueCount) || 0,
-        createdAt: p.createdAt,
-        updatedAt: p.updatedAt,
-      },
-    });
+    return NextResponse.json(successResponse(provider));
   } catch (error) {
-    console.error("[Admin Email Provider] Error:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to fetch provider", details: String(error) },
-      { status: 500 }
-    );
+    return mapErrorToResponse(error);
   }
 }
 
@@ -128,76 +97,37 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
+    const parsed = UpdateProviderSchema.safeParse(body);
 
-    const [existing] = await db.select().from(emailProvider).where(eq(emailProvider.id, id)).limit(1);
+    if (!parsed.success) {
+      return NextResponse.json({ success: false, error: "Invalid input" }, { status: 400 });
+    }
+
+    const service = new EmailAdminService();
+    const existing = await service.getProvider(id);
     if (!existing) {
       return NextResponse.json({ success: false, error: "Provider not found" }, { status: 404 });
     }
 
     const updateData: Record<string, unknown> = {};
-    if (body.name !== undefined) updateData.name = body.name;
-    if (body.type !== undefined) updateData.type = body.type;
-    if (body.description !== undefined) updateData.description = body.description;
-    if (body.senderName !== undefined) updateData.senderName = body.senderName;
-    if (body.senderEmail !== undefined) updateData.senderEmail = body.senderEmail;
-    if (body.replyTo !== undefined) updateData.replyTo = body.replyTo;
-    if (body.isActive !== undefined) updateData.isActive = body.isActive;
-    if (body.priority !== undefined) updateData.priority = body.priority;
-    if (body.routingMode !== undefined) updateData.routingMode = body.routingMode;
-    if (body.timeout !== undefined) updateData.timeout = body.timeout;
-    if (body.retryCount !== undefined) updateData.retryCount = body.retryCount;
-    if (body.dailyLimit !== undefined) updateData.dailyLimit = body.dailyLimit;
-    if (body.monthlyLimit !== undefined) updateData.monthlyLimit = body.monthlyLimit;
-    if (body.webhookSecret !== undefined) updateData.webhookSecret = body.webhookSecret;
-    if (body.domain !== undefined) updateData.domain = body.domain;
-    if (body.config !== undefined) updateData.config = body.config;
-
-    if (body.credentials) {
-      updateData.credentialsEncrypted = encrypt(JSON.stringify(body.credentials));
+    for (const [k, v] of Object.entries(parsed.data)) {
+      if (v !== undefined) {
+        updateData[k] = v;
+      }
     }
 
     if (Object.keys(updateData).length === 0) {
       return NextResponse.json({ success: false, error: "No fields to update" }, { status: 400 });
     }
 
-    const [updated] = await db.update(emailProvider).set(updateData).where(eq(emailProvider.id, id)).returning({
-      id: emailProvider.id,
-      name: emailProvider.name,
-      type: emailProvider.type,
-      description: emailProvider.description,
-      isActive: emailProvider.isActive,
-      priority: emailProvider.priority,
-      routingMode: emailProvider.routingMode,
-      senderName: emailProvider.senderName,
-      senderEmail: emailProvider.senderEmail,
-      replyTo: emailProvider.replyTo,
-      dailyLimit: emailProvider.dailyLimit,
-      monthlyLimit: emailProvider.monthlyLimit,
-      timeout: emailProvider.timeout,
-      retryCount: emailProvider.retryCount,
-      webhookSecret: emailProvider.webhookSecret,
-      domain: emailProvider.domain,
-      createdAt: emailProvider.createdAt,
-      updatedAt: emailProvider.updatedAt,
-      lastTestedAt: emailProvider.lastTestedAt,
-      lastTestStatus: emailProvider.lastTestStatus,
-      lastTestError: emailProvider.lastTestError,
-    });
+    const updated = await service.updateProvider(id, updateData as any);
 
-    return NextResponse.json({
-      success: true,
-      message: "Provider updated successfully",
-      data: {
-        ...updated,
-        webhookSecret: updated.webhookSecret ? maskSensitive(updated.webhookSecret) : null,
-      },
-    });
+    return NextResponse.json(successResponse({
+      ...updated,
+      webhookSecret: updated.webhookSecret ? `${updated.webhookSecret.slice(0, 4)}****` : null,
+    }, "Provider updated successfully"));
   } catch (error) {
-    console.error("[Admin Email Provider Update] Error:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to update provider", details: String(error) },
-      { status: 500 }
-    );
+    return mapErrorToResponse(error);
   }
 }
 
@@ -229,22 +159,16 @@ export async function DELETE(
 
   try {
     const { id } = await params;
-
-    const [deleted] = await db.delete(emailProvider).where(eq(emailProvider.id, id)).returning({ id: emailProvider.id });
-
-    if (!deleted || (deleted as unknown as { length: number }).length === 0) {
+    const service = new EmailAdminService();
+    const existing = await service.getProvider(id);
+    if (!existing) {
       return NextResponse.json({ success: false, error: "Provider not found" }, { status: 404 });
     }
 
-    return NextResponse.json({
-      success: true,
-      message: "Provider deleted successfully",
-    });
+    const deleted = await service.deleteProvider(id);
+
+    return NextResponse.json(successResponse({ message: "Provider deleted successfully" }));
   } catch (error) {
-    console.error("[Admin Email Provider Delete] Error:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to delete provider", details: String(error) },
-      { status: 500 }
-    );
+    return mapErrorToResponse(error);
   }
 }

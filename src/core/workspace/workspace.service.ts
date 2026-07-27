@@ -5,6 +5,10 @@ import { logAction } from "@/core/audit";
 export class WorkspaceService {
   private repository = new WorkspaceRepository();
 
+  async listWorkspaces(): Promise<Workspace[]> {
+    return this.repository.getAllWorkspaces();
+  }
+
   async getWorkspace(workspaceId: string): Promise<Workspace> {
     const ws = await this.repository.getWorkspace(workspaceId);
     if (!ws) throw new Error("Workspace not found");
@@ -31,6 +35,14 @@ export class WorkspaceService {
   async softDelete(workspaceId: string, deletedBy: string): Promise<void> {
     await this.repository.softDelete(workspaceId, deletedBy);
     logAction("workspace.deleted", undefined, undefined, { workspaceId, deletedBy });
+  }
+
+  async deleteWorkspace(workspaceId: string): Promise<boolean> {
+    const deleted = await this.repository.deleteWorkspace(workspaceId);
+    if (deleted) {
+      logAction("workspace.deleted", undefined, undefined, { workspaceId });
+    }
+    return deleted;
   }
 
   async isOwner(workspaceId: string, userId: string): Promise<boolean> {

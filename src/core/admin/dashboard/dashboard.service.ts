@@ -39,6 +39,10 @@ export class DashboardService {
     };
   }
 
+  async getAdminStats() {
+    return this.dashboardRepository.getAdminStats();
+  }
+
   private getProviderStats(allProviders: AIProvider[]): PlatformStats["providers"] {
     return {
       totalProviders: allProviders.length,

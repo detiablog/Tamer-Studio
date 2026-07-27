@@ -1,13 +1,20 @@
-import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { adminAuthentication } from "@/core/middleware";
+import type { NextRequest } from "next/server";
 import type { RequestContext } from "@/core/middleware/types";
 import { runMiddleware } from "@/core/middleware/compose";
-import { db } from "@/lib/db";
-import { notification } from "@/lib/db/schema/notification";
-import { eq, desc, count, sql, and } from "drizzle-orm";
+import { adminAuthentication, requireAdminPermission } from "@/core/middleware";
+import { NotificationRepository } from "@/core/notifications/notification.repository";
+import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
+import { successResponse, paginatedResponse } from "@/app/api/mappers/response";
+import { z } from "zod";
 
-export const dynamic = "force-dynamic";
+const repository = new NotificationRepository();
+
+const ListNotificationsSchema = z.object({
+  limit: z.string().default("20"),
+  offset: z.string().default("0"),
+  unreadOnly: z.string().optional(),
+});
 
 export async function GET(request: NextRequest) {
   const ctx: RequestContext = {
@@ -29,13 +36,13 @@ export async function GET(request: NextRequest) {
     ip: request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0].trim() || undefined,
   };
 
-  const errorResponse = await runMiddleware([adminAuthentication()], ctx);
-  if (errorResponse) return errorResponse;
+  const middlewareError = await runMiddleware([adminAuthentication(), requireAdminPermission("notifications.read")], ctx);
+  if (middlewareError) return middlewareError;
 
   try {
     const session = ctx.state.adminSession;
     if (!session?.adminId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
     const searchParams = request.nextUrl.searchParams;
@@ -43,27 +50,16 @@ export async function GET(request: NextRequest) {
     const offset = parseInt(searchParams.get("offset") || "0");
     const unreadOnly = searchParams.get("unreadOnly") === "true";
 
-    const conditions = [eq(notification.userId, session.adminId)];
+    const notifications = await repository.getByUser(session.adminId, {
+      status: unreadOnly ? "queued" : undefined,
+      limit,
+      offset,
+    });
 
-    if (unreadOnly) {
-      conditions.push(eq(notification.status, "queued"));
-    }
+    const stats = await repository.getStats(session.adminId);
 
-    const notifications = await db
-      .select()
-      .from(notification)
-      .where(and(...conditions))
-      .orderBy(desc(notification.createdAt))
-      .limit(limit)
-      .offset(offset);
-
-    const [unreadCountResult] = await db
-      .select({ count: count() })
-      .from(notification)
-      .where(and(eq(notification.userId, session.adminId), eq(notification.status, "queued")));
-
-    return NextResponse.json({
-      notifications: notifications.map((n) => ({
+    return NextResponse.json(paginatedResponse(
+      notifications.map((n: any) => ({
         id: n.id,
         title: n.title,
         message: n.message,
@@ -73,11 +69,12 @@ export async function GET(request: NextRequest) {
         createdAt: n.createdAt,
         read: n.status === "read" || n.status === "archived",
       })),
-      unreadCount: unreadCountResult?.count ?? 0,
-    });
+      stats.total,
+      offset / limit + 1,
+      limit
+    ));
   } catch (error) {
-    console.error("[Admin Notifications] Error:", error);
-    return NextResponse.json({ error: "Failed to fetch notifications" }, { status: 500 });
+    return mapErrorToResponse(error);
   }
 }
 
@@ -101,43 +98,45 @@ export async function PATCH(request: NextRequest) {
     ip: request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0].trim() || undefined,
   };
 
-  const errorResponse = await runMiddleware([adminAuthentication()], ctx);
-  if (errorResponse) return errorResponse;
+  const middlewareError = await runMiddleware([adminAuthentication()], ctx);
+  if (middlewareError) return middlewareError;
 
   try {
     const session = ctx.state.adminSession;
     if (!session?.adminId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json().catch(() => ({}));
     const { action, id } = body;
 
     if (!id || !action) {
-      return NextResponse.json({ error: "Missing id or action" }, { status: 400 });
+      return NextResponse.json({ success: false, error: "Missing id or action" }, { status: 400 });
     }
 
     const allowedActions = ["read", "archive", "delete"];
     if (!allowedActions.includes(action)) {
-      return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+      return NextResponse.json({ success: false, error: "Invalid action" }, { status: 400 });
     }
 
-    const existing = await db.select().from(notification).where(eq(notification.id, id)).limit(1);
-    if (existing.length === 0 || existing[0].userId !== session.adminId) {
-      return NextResponse.json({ error: "Notification not found" }, { status: 404 });
+    let notification;
+    switch (action) {
+      case "read":
+        notification = await repository.markAsRead(session.adminId, id);
+        break;
+      case "archive":
+        notification = await repository.archive(session.adminId, id);
+        break;
+      case "delete":
+        await repository.softDelete(id);
+        notification = { id };
+        break;
+      default:
+        return NextResponse.json({ success: false, error: "Invalid action" }, { status: 400 });
     }
 
-    if (action === "read") {
-      await db.update(notification).set({ status: "read", updatedAt: new Date() }).where(eq(notification.id, id));
-    } else if (action === "archive") {
-      await db.update(notification).set({ status: "archived", updatedAt: new Date() }).where(eq(notification.id, id));
-    } else if (action === "delete") {
-      await db.update(notification).set({ status: "deleted", updatedAt: new Date() }).where(eq(notification.id, id));
-    }
-
-    return NextResponse.json({ success: true });
+    return NextResponse.json(successResponse(notification));
   } catch (error) {
-    console.error("[Admin Notifications PATCH] Error:", error);
-    return NextResponse.json({ error: "Failed to update notification" }, { status: 500 });
+    return mapErrorToResponse(error);
   }
 }

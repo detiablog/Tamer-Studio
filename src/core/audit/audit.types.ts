@@ -133,7 +133,22 @@ export type AuditAction =
   | "landing.section.duplicated"
   | "landing.sections.reordered"
   | "landing.section.visibility.updated"
-  | "landing.section.lock.updated";
+  | "landing.section.lock.updated"
+  | "cms.page.created"
+  | "cms.page.updated"
+  | "cms.page.deleted"
+  | "cms.page.published"
+  | "cms.page.archived"
+  | "cms.section.created"
+  | "cms.section.updated"
+  | "cms.section.deleted"
+  | "cms.component.registered"
+  | "cms.media.uploaded"
+  | "cms.media.deleted"
+  | "cms.version.created"
+  | "cms.publish.created"
+  | "cms.publish.completed"
+  | "cms.publish.failed";
 
 export interface AuditQuery {
   action?: AuditAction;

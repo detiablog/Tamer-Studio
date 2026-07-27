@@ -1,14 +1,14 @@
-import { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { landingSection, landingMedia } from "@/lib/db/schema/landing";
-import { eq, and, asc, sql } from "drizzle-orm";
+import type { NextRequest } from "next/server";
 import type { RequestContext } from "@/core/middleware/types";
 import { runMiddleware } from "@/core/middleware/compose";
 import { adminAuthentication } from "@/core/middleware";
+import { LandingService } from "@/core/landing/landing.service";
+import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
+import { successResponse } from "@/app/api/mappers/response";
 import { z } from "zod";
-import { logAdminAction } from "@/core/admin/audit";
 import { validateConfigTranslationKeys } from "@/lib/localization/validation";
+import { logAdminAction } from "@/core/admin/audit";
 
 const UpdateSectionSchema = z.object({
   title: z.string().min(1).max(255).optional(),
@@ -37,39 +37,16 @@ export async function GET(
   try {
     const { key } = await params;
     const sectionKey = decodeURIComponent(key);
+    const service = new LandingService();
+    const section = await service.getSectionByKey(sectionKey);
 
-    const section = await db
-      .select()
-      .from(landingSection)
-      .where(eq(landingSection.sectionKey, sectionKey))
-      .limit(1);
-
-    if (!section || section.length === 0) {
-      return NextResponse.json(
-        { success: false, error: "Section not found" },
-        { status: 404 }
-      );
+    if (!section) {
+      return NextResponse.json({ success: false, error: { code: "NOT_FOUND", message: "Section not found" } }, { status: 404 });
     }
 
-    const media = await db
-      .select()
-      .from(landingMedia)
-      .where(eq(landingMedia.sectionKey, sectionKey))
-      .orderBy(asc(landingMedia.order));
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        ...section[0],
-        media,
-      },
-    });
+    return NextResponse.json(successResponse(section));
   } catch (error) {
-    console.error("[GET /api/landing/sections/[key]] Error:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to fetch section", details: String(error) },
-      { status: 500 }
-    );
+    return mapErrorToResponse(error);
   }
 }
 
@@ -97,11 +74,8 @@ export async function PATCH(
     ip: request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0].trim() || undefined,
   };
 
-  const errorResponse = await runMiddleware([adminAuthentication()], ctx);
-
-  if (errorResponse) {
-    return errorResponse;
-  }
+  const middlewareError = await runMiddleware([adminAuthentication()], ctx);
+  if (middlewareError) return middlewareError;
 
   try {
     const { key } = await params;
@@ -110,32 +84,30 @@ export async function PATCH(
     const parsed = UpdateSectionSchema.safeParse(body);
 
     if (!parsed.success) {
-      const flatten = parsed.error.flatten();
       return NextResponse.json(
-        { success: false, error: flatten.formErrors?.[0] || "Invalid input" },
-        { status: 400 }
+        { success: false, error: { code: "VALIDATION_ERROR", message: "Invalid input", details: { fieldErrors: parsed.error.flatten().fieldErrors } } },
+        { status: 422 }
       );
     }
 
-    const existing = await db
-      .select()
-      .from(landingSection)
-      .where(eq(landingSection.sectionKey, sectionKey))
-      .limit(1);
-
-    if (!existing || existing.length === 0) {
-      return NextResponse.json(
-        { success: false, error: "Section not found" },
-        { status: 404 }
-      );
+    const service = new LandingService();
+    const existing = await service.getSectionByKey(sectionKey);
+    if (!existing) {
+      return NextResponse.json({ success: false, error: { code: "NOT_FOUND", message: "Section not found" } }, { status: 404 });
     }
 
-    const current = existing[0];
-    if (current.locked && parsed.data.visible === false) {
-      return NextResponse.json(
-        { success: false, error: "Cannot hide a locked section" },
-        { status: 403 }
-      );
+    if (existing.locked && parsed.data.visible === false) {
+      return NextResponse.json({ success: false, error: { code: "PERMISSION_DENIED", message: "Cannot hide a locked section" } }, { status: 403 });
+    }
+
+    if (parsed.data.config && typeof parsed.data.config === "object") {
+      const validation = validateConfigTranslationKeys(parsed.data.config as Record<string, unknown>);
+      if (!validation.valid) {
+        return NextResponse.json(
+          { success: false, error: { code: "VALIDATION_ERROR", message: `Invalid translation keys in config: ${validation.warnings.join(", ")}` } },
+          { status: 400 }
+        );
+      }
     }
 
     const updateData: Record<string, unknown> = {};
@@ -145,52 +117,24 @@ export async function PATCH(
       }
     }
 
-    if (updateData.config && typeof updateData.config === "object") {
-      const validation = validateConfigTranslationKeys(updateData.config as Record<string, unknown>);
-      if (!validation.valid) {
-        return NextResponse.json(
-          { success: false, error: `Invalid translation keys in config: ${validation.warnings.join(", ")}` },
-          { status: 400 }
-        );
-      }
-    }
-
     if (Object.keys(updateData).length === 0) {
-      return NextResponse.json(
-        { success: false, error: "No fields to update" },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: { code: "VALIDATION_ERROR", message: "No fields to update" } }, { status: 400 });
     }
 
-    const [updated] = await db
-      .update(landingSection)
-      .set({ ...updateData, updatedAt: new Date() })
-      .where(eq(landingSection.sectionKey, sectionKey))
-      .returning();
+    const updated = await service.updateSection(sectionKey, updateData as any);
 
     const admin = getAdminFromContext(ctx);
     if (admin?.adminId) {
-      const changes: Record<string, unknown> = {};
-      for (const k of Object.keys(parsed.data)) {
-        changes[k] = (parsed.data as Record<string, unknown>)[k];
-      }
       logAdminAction("landing.section.updated", admin.adminId, {
         sectionKey,
         title: updated.title,
-        changes,
+        changes: updateData,
       }).catch(() => {});
     }
 
-    return NextResponse.json({
-      success: true,
-      data: updated,
-    });
+    return NextResponse.json(successResponse(updated));
   } catch (error) {
-    console.error("[PATCH /api/landing/sections/[key]] Error:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to update section", details: String(error) },
-      { status: 500 }
-    );
+    return mapErrorToResponse(error);
   }
 }
 
@@ -218,76 +162,36 @@ export async function DELETE(
     ip: request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0].trim() || undefined,
   };
 
-  const errorResponse = await runMiddleware([adminAuthentication()], ctx);
-
-  if (errorResponse) {
-    return errorResponse;
-  }
+  const middlewareError = await runMiddleware([adminAuthentication()], ctx);
+  if (middlewareError) return middlewareError;
 
   try {
     const { key } = await params;
     const sectionKey = decodeURIComponent(key);
 
-    const existing = await db
-      .select()
-      .from(landingSection)
-      .where(eq(landingSection.sectionKey, sectionKey))
-      .limit(1);
-
-    if (!existing || existing.length === 0) {
-      return NextResponse.json(
-        { success: false, error: "Section not found" },
-        { status: 404 }
-      );
+    const service = new LandingService();
+    const existing = await service.getSectionByKey(sectionKey);
+    if (!existing) {
+      return NextResponse.json({ success: false, error: { code: "NOT_FOUND", message: "Section not found" } }, { status: 404 });
     }
 
-    if (existing[0].locked) {
-      return NextResponse.json(
-        { success: false, error: "Cannot delete a locked section" },
-        { status: 403 }
-      );
+    if (existing.locked) {
+      return NextResponse.json({ success: false, error: { code: "PERMISSION_DENIED", message: "Cannot delete a locked section" } }, { status: 403 });
     }
 
-    const deletedOrder = existing[0].order;
-
-    await db.transaction(async (tx) => {
-      await tx.delete(landingMedia).where(eq(landingMedia.sectionKey, sectionKey));
-      await tx.delete(landingSection).where(eq(landingSection.sectionKey, sectionKey));
-
-      const remaining = await tx
-        .select()
-        .from(landingSection)
-        .where(sql`${landingSection.order} > ${deletedOrder}`)
-        .orderBy(asc(landingSection.order));
-
-      if (remaining.length > 0) {
-        for (const s of remaining) {
-          await tx
-            .update(landingSection)
-            .set({ order: s.order - 1 })
-            .where(eq(landingSection.sectionKey, s.sectionKey));
-        }
-      }
-    });
+    await service.deleteSection(sectionKey);
 
     const admin = getAdminFromContext(ctx);
     if (admin?.adminId) {
       logAdminAction("landing.section.deleted", admin.adminId, {
         sectionKey,
-        title: existing[0].title,
+        title: existing.title,
       }).catch(() => {});
     }
 
-    return NextResponse.json({
-      success: true,
-      message: "Section deleted successfully",
-    });
+    return NextResponse.json(successResponse({ message: "Section deleted successfully" }));
   } catch (error) {
-    console.error("[DELETE /api/landing/sections/[key]] Error:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to delete section", details: String(error) },
-      { status: 500 }
-    );
+    return mapErrorToResponse(error);
   }
 }
 
@@ -315,11 +219,8 @@ export async function POST(
     ip: request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0].trim() || undefined,
   };
 
-  const errorResponse = await runMiddleware([adminAuthentication()], ctx);
-
-  if (errorResponse) {
-    return errorResponse;
-  }
+  const middlewareError = await runMiddleware([adminAuthentication()], ctx);
+  if (middlewareError) return middlewareError;
 
   try {
     const { key } = await params;
@@ -328,91 +229,25 @@ export async function POST(
     const parsed = DuplicateSchema.safeParse(body);
 
     if (!parsed.success) {
-      const flatten = parsed.error.flatten();
       return NextResponse.json(
-        { success: false, error: flatten.formErrors?.[0] || "Invalid input" },
-        { status: 400 }
+        { success: false, error: { code: "VALIDATION_ERROR", message: "Invalid input", details: { fieldErrors: parsed.error.flatten().fieldErrors } } },
+        { status: 422 }
       );
     }
 
-    const existing = await db
-      .select()
-      .from(landingSection)
-      .where(eq(landingSection.sectionKey, sectionKey))
-      .limit(1);
-
-    if (!existing || existing.length === 0) {
-      return NextResponse.json(
-        { success: false, error: "Section not found" },
-        { status: 404 }
-      );
+    const service = new LandingService();
+    const existing = await service.getSectionByKey(sectionKey);
+    if (!existing) {
+      return NextResponse.json({ success: false, error: { code: "NOT_FOUND", message: "Section not found" } }, { status: 404 });
     }
 
-    const source = existing[0];
-    const newKey = parsed.data.newSectionKey || `${source.sectionKey}-copy-${Date.now()}`;
-
-    const existingDuplicate = await db
-      .select()
-      .from(landingSection)
-      .where(eq(landingSection.sectionKey, newKey))
-      .limit(1);
-
-    if (existingDuplicate.length > 0) {
-      return NextResponse.json(
-        { success: false, error: `Section with key "${newKey}" already exists` },
-        { status: 409 }
-      );
+    const newKey = parsed.data.newSectionKey || `${sectionKey}-copy-${Date.now()}`;
+    const existingDuplicate = await service.getSectionByKey(newKey);
+    if (existingDuplicate) {
+      return NextResponse.json({ success: false, error: { code: "CONFLICT", message: `Section with key "${newKey}" already exists` } }, { status: 409 });
     }
 
-    const maxOrder = await db.select({ max: sql<number>`MAX(${landingSection.order})` }).from(landingSection).then((r) => r[0]?.max ?? -1);
-
-    const mediaRows = await db
-      .select()
-      .from(landingMedia)
-      .where(eq(landingMedia.sectionKey, sectionKey))
-      .orderBy(asc(landingMedia.order));
-
-    const now = new Date();
-    const newId = crypto.randomUUID();
-
-    const result = (await db.transaction(async (tx) => {
-      const [created] = await tx
-        .insert(landingSection)
-        .values({
-          id: newId,
-          sectionKey: newKey,
-          title: `${source.title} (Copy)`,
-          description: source.description,
-          component: source.component,
-          type: source.type,
-          visible: source.visible,
-          locked: false,
-          order: maxOrder + 1,
-          config: source.config as Record<string, unknown>,
-          styles: source.styles as Record<string, unknown>,
-          createdAt: now,
-          updatedAt: now,
-        })
-        .returning();
-
-      if (mediaRows.length > 0) {
-        await tx.insert(landingMedia).values(
-          mediaRows.map((m) => ({
-            id: crypto.randomUUID(),
-            sectionKey: newKey,
-            url: m.url,
-            alt: m.alt,
-            type: m.type,
-            order: m.order,
-            createdAt: now,
-          }))
-        );
-      }
-
-      return created;
-    })) as unknown as any[];
-
-    const duplicated = result[0];
+    const duplicated = await service.duplicateSection(sectionKey, newKey);
 
     const admin = getAdminFromContext(ctx);
     if (admin?.adminId) {
@@ -422,18 +257,8 @@ export async function POST(
       }).catch(() => {});
     }
 
-    return NextResponse.json({
-      success: true,
-      data: {
-        ...duplicated,
-        media: [],
-      },
-    });
+    return NextResponse.json(successResponse(duplicated));
   } catch (error) {
-    console.error("[POST /api/landing/sections/[key]] Error:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to duplicate section", details: String(error) },
-      { status: 500 }
-    );
+    return mapErrorToResponse(error);
   }
 }

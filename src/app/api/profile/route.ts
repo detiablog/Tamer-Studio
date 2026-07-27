@@ -3,6 +3,16 @@ import { NextResponse } from "next/server";
 import type { RequestContext } from "@/core/middleware/types";
 import { runMiddleware } from "@/core/middleware/compose";
 import { userAuthentication, csrfMiddleware } from "@/core/middleware";
+import { UserService } from "@/core/users/user.service";
+import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
+import { successResponse, errorResponse } from "@/app/api/mappers/response";
+import { z } from "zod";
+
+const UpdateProfileSchema = z.object({
+  name: z.string().min(1, "Name is required").max(255).optional(),
+  email: z.string().email("Invalid email format").optional(),
+  location: z.string().optional(),
+});
 
 export async function GET(request: NextRequest) {
   const ctx: RequestContext = {
@@ -24,24 +34,26 @@ export async function GET(request: NextRequest) {
     ip: request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0].trim() || undefined,
   };
 
-  const errorResponse = await runMiddleware([
+  const middlewareError = await runMiddleware([
     userAuthentication(),
   ], ctx);
 
-  if (errorResponse) {
-    return errorResponse;
-  }
+  if (middlewareError) return middlewareError;
 
-  return NextResponse.json({
-    name: "Alex Creator",
-    email: "alex@example.com",
-    role: "Admin",
-    workspace: "Acme Studio",
-    location: "Bangkok, Thailand",
-    plan: "Pro",
-    joined: "March 2026",
-    avatar: "AC",
-  });
+  try {
+    const userId = ctx.state.userSession?.userId;
+    if (!userId) {
+      return NextResponse.json({ success: false, error: { code: "AUTHENTICATION_ERROR", message: "Unauthorized" } }, { status: 401 });
+    }
+    const service = new UserService();
+    const profile = await service.getProfile(userId);
+    if (!profile) {
+      return NextResponse.json({ success: false, error: { code: "NOT_FOUND", message: "Profile not found" } }, { status: 404 });
+    }
+    return NextResponse.json(successResponse(profile));
+  } catch (error) {
+    return mapErrorToResponse(error);
+  }
 }
 
 export async function PATCH(request: NextRequest) {
@@ -64,31 +76,41 @@ export async function PATCH(request: NextRequest) {
     ip: request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0].trim() || undefined,
   };
 
-  const errorResponse = await runMiddleware([
+  const middlewareError = await runMiddleware([
     userAuthentication(),
     csrfMiddleware(),
   ], ctx);
 
-  if (errorResponse) {
-    return errorResponse;
-  }
+  if (middlewareError) return middlewareError;
 
   try {
     const body = await request.json();
-    return NextResponse.json({
-      success: true,
-      profile: {
-        name: typeof body.name === "string" ? body.name : "Alex Creator",
-        email: typeof body.email === "string" ? body.email : "alex@example.com",
-        role: "Admin",
-        workspace: "Acme Studio",
-        location: typeof body.location === "string" ? body.location : "Bangkok, Thailand",
-        plan: "Pro",
-        joined: "March 2026",
-        avatar: "AC",
-      },
+    const parsed = UpdateProfileSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: { code: "VALIDATION_ERROR", message: "Invalid input", details: { fieldErrors: parsed.error.flatten().fieldErrors } } },
+        { status: 422 }
+      );
+    }
+
+    const userId = ctx.state.userSession?.userId;
+    if (!userId) {
+      return NextResponse.json({ success: false, error: { code: "AUTHENTICATION_ERROR", message: "Unauthorized" } }, { status: 401 });
+    }
+
+    const service = new UserService();
+
+    if (parsed.data.name) {
+      await service.updateUser(userId, { name: parsed.data.name });
+    }
+
+    const updatedProfile = await service.updateProfile(userId, {
+      timezone: parsed.data.location,
     });
-  } catch {
-    return NextResponse.json({ success: false, error: "Invalid request body" }, { status: 400 });
+
+    return NextResponse.json(successResponse(updatedProfile, "Profile updated successfully"));
+  } catch (error) {
+    return mapErrorToResponse(error);
   }
 }

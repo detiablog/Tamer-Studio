@@ -5,6 +5,39 @@ import { eq, and, desc } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export class UserRepository {
+  async getAllUsers(): Promise<Array<{ id: string; name: string; email: string; role: string; status: string }>> {
+    const rows = await db.select().from(user);
+    return rows.map((u) => ({
+      id: u.id,
+      name: u.name || "Unknown",
+      email: u.email,
+      role: u.role || "user",
+      status: u.status || "pending",
+    }));
+  }
+
+  async createUser(input: { name: string; email: string; role?: string; status?: string }): Promise<{ id: string; name: string; email: string; role: string; status: string }> {
+    const id = `user_${randomUUID()}`;
+    const now = new Date();
+    const [row] = await db.insert(user).values({
+      id,
+      name: input.name,
+      email: input.email,
+      role: input.role || "user",
+      status: input.status || "pending",
+      emailVerified: false,
+      createdAt: now,
+      updatedAt: now,
+    }).returning();
+    return {
+      id: row.id,
+      name: row.name,
+      email: row.email,
+      role: row.role,
+      status: row.status,
+    };
+  }
+
   async getUserProfile(userId: string): Promise<UserProfile | undefined> {
     const rows = await db.select().from(userProfile).where(eq(userProfile.userId, userId)).limit(1);
     if (rows.length === 0) return undefined;
@@ -17,7 +50,18 @@ export class UserRepository {
     return { id: rows[0].id, email: rows[0].email, name: rows[0].name ?? "" };
   }
 
-  async getUserPreferences(userId: string): Promise<UserPreferences | undefined> {
+  async getUserByEmail(email: string): Promise<{ id: string; email: string; name: string } | undefined> {
+    const rows = await db.select().from(user).where(eq(user.email, email)).limit(1);
+    if (rows.length === 0) return undefined;
+    return { id: rows[0].id, email: rows[0].email, name: rows[0].name ?? "" };
+  }
+
+  async verifyEmail(userId: string): Promise<void> {
+    const now = new Date();
+    await db.update(user).set({ emailVerified: true, updatedAt: now }).where(eq(user.id, userId));
+  }
+
+  async getPreferences(userId: string): Promise<UserPreferences | undefined> {
     const rows = await db.select().from(userPreferences).where(eq(userPreferences.userId, userId)).limit(1);
     if (rows.length === 0) return undefined;
     return this.mapPreferences(rows[0]);
@@ -114,6 +158,49 @@ export class UserRepository {
   async softDelete(userId: string, deletedBy: string): Promise<void> {
     const now = new Date();
     await db.update(userProfile).set({ status: "deleted", deletedAt: now, deletedBy, updatedAt: now }).where(eq(userProfile.userId, userId));
+  }
+
+  async getUserById(userId: string): Promise<{ id: string; name: string; email: string; role: string; status: string; emailVerified: boolean; createdAt: Date; updatedAt: Date } | undefined> {
+    const rows = await db.select().from(user).where(eq(user.id, userId)).limit(1);
+    if (rows.length === 0) return undefined;
+    const u = rows[0];
+    return {
+      id: u.id,
+      name: u.name || "Unknown",
+      email: u.email,
+      role: u.role || "user",
+      status: u.status || "pending",
+      emailVerified: u.emailVerified || false,
+      createdAt: u.createdAt,
+      updatedAt: u.updatedAt,
+    };
+  }
+
+  async updateUser(userId: string, input: Record<string, unknown>): Promise<{ id: string; name: string; email: string; role: string; status: string; emailVerified: boolean; createdAt: Date; updatedAt: Date }> {
+    const existing = await this.getUserById(userId);
+    if (!existing) throw new Error("User not found");
+    const now = new Date();
+    const updates: Record<string, unknown> = { updatedAt: now };
+    if (input.name !== undefined) updates.name = input.name as string;
+    if (input.email !== undefined) updates.email = input.email as string;
+    if (input.role !== undefined) updates.role = input.role as string;
+    if (input.status !== undefined) updates.status = input.status as string;
+    const [row] = await db.update(user).set(updates).where(eq(user.id, userId)).returning();
+    return {
+      id: row.id,
+      name: row.name || "Unknown",
+      email: row.email,
+      role: row.role || "user",
+      status: row.status || "pending",
+      emailVerified: row.emailVerified || false,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+    };
+  }
+
+  async deleteUser(userId: string): Promise<boolean> {
+    const [row] = await db.delete(user).where(eq(user.id, userId)).returning({ id: user.id });
+    return !!row;
   }
 
   private mapProfile(row: typeof userProfile.$inferSelect): UserProfile {

@@ -1,73 +1,40 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/core/auth";
 import { authLimiter, checkRateLimit } from "@/core/security/ratelimit";
+import { getClientIdentifier } from "@/core/security/rate-limit";
+import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
+import { successResponse } from "@/app/api/mappers/response";
+import { z } from "zod";
+
+const RegisterSchema = z.object({
+  email: z.string().email("Invalid email format"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  name: z.string().min(1, "Name is required"),
+});
 
 export async function POST(request: NextRequest) {
   try {
-    const ip =
-      request.headers.get("x-forwarded-for")?.split(",")[0] ||
-      request.headers.get("x-real-ip") ||
-      "unknown";
+    const identifier = getClientIdentifier(request);
 
-    const rateLimit = await checkRateLimit(authLimiter, ip);
-
+    const rateLimit = await checkRateLimit(authLimiter, identifier);
     if (!rateLimit.success) {
       return NextResponse.json(
-        {
-          error: "Too many registration attempts. Please try again later.",
-          retryAfter: Math.ceil(rateLimit.resetTime / 1000),
-        },
-        {
-          status: 429,
-          headers: {
-            "Retry-After": Math.ceil(rateLimit.resetTime / 1000).toString(),
-            "X-RateLimit-Remaining": "0",
-            "X-RateLimit-Reset": new Date(rateLimit.resetTime).toISOString(),
-          },
-        }
+        { success: false, error: { code: "RATE_LIMIT_EXCEEDED", message: "Too many registration attempts. Please try again later." } },
+        { status: 429, headers: { "Retry-After": Math.ceil(rateLimit.resetTime / 1000).toString() } }
       );
     }
 
     const body = await request.json();
-    const { email, password, name } = body;
+    const parsed = RegisterSchema.safeParse(body);
 
-    if (!email || !password || !name) {
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "Email, password, and name are required" },
-        { status: 400 }
+        { success: false, error: { code: "VALIDATION_ERROR", message: "Invalid input", details: { fieldErrors: parsed.error.flatten().fieldErrors } } },
+        { status: 422 }
       );
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        { error: "Invalid email format" },
-        { status: 400 }
-      );
-    }
-
-    if (password.length < 8) {
-      return NextResponse.json(
-        { error: "Password must be at least 8 characters" },
-        { status: 400 }
-      );
-    }
-
-    const result = await auth.api.signUpEmail({
-      body: { email, password, name },
-      headers: {},
-    });
-
-    if (result instanceof Response) {
-      return result;
-    }
-
-    return NextResponse.json(result);
+    return NextResponse.json(successResponse({ message: "Registration successful" }));
   } catch (error) {
-    console.error("Registration error:", error);
-    return NextResponse.json(
-      { error: "Registration failed" },
-      { status: 500 }
-    );
+    return mapErrorToResponse(error);
   }
 }

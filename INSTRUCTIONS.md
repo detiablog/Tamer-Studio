@@ -843,3 +843,25 @@ Do not repeatedly:
 If previous analysis is sufficient, continue implementation.
 
 Only perform additional analysis when new dependencies are discovered.
+
+# CMS Development Rule (Permanent)
+
+Whenever a new editable feature is introduced, AI MUST first determine whether it belongs to the existing CMS Engine.
+
+AI MUST NOT create a new CMS, Page Builder, Landing Builder, Media Manager, or Content Management implementation if an equivalent capability already exists.
+
+Before implementing any editable feature, AI MUST:
+
+1. Search the existing CMS Engine.
+2. Reuse existing content types whenever possible.
+3. Extend the existing Content Registry instead of creating parallel systems.
+4. Reuse existing Media Library.
+5. Reuse existing Publishing Pipeline.
+6. Reuse existing Versioning.
+7. Reuse existing Permission System.
+8. Reuse existing Localization Runtime.
+9. Reuse existing SEO integration.
+
+If a new content type is required, AI MUST register it in the CMS Content Registry instead of creating a standalone implementation.
+
+Duplicate CMS implementations are forbidden.

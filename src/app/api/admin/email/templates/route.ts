@@ -1,13 +1,23 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { emailTemplate } from "@/lib/db/schema/email";
-import { eq, desc, and } from "drizzle-orm";
 import type { RequestContext } from "@/core/middleware/types";
 import { runMiddleware } from "@/core/middleware/compose";
 import { adminAuthentication } from "@/core/middleware";
-import { generateId } from "@/modules/email";
-import type { EmailType } from "@/modules/email";
+import { EmailAdminService } from "@/core/email/email-admin.service";
+import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
+import { successResponse, paginatedResponse } from "@/app/api/mappers/response";
+import { z } from "zod";
+
+const CreateTemplateSchema = z.object({
+  key: z.string().min(1),
+  name: z.string().min(1),
+  type: z.string(),
+  subject: z.string().min(1),
+  html: z.string().min(1),
+  text: z.string().optional(),
+  variables: z.array(z.string()).optional(),
+  isActive: z.boolean().optional(),
+});
 
 export async function GET(request: NextRequest) {
   const ctx: RequestContext = {
@@ -37,47 +47,15 @@ export async function GET(request: NextRequest) {
     const type = searchParams.get("type");
     const isActive = searchParams.get("isActive");
 
-    let query = db.select().from(emailTemplate);
-    const conditions = [];
-
-    if (type) {
-      conditions.push(eq(emailTemplate.type, type));
-    }
-    if (isActive !== null) {
-      conditions.push(eq(emailTemplate.isActive, isActive === "true"));
-    }
-
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions)) as typeof query;
-    }
-
-    const templates = await query.orderBy(emailTemplate.type, desc(emailTemplate.createdAt));
-
-    return NextResponse.json({
-      success: true,
-      data: templates.map((t) => ({
-        id: t.id,
-        key: t.key,
-        name: t.name,
-        type: t.type as EmailType,
-        subject: t.subject,
-        html: t.html,
-        text: t.text,
-        variables: t.variables,
-        isActive: t.isActive,
-        createdBy: t.createdBy,
-        updatedBy: t.updatedBy,
-        createdAt: t.createdAt,
-        updatedAt: t.updatedAt,
-      })),
-      count: templates.length,
+    const service = new EmailAdminService();
+    const templates = await service.getTemplates({
+      type: type || undefined,
+      isActive: isActive !== null ? isActive === "true" : undefined,
     });
+
+    return NextResponse.json(paginatedResponse(templates, templates.length, 1, templates.length));
   } catch (error) {
-    console.error("[Admin Email Templates] Error:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to fetch templates", details: String(error) },
-      { status: 500 }
-    );
+    return mapErrorToResponse(error);
   }
 }
 
@@ -106,78 +84,42 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { key, name, type, subject, html, text, variables, isActive } = body;
+    const parsed = CreateTemplateSchema.safeParse(body);
 
-    if (!key || !name || !type || !subject || !html) {
+    if (!parsed.success) {
+      return NextResponse.json({ success: false, error: "Invalid input" }, { status: 400 });
+    }
+
+    if (!parsed.data.key || !parsed.data.name || !parsed.data.type || !parsed.data.subject || !parsed.data.html) {
       return NextResponse.json(
         { success: false, error: "Missing required fields: key, name, type, subject, html" },
         { status: 400 }
       );
     }
 
-    const validTypes: EmailType[] = ["verification", "reset_password", "payment_success"];
-    if (!validTypes.includes(type)) {
+    const validTypes = ["verification", "reset_password", "payment_success"];
+    if (!validTypes.includes(parsed.data.type)) {
       return NextResponse.json(
-        { success: false, error: `Invalid template type: ${type}` },
+        { success: false, error: `Invalid template type: ${parsed.data.type}` },
         { status: 400 }
       );
     }
 
-    const id = generateId("tmpl");
-    const [template] = await db
-      .insert(emailTemplate)
-      .values({
-        id,
-        key,
-        name,
-        type,
-        subject,
-        html,
-        text: text || null,
-        variables: variables || [],
-        isActive: isActive ?? true,
-        createdBy: ctx.state.adminSession?.adminId || "system",
-        updatedBy: ctx.state.adminSession?.adminId || "system",
-      })
-      .onConflictDoUpdate({
-        target: emailTemplate.key,
-        set: {
-          name,
-          type,
-          subject,
-          html,
-          text: text || null,
-          variables: variables || [],
-          isActive: isActive ?? true,
-          updatedBy: ctx.state.adminSession?.adminId || "system",
-        },
-      })
-      .returning({
-        id: emailTemplate.id,
-        key: emailTemplate.key,
-        name: emailTemplate.name,
-        type: emailTemplate.type,
-        subject: emailTemplate.subject,
-        html: emailTemplate.html,
-        text: emailTemplate.text,
-        variables: emailTemplate.variables,
-        isActive: emailTemplate.isActive,
-        createdBy: emailTemplate.createdBy,
-        updatedBy: emailTemplate.updatedBy,
-        createdAt: emailTemplate.createdAt,
-        updatedAt: emailTemplate.updatedAt,
-      });
+    const service = new EmailAdminService();
+    const template = await service.createTemplate({
+      key: parsed.data.key,
+      name: parsed.data.name,
+      type: parsed.data.type,
+      subject: parsed.data.subject,
+      html: parsed.data.html,
+      text: parsed.data.text,
+      variables: parsed.data.variables,
+      isActive: parsed.data.isActive,
+      createdBy: ctx.state.adminSession?.adminId || "system",
+    });
 
-    return NextResponse.json({
-      success: true,
-      message: "Template saved successfully",
-      data: template,
-    }, { status: 201 });
+    return NextResponse.json(successResponse(template, "Template saved successfully"), { status: 201 });
   } catch (error) {
-    console.error("[Admin Email Templates] Create Error:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to create template", details: String(error) },
-      { status: 500 }
-    );
+    return mapErrorToResponse(error);
   }
 }

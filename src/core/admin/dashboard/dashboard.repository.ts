@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
-import { userProfile, workspace, invoice, wallet, usageRecord, creditTransaction, job, auditLog, aiProvider } from "@/lib/db/schema";
-import { sql, count, eq, and, desc } from "drizzle-orm";
+import { userProfile, workspace, invoice, wallet, usageRecord, creditTransaction, job, auditLog, aiProvider, order, workspaceMetrics, user } from "@/lib/db/schema";
+import { sql, count, eq, and, desc, gte, lt, sum, avg } from "drizzle-orm";
 import type { AIProvider } from "../providers/providers.types";
 import type { Alert, AuditLogEntry } from "./dashboard.types";
 
@@ -328,6 +328,246 @@ export class DefaultDashboardRepository implements DashboardRepository {
       aiProviders: providersResult[0]?.count ? "Healthy" : "Unavailable",
       storage: "Unavailable",
       api: "Healthy",
+    };
+  }
+
+  async getAdminStats(): Promise<{
+    users: {
+      total: number;
+      active: number;
+      inactive: number;
+      newToday: number;
+      newWeek: number;
+      newMonth: number;
+      growth: number;
+    };
+    workspaces: {
+      total: number;
+      active: number;
+      archived: number;
+    };
+    jobs: {
+      total: number;
+      queued: number;
+      running: number;
+      completed: number;
+      failed: number;
+      cancelled: number;
+      avgProcessingTime: number;
+    };
+    revenue: {
+      total: number;
+      today: number;
+      month: number;
+      year: number;
+      mrr: number;
+      arr: number;
+    };
+    analytics: {
+      totalUsers: number;
+      newRegistrations: number;
+      imagesGenerated: number;
+      videosGenerated: number;
+      creditsUsed: number;
+      creditsPurchased: number;
+      topAIProvider: string;
+      avgJobTime: number;
+    };
+    auditLogs: AuditLogEntry[];
+    system: {
+      uptime: string;
+      memoryUsage: string;
+      cpuUsage: string;
+      diskUsage: number;
+      nodeVersion: string;
+      env: string;
+      database: string;
+      queue: string;
+      aiProviders: string;
+      storage: string;
+      api: string;
+    };
+  }> {
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const weekStart = new Date(todayStart.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const yearStart = new Date(now.getFullYear(), 0, 1);
+    const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+
+    const [
+      totalUsersResult,
+      activeUsersResult,
+      inactiveUsersResult,
+      newUsersTodayResult,
+      newUsersWeekResult,
+      newUsersMonthResult,
+      newUsersPrevMonthResult,
+      totalWorkspacesResult,
+      activeWorkspacesResult,
+      archivedWorkspacesResult,
+      jobStatsResult,
+      revenueStatsResult,
+      mrrResult,
+      arrResult,
+      creditsUsedResult,
+      creditsPurchasedResult,
+      topProviderResult,
+      avgJobTimeResult,
+      mediaGeneratedResult,
+      recentAuditLogsResult,
+      aiProviderStatsResult,
+    ] = await Promise.all([
+      db.select({ count: count() }).from(userProfile),
+      db.select({ count: count() }).from(userProfile).where(eq(userProfile.status, "active")),
+      db.select({ count: count() }).from(userProfile).where(eq(userProfile.status, "inactive")),
+      db.select({ count: count() }).from(user).where(gte(user.createdAt, todayStart)),
+      db.select({ count: count() }).from(user).where(gte(user.createdAt, weekStart)),
+      db.select({ count: count() }).from(user).where(gte(user.createdAt, monthStart)),
+      db.select({ count: count() }).from(user).where(and(gte(user.createdAt, prevMonthStart), lt(user.createdAt, prevMonthEnd))),
+      db.select({ count: count() }).from(workspace),
+      db.select({ count: count() }).from(workspace).where(eq(workspace.status, "active")),
+      db.select({ count: count() }).from(workspace).where(eq(workspace.status, "archived")),
+      db.select({
+        total: count(),
+        queued: sql<number>`coalesce(sum(case when ${job.status} = 'queued' then 1 else 0 end)::numeric, 0)`,
+        running: sql<number>`coalesce(sum(case when ${job.status} = 'running' or ${job.status} = 'processing' then 1 else 0 end)::numeric, 0)`,
+        completed: sql<number>`coalesce(sum(case when ${job.status} = 'completed' then 1 else 0 end)::numeric, 0)`,
+        failed: sql<number>`coalesce(sum(case when ${job.status} = 'failed' then 1 else 0 end)::numeric, 0)`,
+        cancelled: sql<number>`coalesce(sum(case when ${job.status} = 'cancelled' then 1 else 0 end)::numeric, 0)`,
+        avgTime: sql<number>`coalesce(avg(extract(epoch from (${job.completedAt} - ${job.startedAt}))), 0)`,
+      }).from(job),
+      db.select({
+        total: sum(sql`(${order.total})::numeric`),
+        today: sum(sql`case when created_at >= ${todayStart.toISOString()} then (${order.total})::numeric else 0 end`),
+        month: sum(sql`case when created_at >= ${monthStart.toISOString()} then (${order.total})::numeric else 0 end`),
+        year: sum(sql`case when created_at >= ${yearStart.toISOString()} then (${order.total})::numeric else 0 end`),
+      }).from(order).where(eq(order.status, "paid")),
+      db.select({
+        mrr: sum(sql`(${invoice.total})::numeric`),
+      }).from(invoice).where(and(
+        gte(invoice.createdAt, monthStart),
+        eq(invoice.status, "paid")
+      )),
+      db.select({
+        arr: sum(sql`(${invoice.total})::numeric`),
+      }).from(invoice).where(and(
+        gte(invoice.createdAt, yearStart),
+        eq(invoice.status, "paid")
+      )),
+      db.select({
+        used: sum(sql`(${creditTransaction.amount})::numeric`),
+      }).from(creditTransaction).where(eq(creditTransaction.type, "usage")),
+      db.select({
+        purchased: sum(sql`(${creditTransaction.amount})::numeric`),
+      }).from(creditTransaction).where(eq(creditTransaction.type, "purchase")),
+      db.select({
+        provider: usageRecord.providerId,
+        count: count(),
+      }).from(usageRecord).groupBy(usageRecord.providerId).orderBy(desc(sql`count`)).limit(1),
+      db.select({
+        avgTime: avg(sql`(${usageRecord.executionTimeMs})::numeric`),
+      }).from(usageRecord),
+      db.select({
+        mediaGenerated: sum(sql`(${workspaceMetrics.mediaGenerated})::numeric`),
+      }).from(workspaceMetrics),
+      db.select({
+        id: auditLog.id,
+        action: auditLog.action,
+        actorId: auditLog.actorId,
+        actorType: auditLog.actorType,
+        resourceType: auditLog.resourceType,
+        resourceId: auditLog.resourceId,
+        createdAt: auditLog.createdAt,
+      }).from(auditLog).orderBy(desc(auditLog.createdAt)).limit(10),
+      db.select({
+        total: count(),
+        active: sql<number>`sum(case when enabled = true then 1 else 0 end)`,
+      }).from(aiProvider),
+    ]);
+
+    const newUsersThisMonth = newUsersMonthResult[0]?.count ?? 0;
+    const newUsersLastMonth = newUsersPrevMonthResult[0]?.count ?? 0;
+    const growth = newUsersLastMonth > 0 ? Math.round(((newUsersThisMonth - newUsersLastMonth) / newUsersLastMonth) * 100) : 0;
+
+    const parseNumber = (val: unknown) => {
+      if (val == null) return 0;
+      const n = parseFloat(String(val));
+      return isNaN(n) ? 0 : n;
+    };
+
+    const mediaGenerated = parseNumber(mediaGeneratedResult[0]?.mediaGenerated);
+
+    const jobStats = {
+      total: jobStatsResult[0]?.total ?? 0,
+      queued: parseNumber(jobStatsResult[0]?.queued),
+      running: parseNumber(jobStatsResult[0]?.running),
+      completed: parseNumber(jobStatsResult[0]?.completed),
+      failed: parseNumber(jobStatsResult[0]?.failed),
+      cancelled: parseNumber(jobStatsResult[0]?.cancelled),
+      avgProcessingTime: jobStatsResult[0]?.avgTime ? Math.round(parseNumber(jobStatsResult[0].avgTime)) : 0,
+    };
+
+    const recentAuditLogs = recentAuditLogsResult.map((log) => ({
+      id: log.id,
+      action: log.action,
+      actorId: log.actorId,
+      actorType: log.actorType,
+      resourceType: log.resourceType,
+      resourceId: log.resourceId,
+      createdAt: log.createdAt ? new Date(log.createdAt).toLocaleString() : "Unavailable",
+      user: log.actorId || "system",
+    }));
+
+    return {
+      users: {
+        total: totalUsersResult[0]?.count ?? 0,
+        active: activeUsersResult[0]?.count ?? 0,
+        inactive: inactiveUsersResult[0]?.count ?? 0,
+        newToday: newUsersTodayResult[0]?.count ?? 0,
+        newWeek: newUsersWeekResult[0]?.count ?? 0,
+        newMonth: newUsersThisMonth,
+        growth,
+      },
+      workspaces: {
+        total: totalWorkspacesResult[0]?.count ?? 0,
+        active: activeWorkspacesResult[0]?.count ?? 0,
+        archived: archivedWorkspacesResult[0]?.count ?? 0,
+      },
+      jobs: jobStats,
+      revenue: {
+        total: parseNumber(revenueStatsResult[0]?.total),
+        today: parseNumber(revenueStatsResult[0]?.today),
+        month: parseNumber(revenueStatsResult[0]?.month),
+        year: parseNumber(revenueStatsResult[0]?.year),
+        mrr: parseNumber(mrrResult[0]?.mrr),
+        arr: parseNumber(arrResult[0]?.arr),
+      },
+      analytics: {
+        totalUsers: totalUsersResult[0]?.count ?? 0,
+        newRegistrations: newUsersThisMonth,
+        imagesGenerated: mediaGenerated,
+        videosGenerated: 0,
+        creditsUsed: parseNumber(creditsUsedResult[0]?.used),
+        creditsPurchased: parseNumber(creditsPurchasedResult[0]?.purchased),
+        topAIProvider: topProviderResult[0]?.provider ?? "N/A",
+        avgJobTime: avgJobTimeResult[0]?.avgTime ? Math.round(parseNumber(avgJobTimeResult[0].avgTime)) : 0,
+      },
+      auditLogs: recentAuditLogs,
+      system: {
+        uptime: "Unavailable",
+        memoryUsage: "Unavailable",
+        cpuUsage: "Unavailable",
+        diskUsage: 0,
+        nodeVersion: process.version,
+        env: process.env.NODE_ENV || "development",
+        database: "Healthy",
+        queue: jobStatsResult[0]?.queued === 0 ? "Healthy" : "Busy",
+        aiProviders: `${aiProviderStatsResult[0]?.active ?? 0}/${aiProviderStatsResult[0]?.total ?? 0} Active`,
+        storage: "Unavailable",
+        api: "Healthy",
+      },
     };
   }
 }
