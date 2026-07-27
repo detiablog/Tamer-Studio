@@ -26,10 +26,10 @@ const ICON_MAP: Record<string, LucideIcon> = {
 };
 
 export function AIPlatform({ section }: SectionRendererProps) {
-  const { t } = useLocalizationContext();
+  const { t, resolve } = useLocalizationContext();
 
-  const heading = (section.config.heading as string) || section.title || t("marketing.aiPlatformTitle");
-  const description = (section.config.description as string) || section.description || t("marketing.aiPlatformDescription");
+  const heading = resolve(section.config.heading as string) || section.title || t("marketing.aiPlatformTitle");
+  const description = resolve(section.config.description as string) || section.description || t("marketing.aiPlatformDescription");
   const features = (section.config.features as Array<{ title: string; description: string; icon?: string }>) || [];
 
   return (

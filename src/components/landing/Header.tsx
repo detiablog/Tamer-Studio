@@ -4,12 +4,13 @@ import * as React from "react";
 import Link from "next/link";
 import { ChevronDown, Menu, X } from "lucide-react";
 import { useLocalizationContext } from "@/providers/localization";
+import { useLandingSections } from "@/hooks/use-landing-sections";
 import { cn } from "@/lib/utils";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 
 function Dropdown({ label, items, isOpen, onToggle, align = "left" }: {
   label: string;
-  items: { label: string; href?: string }[];
+  items: Array<{ label: string; href?: string }>;
   isOpen: boolean;
   onToggle: () => void;
   align?: "left" | "right";
@@ -47,14 +48,15 @@ function Dropdown({ label, items, isOpen, onToggle, align = "left" }: {
   );
 }
 
-// Landing-page specific translations (isolated from global translations)
-const LANDING_PAGE_TRANSLATIONS = {
-  getStartedButton: "Get Started Free",
-  signInButton: "Sign In",
-} as const;
+interface NavItem {
+  label: string;
+  href: string;
+}
 
 export function Header() {
   const { t } = useLocalizationContext();
+  const { sections } = useLandingSections();
+  const headerNavSection = sections.find((s) => s.sectionKey === "header-nav");
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [resourcesOpen, setResourcesOpen] = React.useState(false);
   const [productOpen, setProductOpen] = React.useState(false);
@@ -91,29 +93,40 @@ export function Header() {
     }
   };
 
-  const resourcesItems = [
+  const config = headerNavSection?.config ?? {};
+
+  const defaultProductItems = [
+    { label: t("marketing.features", "Features"), href: "#features" },
+    { label: t("marketing.menuPricing", "Pricing"), href: "#pricing" },
+    { label: t("marketing.aiPlatform", "AI Platform"), href: "#ai-platform" },
+  ];
+
+  const defaultResourcesItems = [
     { label: t("marketing.menuBlog"), href: "/blog" },
     { label: t("marketing.menuDocumentation"), href: "/docs" },
     { label: t("marketing.menuRoadmap"), href: "/roadmap" },
     { label: t("marketing.menuCommunity"), href: "/blog" },
   ];
 
-  const productItems = [
-    { label: t("marketing.features", "Features"), href: "#features" },
-    { label: t("marketing.menuPricing"), href: "#pricing" },
-    { label: t("marketing.aiPlatform", "AI Platform"), href: "#ai-platform" },
-  ];
+  const getNavItems = (key: string, fallback: NavItem[]): NavItem[] => {
+    const items = config[key] as NavItem[] | undefined;
+    if (items && items.length > 0) return items;
+    return fallback;
+  };
+
+  const productItems = getNavItems("productItems", defaultProductItems);
+  const resourcesItems = getNavItems("resourcesItems", defaultResourcesItems);
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border bg-background/80 backdrop-blur-xl transition-all duration-300">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="flex h-16 items-center justify-between gap-4">
           <div className="flex items-center gap-8">
-            <Link href="/" className="flex items-center gap-2 transition hover:opacity-80" aria-label={t("marketing.homeAria", "Tamer Studio home")}>
+                      <Link href="/" className="flex items-center gap-2 transition hover:opacity-80" aria-label={t("marketing.homeAria", "Tamer Studio home")}>
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/60 text-primary-foreground shadow-md">
                 <span className="text-sm font-bold">TS</span>
               </div>
-              <span className="hidden sm:inline text-lg font-semibold tracking-tight">Tamer Studio</span>
+              <span className="hidden sm:inline text-lg font-semibold tracking-tight">{t("marketing.brandName", "Tamer Studio")}</span>
             </Link>
 
             <nav ref={navRef} className="hidden md:flex items-center gap-6" aria-label={t("marketing.mainNav", "Main")}>
@@ -158,7 +171,7 @@ export function Header() {
               href="/register"
               className="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-primary to-primary/80 px-4 py-2 text-sm font-medium text-primary-foreground transition hover:shadow-lg hover:scale-105 duration-200"
             >
-              {LANDING_PAGE_TRANSLATIONS.getStartedButton}
+              {t("marketing.getStartedButton")}
             </Link>
           </div>
 
@@ -212,7 +225,7 @@ export function Header() {
               className="block rounded-lg px-3 py-2 text-sm font-medium bg-gradient-to-r from-primary to-primary/80 text-primary-foreground text-center transition hover:shadow-lg"
               onClick={() => setMobileOpen(false)}
             >
-              {LANDING_PAGE_TRANSLATIONS.getStartedButton}
+              {t("marketing.getStartedButton")}
             </Link>
           </nav>
         </div>

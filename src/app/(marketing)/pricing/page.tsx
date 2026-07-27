@@ -5,24 +5,12 @@ import Link from "next/link";
 import { useLocalizationContext } from "@/providers/localization";
 import { useCurrencyContext } from "@/providers/currency";
 import { PricingSection } from "@/components/landing/PricingSection";
+import { CreditPacks } from "@/components/landing/CreditPacks";
 import { FAQ } from "@/components/landing/FAQ";
 import { CreditCalculator } from "@/components/landing/CreditCalculator";
 import { CreditUsageTable } from "@/components/landing/CreditUsageTable";
 import { cn } from "@/lib/utils";
 import { useLandingSections } from "@/hooks/use-landing-sections";
-
-interface CreditPack {
-  key: string;
-  credits: number | null;
-  price: number | null;
-}
-
-const creditPacks: CreditPack[] = [
-  { key: "marketing.creditPackSmall", credits: 100, price: 9 },
-  { key: "marketing.creditPackMedium", credits: 500, price: 39 },
-  { key: "marketing.creditPackLarge", credits: 2000, price: 149 },
-  { key: "marketing.creditPackCustom", credits: null, price: null },
-];
 
 export default function PricingPage() {
   const { t } = useLocalizationContext();
@@ -32,6 +20,7 @@ export default function PricingPage() {
   const faqSection = sections.find((s) => s.sectionKey === "faq");
   const calculatorSection = sections.find((s) => s.sectionKey === "credit-calculator");
   const usageSection = sections.find((s) => s.sectionKey === "credit-usage");
+  const creditPacksSection = sections.find((s) => s.sectionKey === "credit-packs");
 
   return (
     <div className="w-full">
@@ -47,35 +36,15 @@ export default function PricingPage() {
         </div>
 
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {creditPacks.map((pack) => (
-            <div
-              key={pack.key}
-              className="rounded-3xl border border-border bg-card p-6"
-            >
-              <h3 className="text-lg font-semibold">{t(pack.key)}</h3>
-              {pack.credits && pack.price ? (
-                <>
-                  <p className="mt-2 text-3xl font-semibold">{formatCurrency(pack.price)}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {pack.credits} {t("marketing.credits")}
-                  </p>
-                </>
-              ) : (
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {t("marketing.contactSales")}
-                </p>
-              )}
-              <Link
-                href="/register"
-                className={cn(
-                  "mt-6 inline-flex w-full items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition",
-                  "border border-border bg-background hover:bg-muted"
-                )}
-              >
-                {t("marketing.buyNow")}
-              </Link>
+          {creditPacksSection ? (
+            <CreditPacks section={creditPacksSection} />
+          ) : (
+            <div className="col-span-full text-center py-8">
+              <p className="text-muted-foreground">
+                {t("marketing.noCreditPacks", "No credit packs configured yet.")}
+              </p>
             </div>
-          ))}
+          )}
         </div>
 
         <div className="mt-12">

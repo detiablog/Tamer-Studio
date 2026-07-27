@@ -445,5 +445,401 @@ Think like a Software Architect.
 
 Think like the future maintainer of the project.
 
-# REASONING
-No long reasoning
+# INTERNATIONALIZATION (i18n) & LOCALIZATION RULES
+
+Tamer Studio supports multiple languages.
+
+Internationalization must always remain complete and synchronized.
+
+Current supported languages include:
+
+- English (default)
+- Indonesian
+
+---
+
+# TRANSLATION SYNCHRONIZATION
+
+Whenever creating, modifying, renaming, or removing:
+
+- UI text
+- Labels
+- Buttons
+- Menus
+- Titles
+- Descriptions
+- Tooltips
+- Notifications
+- Validation Messages
+- Error Messages
+- Success Messages
+- Placeholders
+- Dialogs
+- Form Labels
+- Table Headers
+- Settings
+- Navigation Items
+- Dashboard Widgets
+- Admin Panel Text
+- Landing Page Content
+- Metadata
+
+You MUST update every localization file.
+
+Never leave translation files unsynchronized.
+
+---
+
+# TRANSLATION KEYS
+
+Never hardcode user-facing text.
+
+Every visible string must use localization keys.
+
+Whenever new UI text is introduced:
+
+1. Create the translation key.
+2. Add the English translation.
+3. Add the Indonesian translation.
+4. Register the key if required by the existing localization architecture.
+5. Replace hardcoded text with the translation key.
+
+---
+
+# MODIFYING EXISTING TEXT
+
+Whenever an existing text changes:
+
+Automatically update every language.
+
+Never update only one language.
+
+All supported languages must remain synchronized.
+
+---
+
+# REMOVING TEXT
+
+Whenever removing UI elements:
+
+Remove unused translation keys if they are no longer referenced anywhere.
+
+Do not leave orphan translation keys.
+
+---
+
+# RENAME KEYS
+
+Whenever renaming translation keys:
+
+Automatically update every reference.
+
+Never leave broken translation references.
+
+---
+
+# TRANSLATION CONSISTENCY
+
+Use consistent terminology across the project.
+
+Avoid duplicate meanings with different keys.
+
+Reuse existing translation keys whenever possible.
+
+Do not create duplicate translations.
+
+Search before creating new keys.
+
+---
+
+# ADMIN PANEL
+
+Every new configurable feature added to the Admin Panel must support localization.
+
+Do not hardcode admin labels.
+
+---
+
+# LANDING PAGE
+
+Landing content must always support localization.
+
+Never hardcode landing text.
+
+Landing Builder must remain localization-ready.
+
+---
+
+# DASHBOARD
+
+Dashboard content must always support localization.
+
+All widgets must use translation keys.
+
+---
+
+# AUTHENTICATION
+
+Login
+
+Register
+
+Forgot Password
+
+Reset Password
+
+Profile
+
+Account Settings
+
+All must remain fully localized.
+
+---
+
+# ERROR MESSAGES
+
+Every new error message must include translations for every supported language.
+
+Never return untranslated user-facing errors.
+
+---
+
+# SUCCESS MESSAGES
+
+Every success message must include translations for every supported language.
+
+---
+
+# VALIDATION MESSAGES
+
+Every validation message must include translations for every supported language.
+
+---
+
+# AUTOMATIC SYNCHRONIZATION
+
+Translation maintenance is automatic.
+
+Whenever implementation changes UI text, translation files must also be updated.
+
+This is not an optional task.
+
+This is part of every implementation.
+
+Never wait for a separate localization Sprint.
+
+---
+
+# REGRESSION PROTECTION
+
+After implementation verify:
+
+✔ No missing translation keys.
+
+✔ No untranslated UI.
+
+✔ No fallback caused by missing keys.
+
+✔ No orphan translation keys.
+
+✔ No duplicate translation keys.
+
+✔ English is synchronized.
+
+✔ Indonesian is synchronized.
+
+---
+
+# IMPLEMENTATION REPORT
+
+Every Sprint implementation report must include:
+
+- New translation keys
+- Updated translation keys
+- Removed translation keys
+- Languages updated
+- Missing translations (if any)
+
+Translation synchronization is considered mandatory.
+
+# TRANSLATION FIRST POLICY
+
+Whenever any implementation changes user-facing content, the localization system must be updated immediately as part of the same implementation.
+
+Translation updates must never become a separate task.
+
+The implementation is considered incomplete until all supported languages are synchronized.
+
+# ZERO HARDCODED USER TEXT POLICY
+
+Never hardcode user-visible text anywhere in the application.
+
+Every user-facing string must come from the localization system.
+
+This applies to:
+
+- Landing Page
+- Dashboard
+- Admin Panel
+- Authentication
+- Checkout
+- Billing
+- AI Features
+- Settings
+- Notifications
+- Dialogs
+- Validation
+- Errors
+- Emails
+- Tooltips
+
+Hardcoded user-facing text is considered an implementation defect.
+
+# EXECUTION EFFICIENCY
+
+The project is large and implementation may span many files.
+
+Reasoning should be concise and goal-oriented.
+
+Do not generate excessively long internal reasoning.
+
+Avoid repeating information already analyzed.
+
+Focus on implementation rather than explanation.
+
+Spend more tokens on implementation than reasoning.
+
+---
+
+# REASONING POLICY
+
+Before implementing:
+
+- Analyze the current Sprint.
+- Analyze only the relevant modules.
+- Identify dependencies.
+- Make an implementation plan.
+
+Once the plan is clear:
+
+Begin implementation immediately.
+
+Do not continue expanding analysis unnecessarily.
+
+Avoid overthinking.
+
+Avoid repeating architecture explanations.
+
+Avoid restating Sprint requirements.
+
+---
+
+# MINIMAL REASONING
+
+Reason only when it directly improves implementation.
+
+Do not explain obvious decisions.
+
+Do not describe every coding step.
+
+Do not generate long implementation diaries.
+
+Do not repeatedly summarize the Sprint.
+
+---
+
+# TOKEN EFFICIENCY
+
+Preserve context length.
+
+Avoid consuming context with repetitive reasoning.
+
+Prefer code changes over lengthy explanations.
+
+Prefer concise implementation notes.
+
+Large projects require maximizing available context for implementation.
+
+---
+
+# EXECUTION MODE
+
+Prioritize execution.
+
+If sufficient information is available:
+
+Implement immediately.
+
+Do not ask unnecessary questions.
+
+Do not repeatedly confirm the same requirement.
+
+Do not restate completed analysis.
+
+---
+
+# REPORTING
+
+Provide reasoning only when necessary.
+
+The final implementation report should summarize the work.
+
+Do not generate long progress reports during implementation.
+
+Use short implementation updates instead.
+
+---
+
+# CONTEXT PRESERVATION
+
+Preserve context for code generation.
+
+Avoid wasting context on repeated explanations.
+
+Focus on:
+
+- Analysis
+- Implementation
+- Validation
+- Final Report
+
+Everything else should remain concise.
+
+---
+
+# ENGINEERING PRIORITY
+
+The priority order is:
+
+1. Correct implementation
+2. Architecture compliance
+3. Code quality
+4. Context efficiency
+5. Concise reasoning
+
+Implementation quality is more important than verbose reasoning.
+
+# THINK ONCE POLICY
+
+Analyze once.
+
+Plan once.
+
+Implement continuously.
+
+Do not repeatedly re-analyze the same codebase unless new information appears.
+
+Reuse previous conclusions during the same implementation session.
+
+# AVOID ANALYSIS LOOP
+
+Do not repeatedly:
+
+- Audit the same files.
+- Explain the same architecture.
+- Restate the same Sprint.
+- Re-evaluate unchanged modules.
+
+If previous analysis is sufficient, continue implementation.
+
+Only perform additional analysis when new dependencies are discovered.

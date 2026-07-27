@@ -30,9 +30,10 @@ type AddSectionDialogProps = {
   open: boolean;
   onClose: () => void;
   onCreated: (section: { key: string; title: string }) => void;
+  adminToken: string | null;
 };
 
-export function AddSectionDialog({ open, onClose, onCreated }: AddSectionDialogProps) {
+export function AddSectionDialog({ open, onClose, onCreated, adminToken }: AddSectionDialogProps) {
   const { t } = useLocalizationContext();
   const [selected, setSelected] = React.useState<string | null>(null);
   const [title, setTitle] = React.useState("");
@@ -47,16 +48,19 @@ export function AddSectionDialog({ open, onClose, onCreated }: AddSectionDialogP
     }
   }, [open]);
 
-  const handleCreate = async () => {
+   const handleCreate = async () => {
     if (!selected) return;
     const sectionKey = key.trim() || selected;
     const sectionTitle = title.trim() || selected;
 
     setSaving(true);
     try {
+      const authHeaders: Record<string, string> = { "Content-Type": "application/json" };
+      if (adminToken) authHeaders["Authorization"] = `Bearer ${adminToken}`;
+
       const response = await fetch("/api/landing/sections", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders,
         body: JSON.stringify({
           sectionKey,
           title: sectionTitle,

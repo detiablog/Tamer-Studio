@@ -12,11 +12,11 @@ interface FAQItem {
 }
 
 export function FAQ({ section }: SectionRendererProps) {
-  const { t } = useLocalizationContext();
+  const { t, resolve } = useLocalizationContext();
   const [openIndex, setOpenIndex] = React.useState<number | null>(null);
 
-  const heading = (section.config.heading as string) || section.title || t("marketing.faqTitle");
-  const description = (section.config.description as string) || section.description || t("marketing.faqDescription");
+  const heading = resolve(section.config.heading as string) || section.title || t("marketing.faqTitle");
+  const description = resolve(section.config.description as string) || section.description || t("marketing.faqDescription");
   const items = (section.config.items as FAQItem[]) || [];
 
   const toggle = (index: number) => {

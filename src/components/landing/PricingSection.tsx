@@ -24,12 +24,12 @@ interface Plan {
 }
 
 export function PricingSection({ section }: SectionRendererProps) {
-  const { t } = useLocalizationContext();
+  const { t, resolve } = useLocalizationContext();
   const { formatPrice, currency, pricingRules } = useLandingData();
   const [yearly, setYearly] = React.useState(false);
 
-  const heading = (section.config.heading as string) || section.title || t("marketing.pricingTitle");
-  const description = (section.config.description as string) || section.description || t("marketing.pricingDescription");
+  const heading = resolve(section.config.heading as string) || section.title || t("marketing.pricingTitle");
+  const description = resolve(section.config.description as string) || section.description || t("marketing.pricingDescription");
   const plans = (section.config.plans as Plan[]) || [];
 
   const getCtaText = (ctaKey?: string) => {

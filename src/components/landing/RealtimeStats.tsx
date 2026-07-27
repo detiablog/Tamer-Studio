@@ -33,12 +33,12 @@ function formatValue(value: string | number): string {
 }
 
 export function RealtimeStats({ section }: SectionRendererProps) {
-  const { t } = useLocalizationContext();
+  const { t, resolve } = useLocalizationContext();
   const [metrics, setMetrics] = React.useState<Metrics>(fallbackMetrics);
   const [loading, setLoading] = React.useState(true);
 
-  const heading = (section.config.heading as string) || section.title || t("marketing.statsSectionTitle");
-  const description = (section.config.description as string) || section.description || "";
+  const heading = resolve(section.config.heading as string) || section.title || t("marketing.statsSectionTitle");
+  const description = resolve(section.config.description as string) || section.description || "";
   const statItems = (section.config.statItems as Array<{ key: keyof Metrics; label: string }>) || [
     { key: "activeUsers", label: t("marketing.statActiveUsers") },
     { key: "projects", label: t("marketing.statProjects") },

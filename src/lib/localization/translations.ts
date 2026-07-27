@@ -28,10 +28,6 @@ const FLATTENED_ID = flattenObject(idTranslations as Record<string, unknown>);
 CACHE["translations_en"] = FLATTENED_EN;
 CACHE["translations_id"] = FLATTENED_ID;
 
-function getEnglishFallback(key: string, fallback?: string): string {
-  return FLATTENED_EN[key] ?? fallback ?? key;
-}
-
 export function getTranslation(
   locale: string,
   key: string,
@@ -40,8 +36,23 @@ export function getTranslation(
   const translations = getTranslations(locale);
   const translated = translations[key];
   if (translated) return translated;
-  if (locale === "en") return fallback ?? key;
-  return getEnglishFallback(key, fallback);
+
+  if (locale === "en") {
+    if (fallback) return fallback;
+    if (process.env.NODE_ENV === "development") {
+      console.warn(`[i18n] Missing translation key "${key}" for locale "en" and no fallback provided`);
+    }
+    return fallback ?? "";
+  }
+
+  const enTranslation = FLATTENED_EN[key];
+  if (enTranslation) return enTranslation;
+  if (fallback) return fallback;
+
+  if (process.env.NODE_ENV === "development") {
+    console.warn(`[i18n] Missing translation key "${key}" for locale "${locale}" and fallback "en" and no fallback provided`);
+  }
+  return fallback ?? "";
 }
 
 export function getTranslations(locale: string): TranslationDict {
@@ -62,8 +73,11 @@ export function hasTranslation(locale: string, key: string): boolean {
   return key in translations;
 }
 
+export { getTranslation, getTranslations, hasTranslation, invalidateCache };
 export function invalidateCache() {
   for (const key of Object.keys(CACHE)) {
     delete CACHE[key];
   }
 }
+
+export { FLATTENED_EN, FLATTENED_ID };

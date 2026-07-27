@@ -12,10 +12,10 @@ interface Testimonial {
 }
 
 export function Testimonials({ section }: SectionRendererProps) {
-  const { t } = useLocalizationContext();
+  const { t, resolve } = useLocalizationContext();
 
-  const heading = (section.config.heading as string) || section.title || t("marketing.testimonialsTitle");
-  const description = (section.config.description as string) || section.description || "";
+  const heading = resolve(section.config.heading as string) || section.title || t("marketing.testimonialsTitle");
+  const description = resolve(section.config.description as string) || section.description || "";
   const testimonials = (section.config.testimonials as Testimonial[]) || [];
 
   return (

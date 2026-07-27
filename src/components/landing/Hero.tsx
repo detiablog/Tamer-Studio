@@ -17,15 +17,14 @@ const providers = [
 ];
 
 export function Hero({ section }: SectionRendererProps) {
-  const { t } = useLocalizationContext();
+  const { t, resolve } = useLocalizationContext();
   const { formatPrice, currency, campaign, resolvedCurrency } = useLandingData();
 
-  const heading = (section.config.heading as string) || section.title || t("marketing.heroTitle");
-  const description = (section.config.description as string) || section.description || t("marketing.heroDescription");
-  const ctaPrimary = (section.config.ctaPrimary as string) || t("marketing.heroCtaPrimary");
-  const ctaSecondary = (section.config.ctaSecondary as string) || t("marketing.heroCtaSecondary");
-  const showProviders = section.config.showProviders !== false;
-  const badge = (section.config.badge as string) || t("marketing.heroBadge", "AI-Powered");
+  const heading = resolve(section.config.heading as string) || section.title || t("marketing.heroTitle");
+  const description = resolve(section.config.description as string) || section.description || t("marketing.heroDescription");
+  const ctaPrimary = resolve(section.config.ctaPrimary as string) || t("marketing.heroCtaPrimary");
+  const ctaSecondary = resolve(section.config.ctaSecondary as string) || t("marketing.heroCtaSecondary");
+  const badge = resolve(section.config.badge as string) || t("marketing.heroBadge", "AI-Powered");
   const campaignBadge = (section.config.campaignBadge as string) || (campaign?.badge as string) || "";
   const campaignDiscount = (section.config.campaignDiscount as number) || (campaign?.discount as number) || 0;
 
@@ -96,21 +95,19 @@ export function Hero({ section }: SectionRendererProps) {
             <span>{t("marketing.contact")}</span>
           </div>
 
-          {showProviders && (
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
-              {providers.map((provider) => (
-                <span
-                  key={provider.key}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/50 backdrop-blur-sm px-3 py-1.5 text-xs font-medium text-muted-foreground hover:border-foreground/20 transition"
-                >
-                  <span className="flex h-4 w-4 items-center justify-center rounded bg-gradient-to-br from-primary/20 to-primary/10 text-[10px] font-bold text-primary">
-                    {provider.icon}
-                  </span>
-                  {t(provider.key)}
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
+            {providers.map((provider) => (
+              <span
+                key={provider.key}
+                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/50 backdrop-blur-sm px-3 py-1.5 text-xs font-medium text-muted-foreground hover:border-foreground/20 transition"
+              >
+                <span className="flex h-4 w-4 items-center justify-center rounded bg-gradient-to-br from-primary/20 to-primary/10 text-[10px] font-bold text-primary">
+                  {provider.icon}
                 </span>
-              ))}
-            </div>
-          )}
+                {t(provider.key)}
+              </span>
+            ))}
+          </div>
         </div>
 
         <div className="mt-16 sm:mt-20 animate-in fade-in slide-in-from-bottom-4 duration-1000">

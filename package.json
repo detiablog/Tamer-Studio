@@ -23,7 +23,8 @@
     "prepare": "echo Skipping Husky",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/scripts/migrate.ts",
-    "db:seed": "tsx src/scripts/seed.ts"
+    "db:seed": "tsx src/scripts/seed.ts",
+    "sync:locales": "tsx scripts/sync-locales.ts"
   },
   "packageManager": "pnpm@11.15.0",
   "dependencies": {

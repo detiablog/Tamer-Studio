@@ -1,3 +1,5 @@
+import { FLATTENED_EN } from "./translations";
+
 export type TranslationKey =
   // Common
   | "common.save"
@@ -330,6 +332,10 @@ export type TranslationKey =
   | "marketing.menuContact"
   | "marketing.menuSignIn"
   | "marketing.menuGetStarted"
+  | "marketing.getStartedButton"
+  | "marketing.pricing"
+  | "marketing.features"
+  | "marketing.contact"
   | "marketing.mobileMenu"
   | "marketing.mobileClose"
   | "marketing.learnMore"
@@ -636,7 +642,6 @@ export type TranslationKey =
   | "admin.failedToDeleteWorkspace"
   | "admin.errorDeletingWorkspace"
   | "admin.workspaceDeletedSuccess"
-  | "admin.editWorkspace"
   | "admin.aiProvidersDescription"
   | "admin.searchProviders"
   | "admin.provider"
@@ -797,3 +802,7 @@ export type TranslationKey =
   | "error.sessionExpired"
   | "error.maintenance"
   | "error.rateLimited";
+
+export function getAllTranslationKeys(): string[] {
+  return Object.keys(FLATTENED_EN);
+}
