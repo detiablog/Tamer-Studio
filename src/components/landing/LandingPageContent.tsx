@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { useLandingSections } from '@/hooks/use-landing-sections';
-import { renderLandingSections } from '@/lib/landing-section-renderer';
-import { Header } from '@/components/landing/Header';
-import { ElegantLoader } from '@/components/ui/ElegantLoader';
-import { useLocalizationContext } from '@/providers/localization';
-import { useLandingData } from '@/hooks/use-landing-data';
+import React from "react";
+import { useLandingSections } from "@/hooks/use-landing-sections";
+import { renderLandingSections } from "@/lib/landing-section-renderer";
+import { Header } from "@/components/landing/Header";
+import { ElegantLoader } from "@/components/ui/ElegantLoader";
+import { useLocalizationContext } from "@/providers/localization";
+import { useLandingData } from "@/hooks/use-landing-data";
 
 export function LandingPageContent() {
   const { t } = useLocalizationContext();

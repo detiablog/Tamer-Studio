@@ -1,5 +1,6 @@
 import type { Permission, CreatePermissionInput } from "./permission.types";
 import { PermissionRepository } from "./permission.repository";
+import { logAction } from "@/core/audit";
 
 export class PermissionService {
   private repository = new PermissionRepository();
@@ -21,11 +22,14 @@ export class PermissionService {
   }
 
   async createPermission(input: CreatePermissionInput): Promise<Permission> {
-    return this.repository.createPermission(input);
+    const result = await this.repository.createPermission(input);
+    logAction("permission.created", undefined, undefined, { permissionId: result.id, key: input.key });
+    return result;
   }
 
   async deletePermission(permissionId: string): Promise<void> {
-    return this.repository.deletePermission(permissionId);
+    await this.repository.deletePermission(permissionId);
+    logAction("permission.deleted", undefined, undefined, { permissionId });
   }
 
   async getRolePermissions(roleId: string): Promise<Permission[]> {

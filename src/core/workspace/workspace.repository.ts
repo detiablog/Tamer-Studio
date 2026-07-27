@@ -3,7 +3,6 @@ import { workspace, workspaceTransfer } from "@/lib/db/schema/identity";
 import { eq, desc } from "drizzle-orm";
 import type { Workspace, CreateWorkspaceInput, UpdateWorkspaceInput } from "./workspace.types";
 import { randomUUID } from "crypto";
-import { logAction } from "@/core/audit";
 
 export class WorkspaceRepository {
   async getWorkspace(workspaceId: string): Promise<Workspace | undefined> {
@@ -51,7 +50,6 @@ export class WorkspaceRepository {
       createdAt: now,
       updatedAt: now,
     });
-    logAction("workspace.created", undefined, undefined, {  workspaceId: id, ownerId: input.ownerId, type: input.type  });
     return ws;
   }
 
@@ -65,7 +63,6 @@ export class WorkspaceRepository {
     if (input.limits !== undefined) updates.limits = input.limits;
     if (input.status !== undefined) updates.status = input.status;
     await db.update(workspace).set(updates).where(eq(workspace.id, workspaceId));
-    logAction("workspace.updated", undefined, undefined, {  workspaceId, changes: input  });
     return { ...existing, ...updates } as Workspace;
   }
 
@@ -82,13 +79,11 @@ export class WorkspaceRepository {
       toOwnerId,
       transferredAt: now,
     });
-    logAction("workspace.transferred", undefined, undefined, {  workspaceId, fromOwnerId, toOwnerId  });
   }
 
   async softDelete(workspaceId: string, deletedBy: string): Promise<void> {
     const now = new Date();
     await db.update(workspace).set({ status: "deleted", updatedAt: now }).where(eq(workspace.id, workspaceId));
-    logAction("workspace.deleted", undefined, undefined, {  workspaceId, deletedBy  });
   }
 
   async isOwner(workspaceId: string, userId: string): Promise<boolean> {

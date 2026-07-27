@@ -1,6 +1,6 @@
 import type { UserProfile, UserPreferences, ExternalIdentity, UpdateUserProfileInput } from "./user.types";
 import { db } from "@/lib/db";
-import { userProfile, userPreferences, externalIdentity } from "@/lib/db/schema/identity";
+import { user, userProfile, userPreferences, externalIdentity } from "@/lib/db/schema/identity";
 import { eq, and, desc } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
@@ -9,6 +9,12 @@ export class UserRepository {
     const rows = await db.select().from(userProfile).where(eq(userProfile.userId, userId)).limit(1);
     if (rows.length === 0) return undefined;
     return this.mapProfile(rows[0]);
+  }
+
+  async getUserByAuthId(authId: string): Promise<{ id: string; email: string; name: string } | undefined> {
+    const rows = await db.select().from(user).where(eq(user.id, authId)).limit(1);
+    if (rows.length === 0) return undefined;
+    return { id: rows[0].id, email: rows[0].email, name: rows[0].name ?? "" };
   }
 
   async getUserPreferences(userId: string): Promise<UserPreferences | undefined> {

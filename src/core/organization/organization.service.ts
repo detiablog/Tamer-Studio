@@ -1,5 +1,6 @@
 import type { Organization, CreateOrganizationInput, UpdateOrganizationInput } from "./organization.types";
 import { OrganizationRepository } from "./organization.repository";
+import { logAction } from "@/core/audit";
 
 export class OrganizationService {
   private repository = new OrganizationRepository();
@@ -11,10 +12,14 @@ export class OrganizationService {
   }
 
   async createOrganization(input: CreateOrganizationInput): Promise<Organization> {
-    return this.repository.createOrganization(input);
+    const org = await this.repository.createOrganization(input);
+    logAction("organization.created", undefined, undefined, { organizationId: org.id, ownerId: input.ownerId });
+    return org;
   }
 
   async updateOrganization(organizationId: string, input: UpdateOrganizationInput): Promise<Organization> {
-    return this.repository.updateOrganization(organizationId, input);
+    const org = await this.repository.updateOrganization(organizationId, input);
+    logAction("organization.updated", undefined, undefined, { organizationId, changes: input });
+    return org;
   }
 }

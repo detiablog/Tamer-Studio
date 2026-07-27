@@ -1,19 +1,25 @@
 import type { ApiKey, CreateApiKeyInput, RotateApiKeyInput, ApiKeyValidationResult } from "./apikey.types";
 import { ApiKeyRepository } from "./apikey.repository";
+import { logAction } from "@/core/audit";
 
 export class ApiKeyService {
   private repository = new ApiKeyRepository();
 
   async createApiKey(input: CreateApiKeyInput): Promise<ApiKey & { rawKey: string }> {
-    return this.repository.createApiKey(input);
+    const result = await this.repository.createApiKey(input);
+    logAction("apikey.created", undefined, undefined, { apiKeyId: result.id, userId: input.userId, workspaceId: input.workspaceId });
+    return result;
   }
 
   async revokeApiKey(apiKeyId: string): Promise<void> {
-    return this.repository.revokeApiKey(apiKeyId);
+    await this.repository.revokeApiKey(apiKeyId);
+    logAction("apikey.revoked", undefined, undefined, { apiKeyId });
   }
 
   async rotateApiKey(input: RotateApiKeyInput): Promise<ApiKey & { rawKey: string }> {
-    return this.repository.rotateApiKey(input);
+    const result = await this.repository.rotateApiKey(input);
+    logAction("apikey.rotated", undefined, undefined, { apiKeyId: input.apiKeyId });
+    return result;
   }
 
   async getUserApiKeys(userId: string): Promise<ApiKey[]> {
