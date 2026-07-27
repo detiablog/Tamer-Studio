@@ -8,6 +8,7 @@ interface LocalizationContextValue {
   locale: SupportedLocale;
   setLocale: (locale: SupportedLocale) => void;
   t: (key: string, fallback?: string) => string;
+  resolve: (value: string | null | undefined, fallback?: string) => string;
   translations: Record<string, string>;
 }
 
@@ -65,14 +66,26 @@ export function LocalizationProvider({ children }: { children: React.ReactNode }
     [service]
   );
 
+  const resolve = React.useCallback(
+    (value: string | null | undefined, fallback?: string): string => {
+      if (!value) return fallback ?? "";
+      if (value.includes(".") && !value.startsWith("http") && !value.startsWith("#") && !value.startsWith("/") && !value.startsWith("www.") && !value.includes(" ") && value === value.toLowerCase()) {
+        return t(value, fallback);
+      }
+      return value;
+    },
+    [t]
+  );
+
   const value = React.useMemo(
     () => ({
       locale,
       setLocale,
       t,
+      resolve,
       translations: service.getTranslations(),
     }),
-    [locale, setLocale, t, service]
+    [locale, setLocale, t, resolve, service]
   );
 
   return (
@@ -86,10 +99,19 @@ export function useLocalizationContext(): LocalizationContextValue {
   const context = React.useContext(LocalizationContext);
   if (!context) {
     const service = getLocalizationService();
+    const t = (key: string, fallback?: string) => service.t(key, fallback);
+    const resolve = (value: string | null | undefined, fallback?: string): string => {
+      if (!value) return fallback ?? "";
+      if (value.includes(".") && !value.startsWith("http") && !value.startsWith("#") && !value.startsWith("/") && !value.startsWith("www.") && !value.includes(" ") && value === value.toLowerCase()) {
+        return t(value, fallback);
+      }
+      return value;
+    };
     return {
       locale: service.getLocale(),
       setLocale: (l) => service.setLocale(l),
-      t: (key, fallback) => service.t(key, fallback),
+      t,
+      resolve,
       translations: service.getTranslations(),
     };
   }

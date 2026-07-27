@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import type { Route } from "next";
 import Link from "next/link";
 import { useLocalizationContext } from "@/providers/localization";
 import { useLandingData } from "@/hooks/use-landing-data";
@@ -8,14 +9,14 @@ import { cn } from "@/lib/utils";
 import type { SectionRendererProps } from "@/lib/landing-section-renderer";
 
 export function CampaignBanner({ section }: SectionRendererProps) {
-  const { t } = useLocalizationContext();
+  const { t, resolve } = useLocalizationContext();
   const { campaign } = useLandingData();
   const config = section.config as Record<string, unknown> | undefined;
 
-  const heading = (config?.heading as string) || section.title || t("marketing.campaignTitle", "Special Offer");
-  const description = (config?.description as string) || section.description || t("marketing.campaignDescription", "Limited time deal");
-  const badge = (config?.badge as string) || (campaign?.badge as string) || t("marketing.campaignBadge", "Campaign");
-  const ctaText = (config?.ctaText as string) || (campaign?.ctaText as string) || t("marketing.campaignCta", "Claim Now");
+  const heading = resolve(config?.heading as string) || section.title || t("marketing.campaignTitle", "Special Offer");
+  const description = resolve(config?.description as string) || section.description || t("marketing.campaignDescription", "Limited time deal");
+  const badge = resolve(config?.badge as string) || resolve(campaign?.badge as string) || t("marketing.campaignBadge", "Campaign");
+  const ctaText = resolve(config?.ctaText as string) || resolve(campaign?.ctaText as string) || t("marketing.campaignCta", "Claim Now");
   const ctaHref = (config?.ctaHref as string) || (campaign?.ctaHref as string) || "/register";
   const countdownEnd = (config?.countdownEnd as string) || (campaign?.countdownEnd as string) || "";
   const discount = (config?.discount as number) || (campaign?.discount as number) || 0;
@@ -47,12 +48,12 @@ export function CampaignBanner({ section }: SectionRendererProps) {
                 </div>
               )}
               {countdownEnd && (
-                <Countdown endTime={countdownEnd} />
+                <Countdown endTime={countdownEnd} t={t} />
               )}
             </div>
             <div className="shrink-0">
               <Link
-                href={ctaHref}
+                href={ctaHref as Route}
                 className={cn(
                   "inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-primary to-primary/80 px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:shadow-lg hover:scale-105 duration-200 group"
                 )}
@@ -68,7 +69,7 @@ export function CampaignBanner({ section }: SectionRendererProps) {
   );
 }
 
-function Countdown({ endTime }: { endTime: string }) {
+function Countdown({ endTime, t }: { endTime: string; t: (key: string, fallback: string) => string }) {
   const [remaining, setRemaining] = React.useState<string>("");
 
   React.useEffect(() => {

@@ -32,10 +32,10 @@ const ICON_MAP: Record<string, LucideIcon> = {
 };
 
 export function Features({ section }: SectionRendererProps) {
-  const { t } = useLocalizationContext();
+  const { t, resolve } = useLocalizationContext();
 
-  const heading = (section.config.heading as string) || section.title || t("marketing.featuresTitle");
-  const description = (section.config.description as string) || section.description || t("marketing.featuresDescription");
+  const heading = resolve(section.config.heading as string) || section.title || t("marketing.featuresTitle");
+  const description = resolve(section.config.description as string) || section.description || t("marketing.featuresDescription");
   const features = (section.config.features as Array<{ title: string; description: string; icon?: string }>) || [];
 
   return (

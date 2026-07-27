@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Lock, Unlock, Copy, Trash2 } from "lucide-react";
 import { useLocalizationContext } from "@/providers/localization";
+import { TranslationKeyPicker } from "@/components/admin/TranslationKeyPicker";
 
 import type { LandingSection } from "./SectionList";
 
@@ -224,21 +225,35 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
                 </div>
                 <div>
                   <Label htmlFor="primary-button">{t("sectionDrawer.primaryButtonText", "Primary Button Text")}</Label>
-                  <Input
-                    id="primary-button"
-                    value={(form.config?.primaryButtonText as string) ?? ""}
-                    onChange={(e) => handleConfigChange("primaryButtonText", e.target.value)}
-                    placeholder="Get Started"
-                  />
+                  <div className="flex gap-2 mt-1.5">
+                    <Input
+                      id="primary-button"
+                      value={(form.config?.primaryButtonText as string) ?? ""}
+                      onChange={(e) => handleConfigChange("primaryButtonText", e.target.value)}
+                      placeholder="Get Started"
+                      className="flex-1"
+                    />
+                    <TranslationKeyPicker
+                      value={(form.config?.primaryButtonText as string) ?? ""}
+                      onChange={(key) => handleConfigChange("primaryButtonText", key)}
+                    />
+                  </div>
                 </div>
                 <div>
                   <Label htmlFor="secondary-button">{t("sectionDrawer.secondaryButtonText", "Secondary Button Text")}</Label>
-                  <Input
-                    id="secondary-button"
-                    value={(form.config?.secondaryButtonText as string) ?? ""}
-                    onChange={(e) => handleConfigChange("secondaryButtonText", e.target.value)}
-                    placeholder="Learn More"
-                  />
+                  <div className="flex gap-2 mt-1.5">
+                    <Input
+                      id="secondary-button"
+                      value={(form.config?.secondaryButtonText as string) ?? ""}
+                      onChange={(e) => handleConfigChange("secondaryButtonText", e.target.value)}
+                      placeholder="Learn More"
+                      className="flex-1"
+                    />
+                    <TranslationKeyPicker
+                      value={(form.config?.secondaryButtonText as string) ?? ""}
+                      onChange={(key) => handleConfigChange("secondaryButtonText", key)}
+                    />
+                  </div>
                 </div>
                 <div>
                   <Label htmlFor="primary-url">{t("sectionDrawer.primaryButtonUrl", "Primary Button URL")}</Label>

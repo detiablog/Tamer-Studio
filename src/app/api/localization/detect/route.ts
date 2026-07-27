@@ -36,10 +36,16 @@ export async function GET(request: NextRequest) {
       supportedCurrencies: profile.supportedCurrencies,
       supportedLanguages: profile.supportedLanguages,
     });
-  } catch {
+  } catch (error) {
+    console.error("[GET /api/localization/detect] Error:", error);
     return NextResponse.json(
-      { error: "Failed to detect locale" },
-      { status: 500 }
+      {
+        locale: "en",
+        currency: "USD",
+        country: null,
+        timezone: "UTC",
+        source: "fallback",
+      }
     );
   }
 }

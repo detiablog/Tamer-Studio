@@ -8,6 +8,7 @@ import { runMiddleware } from "@/core/middleware/compose";
 import { adminAuthentication } from "@/core/middleware";
 import { z } from "zod";
 import { logAdminAction } from "@/core/admin/audit";
+import { validateConfigTranslationKeys } from "@/lib/localization/validation";
 
 const UpdateSectionSchema = z.object({
   title: z.string().min(1).max(255).optional(),
@@ -141,6 +142,16 @@ export async function PATCH(
     for (const [k, v] of Object.entries(parsed.data)) {
       if (v !== undefined) {
         updateData[k] = v;
+      }
+    }
+
+    if (updateData.config && typeof updateData.config === "object") {
+      const validation = validateConfigTranslationKeys(updateData.config as Record<string, unknown>);
+      if (!validation.valid) {
+        return NextResponse.json(
+          { success: false, error: `Invalid translation keys in config: ${validation.warnings.join(", ")}` },
+          { status: 400 }
+        );
       }
     }
 

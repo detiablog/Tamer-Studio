@@ -1,0 +1,44 @@
+name: Locale Sync
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/lib/localization/keys.ts"
+      - "locales/en.json"
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/lib/localization/keys.ts"
+  workflow_dispatch:
+
+jobs:
+  sync-locales:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Sync locales
+        run: pnpm sync:locales
+      - name: Check for changes
+        id: changes
+        run: |
+          git diff --exit-code locales/id.json || echo "changed=true" >> $GITHUB_OUTPUT
+      - name: Commit locale changes
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add locales/id.json
+          git Commit -m "chore(locales): sync id.json with en.json [skip ci]" || exit 0
+          git push

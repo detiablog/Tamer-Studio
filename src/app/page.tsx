@@ -36,7 +36,7 @@ export async function generateMetadata() {
     const keywords = seoData?.data?.keywords || ['AI production platform', 'content production', 'AI generation', 'Tamer Studio'];
     const image = seoData?.data?.image || 'https://tamer.studio/og-image.svg';
     const url = seoData?.data?.url || 'https://tamer.studio';
-    const hreflangs = seoData?.data?.hreflangs || [];
+    const hreflangs: { hreflang: string; href: string }[] = seoData?.data?.hreflangs || [];
     const ogLocale = seoData?.data?.locale || 'en_US';
 
     return {
@@ -73,7 +73,7 @@ export async function generateMetadata() {
       robots: { index: true, follow: true },
       alternates: {
         canonical: url,
-        languages: hreflangs.reduce<Record<string, string>>((acc, h: { hreflang: string; href: string }) => {
+        languages: hreflangs.reduce<Record<string, string>>((acc: Record<string, string>, h: { hreflang: string; href: string }) => {
           acc[h.hreflang] = h.href;
           return acc;
         }, {}),

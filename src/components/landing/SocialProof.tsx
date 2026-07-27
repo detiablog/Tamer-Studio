@@ -51,9 +51,9 @@ function AnimatedCounter({ target, suffix, display }: { target: number; suffix: 
 }
 
 export function SocialProof({ section }: SectionRendererProps) {
-  const { t } = useLocalizationContext();
+  const { t, resolve } = useLocalizationContext();
 
-  const title = (section.config.title as string) || section.title || t("marketing.socialProofTitle");
+  const title = resolve(section.config.title as string) || section.title || t("marketing.socialProofTitle");
   const stats = (section.config.stats as Array<{ label: string; value: number | string; suffix?: string; display?: string }>) || [];
 
   return (

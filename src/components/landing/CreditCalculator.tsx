@@ -14,10 +14,10 @@ interface Action {
 }
 
 export function CreditCalculator({ section }: SectionRendererProps) {
-  const { t } = useLocalizationContext();
+  const { t, resolve } = useLocalizationContext();
 
-  const heading = (section.config.heading as string) || section.title || t("marketing.creditCalculatorTitle");
-  const description = (section.config.description as string) || section.description || t("marketing.creditCalculatorDescription");
+  const heading = resolve(section.config.heading as string) || section.title || t("marketing.creditCalculatorTitle");
+  const description = resolve(section.config.description as string) || section.description || t("marketing.creditCalculatorDescription");
   const actions = (section.config.actions as Action[]) || [];
 
   const [values, setValues] = React.useState<Record<string, number>>(() =>
@@ -30,13 +30,23 @@ export function CreditCalculator({ section }: SectionRendererProps) {
     0
   );
 
-  let recommended = "Free or Starter";
-  if (totalCredits > 100000) {
-    recommended = "Business or Enterprise";
-  } else if (totalCredits > 25000) {
-    recommended = "Pro or Business";
-  } else if (totalCredits > 5000) {
-    recommended = "Starter or Pro";
+  const recommendations = (section.config.recommendations as Array<{ minCredits: number; label: string }>) || [];
+
+  let recommended = t("marketing.creditCalculatorDefaultRecommendation", "Free or Starter");
+  if (recommendations.length === 0) {
+    if (totalCredits > 100000) {
+      recommended = t("marketing.creditCalculatorBusinessEnterprise", "Business or Enterprise");
+    } else if (totalCredits > 25000) {
+      recommended = t("marketing.creditCalculatorProBusiness", "Pro or Business");
+    } else if (totalCredits > 5000) {
+      recommended = t("marketing.creditCalculatorStarterPro", "Starter or Pro");
+    }
+  } else {
+    const sorted = [...recommendations].sort((a, b) => b.minCredits - a.minCredits);
+    const match = sorted.find((r) => totalCredits > r.minCredits);
+    if (match) {
+      recommended = match.label;
+    }
   }
 
   const set = (key: string, value: number) => {

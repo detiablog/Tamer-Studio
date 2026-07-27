@@ -13,10 +13,10 @@ interface Row {
 }
 
 export function CreditUsageTable({ section }: SectionRendererProps) {
-  const { t } = useLocalizationContext();
+  const { t, resolve } = useLocalizationContext();
 
-  const heading = (section.config.heading as string) || section.title || t("marketing.creditUsageTitle");
-  const description = (section.config.description as string) || section.description || t("marketing.creditUsageDescription");
+  const heading = resolve(section.config.heading as string) || section.title || t("marketing.creditUsageTitle");
+  const description = resolve(section.config.description as string) || section.description || t("marketing.creditUsageDescription");
   const rows = (section.config.rows as Row[]) || [];
 
   return (

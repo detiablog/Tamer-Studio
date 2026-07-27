@@ -1,9 +1,6 @@
-"use client";
-
-import * as React from "react";
 import Link from "next/link";
-import { Zap } from "lucide-react";
 import { useLocalizationContext } from "@/providers/localization";
+import { useCurrencyContext } from "@/providers/currency";
 import { cn } from "@/lib/utils";
 import type { SectionRendererProps } from "@/lib/landing-section-renderer";
 
@@ -16,10 +13,11 @@ interface Pack {
 }
 
 export function CreditPacks({ section }: SectionRendererProps) {
-  const { t } = useLocalizationContext();
+  const { t, resolve } = useLocalizationContext();
+  const { formatCurrency } = useCurrencyContext();
 
-  const heading = (section.config.heading as string) || section.title || t("marketing.creditPackTitle");
-  const description = (section.config.description as string) || section.description || t("marketing.creditPackDescription");
+  const heading = resolve(section.config.heading as string) || section.title || t("marketing.creditPackTitle");
+  const description = resolve(section.config.description as string) || section.description || t("marketing.creditPackDescription");
   const packs = (section.config.packs as Pack[]) || [];
 
   return (
@@ -39,29 +37,31 @@ export function CreditPacks({ section }: SectionRendererProps) {
               className="flex flex-col rounded-2xl border border-border bg-card p-6 transition hover:border-foreground/10"
             >
               <div className="flex items-center gap-2">
-                <Zap className="size-5 text-primary" />
+                <span className="size-5 text-primary flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                </span>
                 <h3 className="text-base font-semibold">{pack.name}</h3>
               </div>
 
               <div className="mt-4">
                 {pack.credits > 0 ? (
-                  <p className="text-3xl font-semibold">
-                    {pack.credits.toLocaleString("en-US")}
-                  </p>
+                  <>
+                    <p className="text-3xl font-semibold">
+                      {formatCurrency(pack.price)}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {pack.credits} {t("marketing.credits")}
+                    </p>
+                  </>
                 ) : (
-                  <p className="text-3xl font-semibold">{t("marketing.contactSales")}</p>
+                  <>
+                    <p className="text-3xl font-semibold">{t("marketing.contactSales")}</p>
+                    <p className="text-sm text-muted-foreground"></p>
+                  </>
                 )}
-                <p className="text-sm text-muted-foreground">
-                  {pack.credits > 0 ? t("marketing.credits") : ""}
-                </p>
               </div>
 
-              <p className="mt-2 text-lg font-semibold">
-                {typeof pack.price === "number" && pack.price > 0 ? `$${pack.price}` : ""}
-              </p>
-
               <Link
-                key={String(pack.name || '') + idx}
                 href={(pack.href || "/register") as any}
                 className="mt-auto inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition border border-border bg-background hover:bg-muted"
               >

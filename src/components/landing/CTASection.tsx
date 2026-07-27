@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import type { Route } from "next";
 import Link from "next/link";
 import { ArrowRight, Calendar, Sparkles } from "lucide-react";
 import { useLocalizationContext } from "@/providers/localization";
@@ -9,13 +10,13 @@ import { cn } from "@/lib/utils";
 import type { SectionRendererProps } from "@/lib/landing-section-renderer";
 
 export function CTASection({ section }: SectionRendererProps) {
-  const { t } = useLocalizationContext();
+  const { t, resolve } = useLocalizationContext();
   const { campaign } = useLandingData();
 
-  const heading = (section.config.heading as string) || section.title || t("marketing.ctaTitle");
-  const description = (section.config.description as string) || section.description || t("marketing.ctaDescription");
-  const ctaPrimaryText = (section.config.ctaPrimary as string) || t("marketing.ctaPrimary");
-  const ctaSecondaryText = (section.config.ctaSecondary as string) || t("marketing.ctaSecondary");
+  const heading = resolve(section.config.heading as string) || section.title || t("marketing.ctaTitle");
+  const description = resolve(section.config.description as string) || section.description || t("marketing.ctaDescription");
+  const ctaPrimaryText = resolve(section.config.ctaPrimary as string) || t("marketing.ctaPrimary");
+  const ctaSecondaryText = resolve(section.config.ctaSecondary as string) || t("marketing.ctaSecondary");
   const campaignCta = (campaign?.ctaText as string) || "";
   const campaignHref = (campaign?.ctaHref as string) || "/register";
 
@@ -39,7 +40,7 @@ export function CTASection({ section }: SectionRendererProps) {
 
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-3">
               <Link
-                href={campaignHref}
+                href={campaignHref as Route}
                 className={cn(
                   "inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-primary to-primary/80 px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:shadow-lg hover:scale-105 duration-200 group"
                 )}
@@ -48,7 +49,7 @@ export function CTASection({ section }: SectionRendererProps) {
                 <ArrowRight className="ml-2 size-4 group-hover:translate-x-1 transition" />
               </Link>
               <Link
-                href="/contact"
+                href={"/contact" as Route}
                 className="inline-flex items-center justify-center rounded-lg border-2 border-primary/30 bg-background px-6 py-3 text-sm font-semibold text-foreground transition hover:border-primary/50 hover:bg-primary/5 group"
               >
                 <Calendar className="mr-2 size-4" />

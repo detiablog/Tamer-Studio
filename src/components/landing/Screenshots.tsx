@@ -5,10 +5,10 @@ import { useLocalizationContext } from "@/providers/localization";
 import type { SectionRendererProps } from "@/lib/landing-section-renderer";
 
 export function Screenshots({ section }: SectionRendererProps) {
-  const { t } = useLocalizationContext();
+  const { t, resolve } = useLocalizationContext();
 
-  const heading = (section.config.heading as string) || section.title || t("marketing.screenshotsTitle");
-  const description = (section.config.description as string) || section.description || "";
+  const heading = resolve(section.config.heading as string) || section.title || t("marketing.screenshotsTitle");
+  const description = resolve(section.config.description as string) || section.description || "";
   const screenshots = (section.config.screenshots as Array<{ label: string }>) || [];
 
   return (
