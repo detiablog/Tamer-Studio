@@ -73,7 +73,6 @@ export function hasTranslation(locale: string, key: string): boolean {
   return key in translations;
 }
 
-export { getTranslation, getTranslations, hasTranslation, invalidateCache };
 export function invalidateCache() {
   for (const key of Object.keys(CACHE)) {
     delete CACHE[key];

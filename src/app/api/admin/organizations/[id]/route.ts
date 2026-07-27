@@ -1,81 +1,68 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import type { RequestContext } from "@/core/middleware/types";
+import { runMiddleware } from "@/core/middleware/compose";
+import { adminAuthentication, requireAdminPermission } from "@/core/middleware";
+import { OrganizationService } from "@/core/organization/organization.service";
+import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
+import { successResponse } from "@/app/api/mappers/response";
+import { z } from "zod";
+
+const UpdateOrganizationSchema = z.object({
+  name: z.string().min(1, "Name is required").max(255).optional(),
+  status: z.string().optional(),
+  plan: z.string().optional(),
+});
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const resolvedParams = await params;
+  const ctx: RequestContext = {
+    request,
+    params: resolvedParams,
+    state: {
+      rateLimit: undefined,
+      origin: undefined,
+      adminSession: undefined,
+      userSession: undefined,
+      authError: undefined,
+      permissionError: undefined,
+      csrfError: undefined,
+      rateLimitError: undefined,
+      auditContext: undefined,
+    },
+    method: "PUT",
+    pathname: request.nextUrl.pathname,
+    ip: request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0].trim() || undefined,
+  };
+
+  const middlewareError = await runMiddleware([adminAuthentication(), requireAdminPermission("organizations.write")], ctx);
+  if (middlewareError) return middlewareError;
+
   try {
     const { id } = await params;
     const body = await request.json();
+    const parsed = UpdateOrganizationSchema.safeParse(body);
 
-    const postgres = await import("postgres").then(m => m.default);
-    const sql = postgres(process.env.DATABASE_URL!);
-
-    try {
-      let query = `UPDATE organization SET `;
-      const values: any[] = [];
-      let paramCount = 1;
-
-      if (body.name) {
-        values.push(body.name);
-        query += `name = $${paramCount++}`;
-      }
-      if (body.status) {
-        if (values.length > 0) query += ", ";
-        values.push(body.status.toLowerCase());
-        query += `status = $${paramCount++}`;
-      }
-      if (body.plan) {
-        if (values.length > 0) query += ", ";
-        const settings = JSON.stringify({ plan: body.plan });
-        values.push(settings);
-        query += `settings = $${paramCount++}`;
-      }
-
-      if (values.length === 0) {
-        await sql.end();
-        return NextResponse.json(
-          { success: false, error: "No fields to update" },
-          { status: 400 }
-        );
-      }
-
-      query += `, updated_at = NOW() WHERE id = $${paramCount} RETURNING *`;
-      values.push(id);
-
-      const result = await sql.unsafe(query, values);
-      await sql.end();
-
-      if (!result || result.length === 0) {
-        return NextResponse.json(
-          { success: false, error: "Organization not found" },
-          { status: 404 }
-        );
-      }
-
-      const o = result[0];
-
-      return NextResponse.json({
-        success: true,
-        message: "Organization updated successfully",
-        data: {
-          id: o.id,
-          name: o.name,
-          plan: o.settings?.plan || "Starter",
-          status: o.status.charAt(0).toUpperCase() + o.status.slice(1),
-          createdAt: new Date(o.created_at).toLocaleDateString(),
-        },
-      });
-    } finally {
-      await sql.end();
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: { code: "VALIDATION_ERROR", message: "Invalid input", details: { fieldErrors: parsed.error.flatten().fieldErrors } } },
+        { status: 422 }
+      );
     }
+
+    const service = new OrganizationService();
+    const organization = await service.updateOrganization(id, {
+      name: parsed.data.name,
+      status: parsed.data.status as "active" | "deleted" | "suspended" | undefined,
+      settings: parsed.data.plan ? { plan: parsed.data.plan } : undefined,
+    });
+
+    return NextResponse.json(successResponse(organization, "Organization updated successfully"));
   } catch (error) {
-    console.error("[PUT Error]", error);
-    return NextResponse.json(
-      { success: false, error: String(error) },
-      { status: 500 }
-    );
+    return mapErrorToResponse(error);
   }
 }
 
@@ -83,35 +70,42 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const ctx: RequestContext = {
+    request,
+    params: await params,
+    state: {
+      rateLimit: undefined,
+      origin: undefined,
+      adminSession: undefined,
+      userSession: undefined,
+      authError: undefined,
+      permissionError: undefined,
+      csrfError: undefined,
+      rateLimitError: undefined,
+      auditContext: undefined,
+    },
+    method: "DELETE",
+    pathname: request.nextUrl.pathname,
+    ip: request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0].trim() || undefined,
+  };
+
+  const middlewareError = await runMiddleware([adminAuthentication(), requireAdminPermission("organizations.write")], ctx);
+  if (middlewareError) return middlewareError;
+
   try {
     const { id } = await params;
+    const service = new OrganizationService();
+    const deleted = await service.deleteOrganization(id);
 
-    const postgres = await import("postgres").then(m => m.default);
-    const sql = postgres(process.env.DATABASE_URL!);
-
-    try {
-      const result = await sql`DELETE FROM organization WHERE id = ${id} RETURNING id`;
-      await sql.end();
-
-      if (!result || result.length === 0) {
-        return NextResponse.json(
-          { success: false, error: "Organization not found" },
-          { status: 404 }
-        );
-      }
-
-      return NextResponse.json({
-        success: true,
-        message: "Organization deleted successfully",
-      });
-    } finally {
-      await sql.end();
+    if (!deleted) {
+      return NextResponse.json(
+        { success: false, error: { code: "NOT_FOUND", message: "Organization not found" } },
+        { status: 404 }
+      );
     }
+
+    return NextResponse.json(successResponse({ message: "Organization deleted successfully" }));
   } catch (error) {
-    console.error("[DELETE Error]", error);
-    return NextResponse.json(
-      { success: false, error: String(error) },
-      { status: 500 }
-    );
+    return mapErrorToResponse(error);
   }
 }

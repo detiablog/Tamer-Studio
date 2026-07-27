@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import type { RequestContext } from "@/core/middleware/types";
 import { runMiddleware } from "@/core/middleware/compose";
 import { userAuthentication } from "@/core/middleware";
+import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
+import { successResponse } from "@/app/api/mappers/response";
 
 export async function GET(request: NextRequest) {
   const ctx: RequestContext = {
@@ -32,7 +34,7 @@ export async function GET(request: NextRequest) {
     return errorResponse;
   }
 
-  return NextResponse.json({
+  return NextResponse.json(successResponse({
     activeProjects: 12,
     mediaAssets: 48,
     runningJobs: 3,
@@ -57,5 +59,5 @@ export async function GET(request: NextRequest) {
       { text: "New team member joined", time: "1 day ago" },
       { text: "Production job failed", time: "2 days ago" },
     ],
-  });
+  }));
 }

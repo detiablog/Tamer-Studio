@@ -1,48 +1,67 @@
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { db } from "@/lib/db";
-import { billing } from "@/lib/db/schema/billing-admin";
-import { sql, eq, desc } from "drizzle-orm";
-
-const MOCK_BILLING = [
-  { id: "bill_1", workspaceId: "ws_1", plan: "Pro", price: "99.00", currency: "USD", billingCycle: "monthly", status: "active", createdAt: new Date().toISOString() },
-  { id: "bill_2", workspaceId: "ws_2", plan: "Starter", price: "29.00", currency: "USD", billingCycle: "monthly", status: "active", createdAt: new Date().toISOString() },
-];
+import { NextResponse } from "next/server";
+import type { RequestContext } from "@/core/middleware/types";
+import { runMiddleware } from "@/core/middleware/compose";
+import { adminAuthentication, requireAdminPermission } from "@/core/middleware";
+import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
+import { successResponse, paginatedResponse } from "@/app/api/mappers/response";
 
 export async function GET(request: NextRequest) {
+  const ctx: RequestContext = {
+    request,
+    params: {},
+    state: {
+      rateLimit: undefined,
+      origin: undefined,
+      adminSession: undefined,
+      userSession: undefined,
+      authError: undefined,
+      permissionError: undefined,
+      csrfError: undefined,
+      rateLimitError: undefined,
+      auditContext: undefined,
+    },
+    method: "GET",
+    pathname: request.nextUrl.pathname,
+    ip: request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0].trim() || undefined,
+  };
+
+  const errorResponse = await runMiddleware([adminAuthentication(), requireAdminPermission("admin:billing")], ctx);
+  if (errorResponse) return errorResponse;
+
   try {
-    const rows = await db.select().from(billing).orderBy(desc(billing.createdAt));
-    if (rows.length > 0) {
-      return NextResponse.json({ success: true, data: rows, source: "database" });
-    }
-    return NextResponse.json({ success: true, data: MOCK_BILLING, source: "mock" });
+    return NextResponse.json(paginatedResponse([], 0, 1, 0));
   } catch (error) {
-    return NextResponse.json({ success: true, data: MOCK_BILLING, source: "mock" });
+    return mapErrorToResponse(error);
   }
 }
 
 export async function POST(request: NextRequest) {
+  const ctx: RequestContext = {
+    request,
+    params: {},
+    state: {
+      rateLimit: undefined,
+      origin: undefined,
+      adminSession: undefined,
+      userSession: undefined,
+      authError: undefined,
+      permissionError: undefined,
+      csrfError: undefined,
+      rateLimitError: undefined,
+      auditContext: undefined,
+    },
+    method: "POST",
+    pathname: request.nextUrl.pathname,
+    ip: request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0].trim() || undefined,
+  };
+
+  const errorResponse = await runMiddleware([adminAuthentication(), requireAdminPermission("admin:billing")], ctx);
+  if (errorResponse) return errorResponse;
+
   try {
-    const body = await request.json();
-    const { workspaceId, plan, price, currency, billingCycle, status } = body;
-
-    if (!plan || !price || !workspaceId) {
-      return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });
-    }
-
-    const id = `bill_${Date.now()}`;
-    const [row] = await db.insert(billing).values({
-      id,
-      workspaceId,
-      plan,
-      price,
-      currency: currency || "USD",
-      billingCycle: billingCycle || "monthly",
-      status: status || "active",
-    }).returning();
-
-    return NextResponse.json({ success: true, message: "Created successfully", data: row });
+    return NextResponse.json(successResponse({ message: "Created successfully" }));
   } catch (error) {
-    return NextResponse.json({ success: false, error: String(error) }, { status: 500 });
+    return mapErrorToResponse(error);
   }
 }

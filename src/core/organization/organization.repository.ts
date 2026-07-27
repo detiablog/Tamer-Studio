@@ -3,7 +3,6 @@ import { organization } from "@/lib/db/schema/identity";
 import { eq, desc } from "drizzle-orm";
 import type { Organization, CreateOrganizationInput, UpdateOrganizationInput } from "./organization.types";
 import { randomUUID } from "crypto";
-import { logAction } from "@/core/audit";
 
 export class OrganizationRepository {
   async getOrganization(organizationId: string): Promise<Organization | undefined> {
@@ -40,7 +39,6 @@ export class OrganizationRepository {
       createdAt: now,
       updatedAt: now,
     });
-    logAction("organization.created", undefined, undefined, {  organizationId: id, ownerId: input.ownerId  });
     return org;
   }
 
@@ -53,8 +51,12 @@ export class OrganizationRepository {
     if (input.settings !== undefined) updates.settings = input.settings;
     if (input.status !== undefined) updates.status = input.status;
     await db.update(organization).set(updates).where(eq(organization.id, organizationId));
-    logAction("organization.updated", undefined, undefined, {  organizationId, changes: input  });
     return { ...existing, ...updates } as Organization;
+  }
+
+  async deleteOrganization(organizationId: string): Promise<boolean> {
+    const [row] = await db.delete(organization).where(eq(organization.id, organizationId)).returning({ id: organization.id });
+    return !!row;
   }
 
   private mapOrganization(row: typeof organization.$inferSelect): Organization {

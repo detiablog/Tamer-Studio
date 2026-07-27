@@ -1,36 +1,8 @@
 import { container } from "./container";
-import { lifecycle } from "./lifecycle";
-import { IdentityService } from "../identity";
-import { UserService } from "../users";
-import { WorkspaceService } from "../workspace";
-import { OrganizationService } from "../organization";
-import { RoleService } from "../roles";
-import { PermissionService } from "../permissions";
-import { MembershipService } from "../membership";
-import { ApiKeyService } from "../apikey";
-import { RbacService } from "../rbac";
-import { eventBus } from "../events";
-import { TicketService } from "../tickets";
-import { SupportService } from "../support";
-import { KnowledgeService } from "../knowledge";
-import { FeedbackService } from "../feedback";
-import { CustomerService } from "../customer";
-import { SLAService } from "../sla";
-import { AttachmentService } from "../attachments";
-import { InternalNoteService } from "../internal-notes";
-import { DashboardService } from "../admin/dashboard";
-import { SystemService } from "../admin/system";
-import { SettingsService } from "../admin/settings";
-import { ModerationService } from "../admin/moderation";
-import { ProvidersService } from "../admin/providers";
-import { OperationsService } from "../admin/operations";
-import { FeatureFlagsService } from "../admin/feature-flags";
-import { MaintenanceService } from "../admin/maintenance";
 
 export class ServiceRegistry {
-  static register(name: string, factory: () => unknown): void {
-    const instance = factory();
-    container.register(name, instance);
+  static register<T>(name: string, factory: () => T, scope: "singleton" | "scoped" | "transient" = "singleton", dependencies?: string[], replaceable = true): void {
+    container.register({ name, factory, scope, dependencies, replaceable });
   }
 
   static get<T>(name: string): T {
@@ -40,36 +12,47 @@ export class ServiceRegistry {
   static has(name: string): boolean {
     return container.has(name);
   }
+
+  static getStats() {
+    return container.getStats();
+  }
+
+  static setTestOverride<T>(name: string, mock: T): void {
+    container.setTestOverride(name, mock);
+  }
+
+  static clearTestOverrides(): void {
+    container.clearTestOverrides();
+  }
 }
 
 export function initializeServices(): void {
-  ServiceRegistry.register("container", () => container);
-  ServiceRegistry.register("lifecycle", () => lifecycle);
-  ServiceRegistry.register("eventBus", () => eventBus);
-  ServiceRegistry.register("identity", () => new IdentityService());
-  ServiceRegistry.register("userService", () => new UserService());
-  ServiceRegistry.register("workspaceService", () => new WorkspaceService());
-  ServiceRegistry.register("organizationService", () => new OrganizationService());
-  ServiceRegistry.register("roleService", () => new RoleService());
-  ServiceRegistry.register("permissionService", () => new PermissionService());
-  ServiceRegistry.register("membershipService", () => new MembershipService());
-  ServiceRegistry.register("apiKeyService", () => new ApiKeyService());
-  ServiceRegistry.register("rbacService", () => new RbacService());
-  ServiceRegistry.register("ticketService", () => new TicketService());
-  ServiceRegistry.register("supportService", () => new SupportService());
-  ServiceRegistry.register("knowledgeService", () => new KnowledgeService());
-  ServiceRegistry.register("feedbackService", () => new FeedbackService());
-  ServiceRegistry.register("customerService", () => new CustomerService());
-  ServiceRegistry.register("slaService", () => new SLAService());
-  ServiceRegistry.register("attachmentService", () => new AttachmentService());
-  ServiceRegistry.register("internalNoteService", () => new InternalNoteService());
-
-  ServiceRegistry.register("adminDashboardService", () => new DashboardService());
-  ServiceRegistry.register("adminSystemService", () => new SystemService());
-  ServiceRegistry.register("adminSettingsService", () => new SettingsService());
-  ServiceRegistry.register("adminModerationService", () => new ModerationService());
-  ServiceRegistry.register("adminProvidersService", () => new ProvidersService());
-  ServiceRegistry.register("adminOperationsService", () => new OperationsService());
-  ServiceRegistry.register("adminFeatureFlagsService", () => new FeatureFlagsService());
-  ServiceRegistry.register("adminMaintenanceService", () => new MaintenanceService());
+  ServiceRegistry.register("container", () => container, "singleton", [], false);
+  ServiceRegistry.register("lifecycle", () => require("./lifecycle").lifecycle, "singleton");
+  ServiceRegistry.register("eventBus", () => require("../events").eventBus, "singleton");
+  ServiceRegistry.register("identity", () => new (require("../identity").IdentityService)(), "singleton");
+  ServiceRegistry.register("userService", () => new (require("../users").UserService)(), "singleton");
+  ServiceRegistry.register("workspaceService", () => new (require("../workspace").WorkspaceService)(), "singleton");
+  ServiceRegistry.register("organizationService", () => new (require("../organization").OrganizationService)(), "singleton");
+  ServiceRegistry.register("roleService", () => new (require("../roles").RoleService)(), "singleton");
+  ServiceRegistry.register("permissionService", () => new (require("../permissions").PermissionService)(), "singleton");
+  ServiceRegistry.register("membershipService", () => new (require("../membership").MembershipService)(), "singleton");
+  ServiceRegistry.register("apiKeyService", () => new (require("../apikey").ApiKeyService)(), "singleton");
+  ServiceRegistry.register("rbacService", () => new (require("../rbac").RbacService)(), "singleton");
+  ServiceRegistry.register("ticketService", () => new (require("../tickets").TicketService)(), "singleton");
+  ServiceRegistry.register("supportService", () => new (require("../support").SupportService)(), "singleton");
+  ServiceRegistry.register("knowledgeService", () => new (require("../knowledge").KnowledgeService)(), "singleton");
+  ServiceRegistry.register("feedbackService", () => new (require("../feedback").FeedbackService)(), "singleton");
+  ServiceRegistry.register("customerService", () => new (require("../customer").CustomerService)(), "singleton");
+  ServiceRegistry.register("slaService", () => new (require("../sla").SLAService)(), "singleton");
+  ServiceRegistry.register("attachmentService", () => new (require("../attachments").AttachmentService)(), "singleton");
+  ServiceRegistry.register("internalNoteService", () => new (require("../internal-notes").InternalNoteService)(), "singleton");
+  ServiceRegistry.register("adminDashboardService", () => new (require("../admin/dashboard").DashboardService)(), "singleton");
+  ServiceRegistry.register("adminSystemService", () => new (require("../admin/system").SystemService)(), "singleton");
+  ServiceRegistry.register("adminSettingsService", () => new (require("../admin/settings").SettingsService)(), "singleton");
+  ServiceRegistry.register("adminModerationService", () => new (require("../admin/moderation").ModerationService)(), "singleton");
+  ServiceRegistry.register("adminProvidersService", () => new (require("../admin/providers").ProvidersService)(), "singleton");
+  ServiceRegistry.register("adminOperationsService", () => new (require("../admin/operations").OperationsService)(), "singleton");
+  ServiceRegistry.register("adminFeatureFlagsService", () => new (require("../admin/feature-flags").FeatureFlagsService)(), "singleton");
+  ServiceRegistry.register("adminMaintenanceService", () => new (require("../admin/maintenance").MaintenanceService)(), "singleton");
 }

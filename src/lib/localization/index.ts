@@ -2,6 +2,9 @@ import type { SupportedLocale, SupportedCurrency, UserPreferences, ResolvedLocal
 import { getTranslation, getTranslations } from "./translations";
 import type { TranslationKey } from "./keys";
 import { DEFAULT_LOCALE, DEFAULT_CURRENCY, DEFAULT_COUNTRY, DEFAULT_TIMEZONE } from "./types";
+import { getLocalizationRuntime, resetLocalizationRuntime, LocalizationRuntime } from "./runtime";
+import { getTranslationRuntime, resetTranslationRuntime } from "./translation-runtime";
+import { resolveLocale, detectFromAcceptLanguage, detectFromCountry, detectFallback } from "./detection";
 
 export class LocalizationService {
   private locale: SupportedLocale;
@@ -105,3 +108,8 @@ export function getLocalizationService(): LocalizationService {
 export function resetLocalizationService() {
   instance = null;
 }
+
+export { LocalizationRuntime, getLocalizationRuntime, resetLocalizationRuntime } from "./runtime";
+export { getTranslationRuntime, resetTranslationRuntime } from "./translation-runtime";
+export { resolveLocale, detectFromAcceptLanguage, detectFromCountry, detectFallback } from "./detection";
+export { validateTranslationKeys, validateConfigTranslationKeys, isValidTranslationKey, sanitizeConfigValues } from "./validation";

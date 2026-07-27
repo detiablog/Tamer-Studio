@@ -1,23 +1,27 @@
 import type { PlatformStats } from "./dashboard.types";
 import type { AIProvider } from "../providers/providers.types";
+import { UserRepository } from "@/core/users/user.repository";
+import { WorkspaceRepository } from "@/core/workspace/workspace.repository";
 import { DefaultDashboardRepository } from "./dashboard.repository";
 import { ProvidersService } from "../providers";
 
 export class DashboardService {
   private providersService = new ProvidersService();
-  private repository = new DefaultDashboardRepository();
+  private dashboardRepository = new DefaultDashboardRepository();
+  private userRepository = new UserRepository();
+  private workspaceRepository = new WorkspaceRepository();
 
   async getPlatformStats(): Promise<PlatformStats> {
     const providers = await this.providersService.listProviders();
     const [users, workspaces, aiUsage, credits, revenue, alerts, jobs, system] = await Promise.all([
-      this.repository.getUserStats(),
-      this.repository.getWorkspaceStats(),
-      this.repository.getAIUsageStats(),
-      this.repository.getCreditStats(),
-      this.repository.getRevenueStats(),
-      this.repository.getAlerts(providers),
-      this.repository.getJobStats(),
-      this.repository.getSystemHealth(),
+      this.dashboardRepository.getUserStats(),
+      this.dashboardRepository.getWorkspaceStats(),
+      this.dashboardRepository.getAIUsageStats(),
+      this.dashboardRepository.getCreditStats(),
+      this.dashboardRepository.getRevenueStats(),
+      this.dashboardRepository.getAlerts(providers),
+      this.dashboardRepository.getJobStats(),
+      this.dashboardRepository.getSystemHealth(),
     ]);
 
     const providerStats = this.getProviderStats(providers);
@@ -33,6 +37,10 @@ export class DashboardService {
       system,
       alerts,
     };
+  }
+
+  async getAdminStats() {
+    return this.dashboardRepository.getAdminStats();
   }
 
   private getProviderStats(allProviders: AIProvider[]): PlatformStats["providers"] {

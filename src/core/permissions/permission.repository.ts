@@ -3,7 +3,6 @@ import { permission, rolePermission } from "@/lib/db/schema/identity";
 import { eq, sql } from "drizzle-orm";
 import type { Permission, CreatePermissionInput } from "./permission.types";
 import { randomUUID } from "crypto";
-import { logAction } from "@/core/audit";
 
 export class PermissionRepository {
   async getPermission(permissionId: string): Promise<Permission | undefined> {
@@ -45,7 +44,6 @@ export class PermissionRepository {
       category: input.category ?? undefined,
       createdAt: now,
     });
-    logAction("permission.created", undefined, undefined, {  permissionId: id, key: input.key  });
     return p;
   }
 
@@ -53,7 +51,6 @@ export class PermissionRepository {
     const existing = await this.getPermission(permissionId);
     if (!existing) throw new Error("Permission not found");
     await db.delete(permission).where(eq(permission.id, permissionId));
-    logAction("permission.deleted", undefined, undefined, {  permissionId  });
   }
 
   async getRolePermissions(roleId: string): Promise<Permission[]> {

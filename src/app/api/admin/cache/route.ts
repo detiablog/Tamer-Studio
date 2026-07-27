@@ -2,8 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import type { RequestContext } from "@/core/middleware/types";
 import { runMiddleware } from "@/core/middleware/compose";
-import { adminAuthentication, requireAdminPermission, csrfMiddleware } from "@/core/middleware";
-import { logAdminAction } from "@/core/audit/audit.service";
+import { adminAuthentication, requireAdminPermission } from "@/core/middleware";
 
 export async function GET(request: NextRequest) {
   const ctx: RequestContext = {
@@ -68,18 +67,10 @@ export async function DELETE(request: NextRequest) {
   const errorResponse = await runMiddleware([
     adminAuthentication(),
     requireAdminPermission("admin:system"),
-    csrfMiddleware(),
   ], ctx);
 
   if (errorResponse) {
     return errorResponse;
-  }
-
-  if (ctx.state.adminSession?.adminId) {
-    logAdminAction("admin.action", ctx.state.adminSession.adminId, {
-      action: "cache.cleared",
-      pathname: ctx.pathname,
-    });
   }
 
   return NextResponse.json({ success: true, message: "Cache cleared" });

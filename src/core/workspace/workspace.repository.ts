@@ -3,9 +3,13 @@ import { workspace, workspaceTransfer } from "@/lib/db/schema/identity";
 import { eq, desc } from "drizzle-orm";
 import type { Workspace, CreateWorkspaceInput, UpdateWorkspaceInput } from "./workspace.types";
 import { randomUUID } from "crypto";
-import { logAction } from "@/core/audit";
 
 export class WorkspaceRepository {
+  async getAllWorkspaces(): Promise<Workspace[]> {
+    const rows = await db.select().from(workspace).orderBy(desc(workspace.createdAt));
+    return rows.map(this.mapWorkspace);
+  }
+
   async getWorkspace(workspaceId: string): Promise<Workspace | undefined> {
     const rows = await db.select().from(workspace).where(eq(workspace.id, workspaceId)).limit(1);
     if (rows.length === 0) return undefined;
@@ -51,7 +55,6 @@ export class WorkspaceRepository {
       createdAt: now,
       updatedAt: now,
     });
-    logAction("workspace.created", undefined, undefined, {  workspaceId: id, ownerId: input.ownerId, type: input.type  });
     return ws;
   }
 
@@ -65,7 +68,6 @@ export class WorkspaceRepository {
     if (input.limits !== undefined) updates.limits = input.limits;
     if (input.status !== undefined) updates.status = input.status;
     await db.update(workspace).set(updates).where(eq(workspace.id, workspaceId));
-    logAction("workspace.updated", undefined, undefined, {  workspaceId, changes: input  });
     return { ...existing, ...updates } as Workspace;
   }
 
@@ -82,13 +84,16 @@ export class WorkspaceRepository {
       toOwnerId,
       transferredAt: now,
     });
-    logAction("workspace.transferred", undefined, undefined, {  workspaceId, fromOwnerId, toOwnerId  });
   }
 
   async softDelete(workspaceId: string, deletedBy: string): Promise<void> {
     const now = new Date();
     await db.update(workspace).set({ status: "deleted", updatedAt: now }).where(eq(workspace.id, workspaceId));
-    logAction("workspace.deleted", undefined, undefined, {  workspaceId, deletedBy  });
+  }
+
+  async deleteWorkspace(workspaceId: string): Promise<boolean> {
+    const [row] = await db.delete(workspace).where(eq(workspace.id, workspaceId)).returning({ id: workspace.id });
+    return !!row;
   }
 
   async isOwner(workspaceId: string, userId: string): Promise<boolean> {

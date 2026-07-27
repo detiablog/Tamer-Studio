@@ -5,6 +5,8 @@ import { queryAuditLog } from "@/core/audit/audit.repository";
 import type { RequestContext } from "@/core/middleware/types";
 import { runMiddleware } from "@/core/middleware/compose";
 import { adminAuthentication, requireAdminPermission } from "@/core/middleware";
+import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
+import { successResponse } from "@/app/api/mappers/response";
 
 export async function GET(request: NextRequest) {
   const ctx: RequestContext = {
@@ -35,25 +37,29 @@ export async function GET(request: NextRequest) {
     return errorResponse;
   }
 
-  const searchParams = request.nextUrl.searchParams;
-  const query: AuditQuery = {};
+  try {
+    const searchParams = request.nextUrl.searchParams;
+    const query: AuditQuery = {};
 
-  if (searchParams.has("action")) {
-    query.action = searchParams.get("action") as any;
-  }
-  if (searchParams.has("actorId")) {
-    query.actorId = searchParams.get("actorId")!;
-  }
-  if (searchParams.has("resourceType")) {
-    query.resourceType = searchParams.get("resourceType")!;
-  }
-  if (searchParams.has("limit")) {
-    query.limit = parseInt(searchParams.get("limit")!);
-  }
-  if (searchParams.has("offset")) {
-    query.offset = parseInt(searchParams.get("offset")!);
-  }
+    if (searchParams.has("action")) {
+      query.action = searchParams.get("action") as any;
+    }
+    if (searchParams.has("actorId")) {
+      query.actorId = searchParams.get("actorId")!;
+    }
+    if (searchParams.has("resourceType")) {
+      query.resourceType = searchParams.get("resourceType")!;
+    }
+    if (searchParams.has("limit")) {
+      query.limit = parseInt(searchParams.get("limit")!);
+    }
+    if (searchParams.has("offset")) {
+      query.offset = parseInt(searchParams.get("offset")!);
+    }
 
-  const entries = await queryAuditLog(query);
-  return NextResponse.json({ entries });
+    const entries = await queryAuditLog(query);
+    return NextResponse.json(successResponse({ entries }));
+  } catch (error) {
+    return mapErrorToResponse(error);
+  }
 }

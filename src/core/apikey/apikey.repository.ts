@@ -3,7 +3,6 @@ import { apiKey } from "@/lib/db/schema/identity";
 import { eq, desc } from "drizzle-orm";
 import type { ApiKey, CreateApiKeyInput, RotateApiKeyInput, ApiKeyValidationResult } from "./apikey.types";
 import { randomUUID, createHash } from "crypto";
-import { logAction } from "@/core/audit";
 
 export class ApiKeyRepository {
   async getApiKey(apiKeyId: string): Promise<ApiKey | undefined> {
@@ -65,7 +64,6 @@ export class ApiKeyRepository {
       createdAt: now,
       updatedAt: now,
     });
-    logAction("apikey.created", undefined, undefined, {  apiKeyId: id, userId: input.userId, workspaceId: input.workspaceId  });
     return { ...ak, rawKey };
   }
 
@@ -73,7 +71,6 @@ export class ApiKeyRepository {
     const existing = await this.getApiKey(apiKeyId);
     if (!existing) throw new Error("API key not found");
     await db.update(apiKey).set({ isRevoked: true, updatedAt: new Date() }).where(eq(apiKey.id, apiKeyId));
-    logAction("apikey.revoked", undefined, undefined, {  apiKeyId  });
   }
 
   async rotateApiKey(input: RotateApiKeyInput): Promise<ApiKey & { rawKey: string }> {
@@ -84,7 +81,6 @@ export class ApiKeyRepository {
     const keyHash = createHash("sha256").update(rawKey).digest("hex");
     const keyPrefix = rawKey.slice(0, 8);
     await db.update(apiKey).set({ keyHash, keyPrefix, updatedAt: new Date() }).where(eq(apiKey.id, input.apiKeyId));
-    logAction("apikey.rotated", undefined, undefined, {  apiKeyId: input.apiKeyId  });
     return { ...existing, keyHash, keyPrefix, rawKey };
   }
 

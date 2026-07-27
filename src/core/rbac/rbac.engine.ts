@@ -1,10 +1,14 @@
-import { db } from "@/lib/db";
-import { workspaceMember, organizationMember, rolePermission, role, permission } from "@/lib/db/schema/identity";
-import { eq, and, sql } from "drizzle-orm";
+import { MembershipRepository } from "@/core/membership/membership.repository";
+import { RoleRepository } from "@/core/roles/role.repository";
+import { PermissionRepository } from "@/core/permissions/permission.repository";
 import type { PermissionResolution, RbacContext, RbacResult } from "./rbac.types";
 import { ROLE_PERMISSIONS, ROLE_HIERARCHY, type UserRole } from "@/core/auth/permissions";
 
 export class RbacEngine {
+  private membershipRepository = new MembershipRepository();
+  private roleRepository = new RoleRepository();
+  private permissionRepository = new PermissionRepository();
+
   async resolvePermissions(context: RbacContext): Promise<PermissionResolution> {
     const workspaceRole = await this.getWorkspaceRole(context.userId, context.workspaceId);
     const organizationRole = await this.getOrganizationRole(context.userId, context.organizationId);
@@ -49,42 +53,33 @@ export class RbacEngine {
 
   private async getWorkspaceRole(userId: string, workspaceId?: string): Promise<UserRole | undefined> {
     if (!workspaceId) return undefined;
-    const rows = await db.select({ roleName: role.name })
-      .from(workspaceMember)
-      .innerJoin(role, eq(workspaceMember.roleId, role.id))
-      .where(and(eq(workspaceMember.userId, userId), eq(workspaceMember.workspaceId, workspaceId)))
-      .limit(1);
-    if (rows.length === 0) return undefined;
-    return rows[0].roleName as UserRole;
+    const member = await this.membershipRepository.getWorkspaceMember(workspaceId, userId);
+    if (!member || !member.roleId) return undefined;
+    const role = await this.roleRepository.getRole(member.roleId);
+    return role?.name as UserRole | undefined;
   }
 
   private async getOrganizationRole(userId: string, organizationId?: string): Promise<UserRole | undefined> {
     if (!organizationId) return undefined;
-    const rows = await db.select({ roleName: role.name })
-      .from(organizationMember)
-      .innerJoin(role, eq(organizationMember.roleId, role.id))
-      .where(and(eq(organizationMember.userId, userId), eq(organizationMember.organizationId, organizationId)))
-      .limit(1);
-    if (rows.length === 0) return undefined;
-    return rows[0].roleName as UserRole;
+    const member = await this.membershipRepository.getOrganizationMember(organizationId, userId);
+    if (!member || !member.roleId) return undefined;
+    const role = await this.roleRepository.getRole(member.roleId);
+    return role?.name as UserRole | undefined;
   }
 
   private async getDatabasePermissions(workspaceRole?: UserRole, organizationRole?: UserRole): Promise<string[]> {
     const roleIds: string[] = [];
     if (workspaceRole) {
-      const roleRows = await db.select({ id: role.id }).from(role).where(eq(role.name, workspaceRole)).limit(1);
-      if (roleRows.length > 0) roleIds.push(roleRows[0].id);
+      const role = await this.roleRepository.getRoleByName(workspaceRole);
+      if (role) roleIds.push(role.id);
     }
     if (organizationRole && organizationRole !== workspaceRole) {
-      const roleRows = await db.select({ id: role.id }).from(role).where(eq(role.name, organizationRole)).limit(1);
-      if (roleRows.length > 0) roleIds.push(roleRows[0].id);
+      const role = await this.roleRepository.getRoleByName(organizationRole);
+      if (role) roleIds.push(role.id);
     }
     if (roleIds.length === 0) return [];
-    const rows = await db.select({ key: permission.key })
-      .from(rolePermission)
-      .innerJoin(permission, eq(rolePermission.permissionId, permission.id))
-      .where(sql`${rolePermission.roleId} = ANY(${roleIds})`);
-    return rows.map(r => r.key);
+    const permissions = await this.permissionRepository.getRolePermissions(roleIds[0]);
+    return permissions.map(p => p.key);
   }
 
   private getEffectiveRole(workspaceRole?: UserRole, organizationRole?: UserRole): UserRole {

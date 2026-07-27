@@ -3,7 +3,6 @@ import { invitation, workspaceMember, organizationMember } from "@/lib/db/schema
 import { eq, and, desc } from "drizzle-orm";
 import type { Invitation, InviteInput, AcceptInvitationInput, MembershipResult, WorkspaceMember, OrganizationMember } from "./membership.types";
 import { randomUUID } from "crypto";
-import { logAction } from "@/core/audit";
 
 export class MembershipRepository {
   async getInvitationByToken(token: string): Promise<Invitation | undefined> {
@@ -71,7 +70,6 @@ export class MembershipRepository {
       acceptedAt: undefined,
       createdAt: inv.createdAt,
     });
-    logAction("membership.invited", undefined, undefined, {  invitationId: id, email: input.email, workspaceId: input.workspaceId, organizationId: input.organizationId  });
     return inv;
   }
 
@@ -107,19 +105,16 @@ export class MembershipRepository {
         joinedAt: now,
       });
     }
-    logAction("membership.accepted", undefined, undefined, {  invitationId: inv.id, userId: input.userId  });
     return { success: true, invitation: inv };
   }
 
   async removeWorkspaceMember(workspaceId: string, userId: string): Promise<void> {
     const now = new Date();
     await db.update(workspaceMember).set({ status: "removed", leftAt: now }).where(and(eq(workspaceMember.workspaceId, workspaceId), eq(workspaceMember.userId, userId)));
-    logAction("membership.removed", undefined, undefined, {  workspaceId, userId  });
   }
 
   async removeOrganizationMember(organizationId: string, userId: string): Promise<void> {
     await db.update(organizationMember).set({ status: "removed" }).where(and(eq(organizationMember.organizationId, organizationId), eq(organizationMember.userId, userId)));
-    logAction("membership.removed", undefined, undefined, {  organizationId, userId  });
   }
 
   private mapInvitation(row: typeof invitation.$inferSelect): Invitation {

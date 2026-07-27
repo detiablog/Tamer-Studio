@@ -85,7 +85,13 @@ export function getChartTheme(isDark: boolean) {
 /**
  * Custom tooltip component for all charts
  */
-export function CustomTooltip({ active, payload, label }: any) {
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: Array<{ name: string; value: number; color?: string }>;
+  label?: string;
+}
+
+export function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   const { theme } = useTheme();
   const isDark = theme === "dark";
 
@@ -94,7 +100,7 @@ export function CustomTooltip({ active, payload, label }: any) {
   return (
     <div className="rounded-lg border border-border/50 bg-card/95 backdrop-blur p-3 shadow-lg">
       <p className="text-xs font-semibold text-foreground mb-2">{label}</p>
-      {payload.map((entry: any, index: number) => (
+      {payload.map((entry, index) => (
         <p key={index} className="text-xs" style={{ color: entry.color }}>
           {entry.name}: <span className="font-semibold">{entry.value}</span>
         </p>

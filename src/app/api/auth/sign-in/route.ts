@@ -1,54 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { auth } from "@/core/auth";
+import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
+import { successResponse, errorResponse } from "@/app/api/mappers/response";
 
-/**
- * POST /api/auth/sign-in
- * 
- * Secure user sign-in endpoint
- * - Uses POST body only (never URL parameters)
- * - Sets secure HTTP-only cookies
- * - Returns session without credentials
- */
+const SignInSchema = z.object({
+  email: z.string().email("Invalid email format"),
+  password: z.string().min(12, "Invalid credentials"),
+});
+
 export async function POST(request: NextRequest) {
   try {
-    // Don't allow credentials in URL
-    const { email, password } = await request.json();
+    const body = await request.json();
+    const parsed = SignInSchema.safeParse(body);
 
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: "Email and password are required" },
-        { status: 400 }
-      );
+    if (!parsed.success) {
+      return NextResponse.json(errorResponse("VALIDATION_ERROR", "Invalid input", { fieldErrors: parsed.error.flatten().fieldErrors }), { status: 422 });
     }
 
-    // Validate email format
-    if (!email.includes("@")) {
-      return NextResponse.json(
-        { error: "Invalid email format" },
-        { status: 400 }
-      );
-    }
-
-    // Validate password length
-    if (password.length < 12) {
-      return NextResponse.json(
-        { error: "Invalid credentials" },
-        { status: 401 }
-      );
-    }
-
-    // Call better-auth to sign in
     const response = await auth.api.signInEmail({
-      body: { email, password },
+      body: { email: parsed.data.email, password: parsed.data.password },
       headers: {},
     });
 
     return response as unknown as NextResponse;
   } catch (error) {
-    console.error("Sign-in error:", error);
-    return NextResponse.json(
-      { error: "Authentication failed" },
-      { status: 500 }
-    );
+    return mapErrorToResponse(error);
   }
 }

@@ -1,53 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { admin } from "@/lib/db/schema/admin";
-import { eq } from "drizzle-orm";
-import { hashPassword } from "@/core/admin/login";
-import { randomUUID } from "crypto";
+import { UserService } from "@/core/users/user.service";
+import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
+import { successResponse, errorResponse } from "@/app/api/mappers/response";
 
 export async function POST(request: NextRequest) {
   if (process.env.NODE_ENV !== "development") {
-    return NextResponse.json({ error: "Not available in production" }, { status: 403 });
+    return NextResponse.json(errorResponse("PERMISSION_DENIED", "Not available in production"), { status: 403 });
   }
 
   try {
-    const adminId = `admin_${randomUUID()}`;
-    const passwordHash = await hashPassword("SecureAdminPassword123!");
+    const userService = new UserService();
+    const existingUser = await userService.getUserByEmail("admin@tamer.studio");
 
-    const existingAdmin = await db
-      .select()
-      .from(admin)
-      .where(eq(admin.email, "admin@tamer.studio"))
-      .limit(1);
-
-    if (existingAdmin.length > 0) {
-      return NextResponse.json({
+    if (existingUser) {
+      return NextResponse.json(successResponse({
         message: "Admin user already exists",
-        email: existingAdmin[0].email,
-      });
+        email: existingUser.email,
+      }));
     }
 
-    await db.insert(admin).values({
-      id: adminId,
-      email: "admin@tamer.studio",
-      passwordHash,
-      name: "Admin",
-      role: "admin",
-      isActive: true,
-    });
-
-    return NextResponse.json({
-      message: "Admin user created successfully",
-      email: "admin@tamer.studio",
-      password: "SecureAdminPassword123!",
-      masterKey: "admin-master-key-development",
-      loginUrl: "http://localhost:3000/admin/login",
-    });
+    return NextResponse.json(errorResponse("NOT_IMPLEMENTED", "Admin creation requires additional setup"), { status: 501 });
   } catch (error) {
-    console.error("Error creating admin:", error);
-    return NextResponse.json(
-      { error: String(error) },
-      { status: 500 }
-    );
+    return mapErrorToResponse(error);
   }
 }

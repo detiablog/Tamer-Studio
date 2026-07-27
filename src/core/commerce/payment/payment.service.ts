@@ -3,10 +3,9 @@ import { DefaultTransactionRepository } from "../transactions/transaction.reposi
 import type { PaymentGateway } from "./gateway.interface";
 import { logger } from "@/core/logger";
 import { defaultEmailService } from "@/modules/email";
-import { db } from "@/lib/db";
-import { user } from "@/lib/db/schema/auth";
-import { eq, and } from "drizzle-orm";
-import { paymentMethod, paymentProfile } from "@/lib/db/schema/localization";
+import { UserRepository } from "@/core/users/user.repository";
+import { DefaultLocalizationRepository } from "@/core/localization/localization.repository";
+import type { LocalizationRepository } from "@/core/localization/localization.repository";
 
 export interface PaymentService {
   initiatePayment(orderId: string, provider: PaymentProvider, amount: number, currency: string): Promise<PaymentResult>;
@@ -19,25 +18,22 @@ export interface PaymentService {
 
 export class DefaultPaymentService implements PaymentService {
   private repository = new DefaultTransactionRepository();
+  private userRepository = new UserRepository();
+  private localizationRepository: LocalizationRepository;
+
+  constructor(localizationRepository?: LocalizationRepository) {
+    this.localizationRepository = localizationRepository ?? new DefaultLocalizationRepository();
+  }
 
   async getAvailableProviders(profileCode?: string | null): Promise<string[]> {
     if (!profileCode) return [];
 
-    const [profile] = await db
-      .select()
-      .from(paymentProfile)
-      .where(and(eq(paymentProfile.code, profileCode), eq(paymentProfile.isEnabled, true)))
-      .limit(1);
-
+    const profiles = await this.localizationRepository.getPaymentProfiles();
+    const profile = profiles.find((p) => p.code === profileCode && p.isEnabled);
     if (!profile) return [];
 
-    const methods = await db
-      .select()
-      .from(paymentMethod)
-      .where(and(eq(paymentMethod.profileId, profile.id), eq(paymentMethod.isEnabled, true)))
-      .orderBy(paymentMethod.priority);
-
-    return methods.map((m) => m.provider);
+    const methods = await this.localizationRepository.getPaymentMethods(profile.id);
+    return methods.filter((m) => m.isEnabled).map((m) => m.provider);
   }
 
   async initiatePayment(orderId: string, provider: PaymentProvider, amount: number, currency: string): Promise<PaymentResult> {
@@ -123,7 +119,7 @@ export class DefaultPaymentService implements PaymentService {
     });
 
     try {
-      const [userRecord] = await db.select().from(user).where(eq(user.id, updated.userId)).limit(1);
+      const userRecord = await this.userRepository.getUserByAuthId(updated.userId);
       if (userRecord) {
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
         await defaultEmailService.sendPaymentSuccess({

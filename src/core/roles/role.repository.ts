@@ -3,7 +3,6 @@ import { role, rolePermission } from "@/lib/db/schema/identity";
 import { eq } from "drizzle-orm";
 import type { Role, CreateRoleInput, UpdateRoleInput } from "./role.types";
 import { randomUUID } from "crypto";
-import { logAction } from "@/core/audit";
 
 export class RoleRepository {
   async getRole(roleId: string): Promise<Role | undefined> {
@@ -44,7 +43,6 @@ export class RoleRepository {
       createdAt: now,
       updatedAt: now,
     });
-    logAction("role.created", undefined, undefined, {  roleId: id, name: input.name  });
     return r;
   }
 
@@ -58,7 +56,6 @@ export class RoleRepository {
     if (input.level !== undefined) updates.level = input.level;
     if (input.isSystem !== undefined) updates.isSystem = input.isSystem;
     await db.update(role).set(updates).where(eq(role.id, roleId));
-    logAction("role.updated", undefined, undefined, {  roleId, changes: input  });
     return { ...existing, ...updates } as Role;
   }
 
@@ -67,7 +64,6 @@ export class RoleRepository {
     if (!existing) throw new Error("Role not found");
     if (existing.isSystem) throw new Error("Cannot delete system role");
     await db.delete(role).where(eq(role.id, roleId));
-    logAction("role.deleted", undefined, undefined, {  roleId  });
   }
 
   async setRolePermissions(roleId: string, permissionIds: string[]): Promise<void> {
@@ -80,7 +76,6 @@ export class RoleRepository {
     if (values.length > 0) {
       await db.insert(rolePermission).values(values);
     }
-    logAction("role.permissions.updated", undefined, undefined, {  roleId, permissionCount: permissionIds.length  });
   }
 
   private mapRole(row: typeof role.$inferSelect): Role {

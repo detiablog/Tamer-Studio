@@ -1,50 +1,39 @@
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { defaultEmailService } from "@/modules/email";
-import { db } from "@/lib/db";
-import { user } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { UserService } from "@/core/users/user.service";
+import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
+import { successResponse, errorResponse } from "@/app/api/mappers/response";
+
+const ResendVerificationSchema = z.object({
+  email: z.string().email("Invalid email format"),
+});
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email } = body;
+    const parsed = ResendVerificationSchema.safeParse(body);
 
-    if (!email) {
-      return NextResponse.json(
-        { message: "Email is required" },
-        { status: 400 }
-      );
+    if (!parsed.success) {
+      return NextResponse.json(errorResponse("VALIDATION_ERROR", "Invalid input", { fieldErrors: parsed.error.flatten().fieldErrors }), { status: 422 });
     }
 
-    const dbUser = await db.select().from(user).where(eq(user.email, email)).limit(1);
+    const userService = new UserService();
+    const dbUser = await userService.getUserByEmail(parsed.data.email);
 
-    if (dbUser.length === 0) {
-      return NextResponse.json({
+    if (!dbUser) {
+      return NextResponse.json(successResponse({
         message: "If an account exists for this email, a verification link has been sent.",
-      });
+      }));
     }
 
-    const foundUser = dbUser[0];
+    const token = await defaultEmailService.createVerificationToken(dbUser.email, dbUser.id);
+    await defaultEmailService.sendVerification(dbUser.email, token, dbUser.name);
 
-    if (foundUser.emailVerified) {
-      return NextResponse.json(
-        { message: "Email is already verified" },
-        { status: 400 }
-      );
-    }
-
-    const token = await defaultEmailService.createVerificationToken(email, foundUser.id);
-    await defaultEmailService.sendVerification(email, token, foundUser.name);
-
-    return NextResponse.json({
+    return NextResponse.json(successResponse({
       message: "Verification email sent successfully",
-    });
+    }));
   } catch (error) {
-    console.error("Resend verification error:", error);
-    return NextResponse.json(
-      { message: "An error occurred while sending verification email" },
-      { status: 500 }
-    );
+    return mapErrorToResponse(error);
   }
 }

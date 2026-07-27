@@ -1,99 +1,53 @@
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { user, account } from "@/lib/db/schema/auth";
-import { emailToken } from "@/lib/db/schema/email";
-import { eq, and, gte } from "drizzle-orm";
-import { hashToken } from "@/modules/email";
-import { hashPassword } from "@/core/security/hash";
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import { defaultEmailService } from "@/modules/email";
+import { UserService } from "@/core/users/user.service";
+import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
+import { successResponse, errorResponse } from "@/app/api/mappers/response";
+
+const ResetPasswordSchema = z.object({
+  token: z.string().min(1, "Token is required"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+});
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { token, password } = body;
+    const parsed = ResetPasswordSchema.safeParse(body);
 
-    if (!token || !password) {
-      return NextResponse.json(
-        { message: "Token and password are required" },
-        { status: 400 }
-      );
+    if (!parsed.success) {
+      return NextResponse.json(errorResponse("VALIDATION_ERROR", "Invalid input", { fieldErrors: parsed.error.flatten().fieldErrors }), { status: 422 });
     }
 
-    if (password.length < 8) {
-      return NextResponse.json(
-        { message: "Password must be at least 8 characters" },
-        { status: 400 }
-      );
-    }
-
-    const hashed = hashToken(token);
-    const now = new Date();
-
-    const [tokenRecord] = await db
-      .select()
-      .from(emailToken)
-      .where(
-        and(
-          eq(emailToken.token, hashed),
-          eq(emailToken.type, "reset_password"),
-          gte(emailToken.expiresAt, now)
-        )
-      )
-      .limit(1);
+    const tokenRecord = await defaultEmailService.verifyToken(parsed.data.token, "reset_password");
 
     if (!tokenRecord || tokenRecord.usedAt) {
-      return NextResponse.json(
-        { message: "Invalid or expired reset token" },
-        { status: 400 }
-      );
+      return NextResponse.json(errorResponse("VALIDATION_ERROR", "Invalid or expired reset token"), { status: 400 });
     }
 
-    const [existingUser] = await db.select().from(user).where(eq(user.id, tokenRecord.userId || "")).limit(1);
-    let targetUserId = existingUser?.id;
-    if (!targetUserId && tokenRecord.email) {
-      const [emailUser] = await db.select().from(user).where(eq(user.email, tokenRecord.email)).limit(1);
-      if (!emailUser) {
-        return NextResponse.json(
-          { message: "User not found for this token" },
-          { status: 400 }
-        );
-      }
-      targetUserId = emailUser.id;
+    const userService = new UserService();
+    const existingUser = tokenRecord.userId
+      ? await userService.getUserById(tokenRecord.userId)
+      : tokenRecord.email
+        ? await userService.getUserByEmail(tokenRecord.email)
+        : null;
+
+    if (!existingUser) {
+      return NextResponse.json(errorResponse("NOT_FOUND", "User not found for this token"), { status: 400 });
     }
 
-    if (!targetUserId) {
-      return NextResponse.json(
-        { message: "Invalid token payload" },
-        { status: 400 }
-      );
+    const account = await userService.getAccountByUserId(existingUser.id);
+    if (!account) {
+      return NextResponse.json(errorResponse("NOT_FOUND", "No account found for this user"), { status: 400 });
     }
 
-    const [credentialAccount] = await db
-      .select()
-      .from(account)
-      .where(eq(account.userId, targetUserId))
-      .limit(1);
+    await userService.resetPassword(account.id, parsed.data.password);
+    await defaultEmailService.invalidateToken(parsed.data.token);
 
-    if (!credentialAccount) {
-      return NextResponse.json(
-        { message: "No account found for this user" },
-        { status: 400 }
-      );
-    }
-
-    const passwordHash = await hashPassword(password);
-
-    await db.update(account).set({ password: passwordHash }).where(eq(account.id, credentialAccount.id));
-    await db.update(emailToken).set({ usedAt: now }).where(eq(emailToken.id, tokenRecord.id));
-
-    return NextResponse.json({
+    return NextResponse.json(successResponse({
       message: "Password reset successfully. You can now sign in with your new password.",
-    });
+    }));
   } catch (error) {
-    console.error("Reset password error:", error);
-    return NextResponse.json(
-      { message: "An error occurred while resetting your password" },
-      { status: 500 }
-    );
+    return mapErrorToResponse(error);
   }
 }

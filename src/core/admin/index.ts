@@ -13,6 +13,7 @@ export * from "./providers";
 export * from "./operations";
 export * from "./feature-flags";
 export * from "./maintenance";
+export * from "./admin.service";
 
 import { ServiceRegistry } from "@/core/foundation";
 import type { DashboardService } from "./dashboard";
@@ -23,6 +24,7 @@ import type { ProvidersService } from "./providers";
 import type { OperationsService } from "./operations";
 import type { FeatureFlagsService } from "./feature-flags";
 import type { MaintenanceService } from "./maintenance";
+import type { AdminService } from "./admin.service";
 
 export class AdminServices {
   static get dashboard() { return ServiceRegistry.get<DashboardService>("adminDashboardService"); }
@@ -33,4 +35,5 @@ export class AdminServices {
   static get operations() { return ServiceRegistry.get<OperationsService>("adminOperationsService"); }
   static get featureFlags() { return ServiceRegistry.get<FeatureFlagsService>("adminFeatureFlagsService"); }
   static get maintenance() { return ServiceRegistry.get<MaintenanceService>("adminMaintenanceService"); }
+  static get admin() { return ServiceRegistry.get<AdminService>("adminService"); }
 }

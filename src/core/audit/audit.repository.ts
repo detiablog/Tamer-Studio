@@ -5,143 +5,159 @@ import type { AuditEntry, AuditAction, AuditQuery } from "./audit.types";
 import { logger } from "@/core/logger";
 import { randomUUID } from "crypto";
 
-export async function createAuditEntry(entry: Omit<AuditEntry, "id" | "createdAt">): Promise<void> {
-  try {
-    await db.insert(auditLog).values({
-      id: randomUUID(),
-      action: entry.action,
-      actorId: entry.actorId ?? null,
-      actorType: entry.actorType ?? null,
-      resourceType: entry.resourceType ?? null,
-      resourceId: entry.resourceId ?? null,
-      metadata: entry.metadata ?? {},
-      ipAddress: entry.ipAddress ?? null,
-      userAgent: entry.userAgent ?? null,
-      createdAt: new Date(),
-    });
-
-    logger.audit(`Audit: ${entry.action}`, entry);
-  } catch (error) {
-    logger.error("Failed to create audit entry", error instanceof Error ? error : undefined);
-  }
+export interface AuditRepository {
+  createAuditEntry(entry: Omit<AuditEntry, "id" | "createdAt">): Promise<void>;
+  getAuditEntries(filters?: {
+    action?: AuditAction;
+    actorId?: string;
+    resourceType?: string;
+    limit?: number;
+  }): Promise<AuditEntry[]>;
+  queryAuditLog(filters: AuditQuery): Promise<AuditEntry[]>;
+  getAuditTimeline(resourceType: string, resourceId: string): Promise<AuditEntry[]>;
+  searchAuditLog(queryStr: string): Promise<AuditEntry[]>;
+  exportAuditLog(filters?: AuditQuery): Promise<string>;
 }
 
-export async function getAuditEntries(filters?: {
-  action?: AuditAction;
-  actorId?: string;
-  resourceType?: string;
-  limit?: number;
-}): Promise<AuditEntry[]> {
-  const limit = filters?.limit ?? 100;
-  const conditions = [];
+export class DefaultAuditRepository implements AuditRepository {
+  async createAuditEntry(entry: Omit<AuditEntry, "id" | "createdAt">): Promise<void> {
+    try {
+      await db.insert(auditLog).values({
+        id: randomUUID(),
+        action: entry.action,
+        actorId: entry.actorId ?? null,
+        actorType: entry.actorType ?? null,
+        resourceType: entry.resourceType ?? null,
+        resourceId: entry.resourceId ?? null,
+        metadata: entry.metadata ?? {},
+        ipAddress: entry.ipAddress ?? null,
+        userAgent: entry.userAgent ?? null,
+        createdAt: new Date(),
+      });
 
-  if (filters?.action) {
-    conditions.push(eq(auditLog.action, filters.action));
-  }
-  if (filters?.actorId) {
-    conditions.push(eq(auditLog.actorId, filters.actorId));
-  }
-  if (filters?.resourceType) {
-    conditions.push(eq(auditLog.resourceType, filters.resourceType));
-  }
-
-  const baseQuery = db.select().from(auditLog);
-  const rows = conditions.length > 0
-    ? await baseQuery.where(and(...conditions)).orderBy(desc(auditLog.createdAt)).limit(limit)
-    : await baseQuery.orderBy(desc(auditLog.createdAt)).limit(limit);
-
-  return rows.map((entry) => ({
-    id: entry.id,
-    action: entry.action as AuditAction,
-    actorId: entry.actorId ?? undefined,
-    actorType: entry.actorType as AuditEntry["actorType"] ?? undefined,
-    resourceType: entry.resourceType ?? undefined,
-    resourceId: entry.resourceId ?? undefined,
-    metadata: entry.metadata as Record<string, unknown> | undefined,
-    ipAddress: entry.ipAddress ?? undefined,
-    userAgent: entry.userAgent ?? undefined,
-    createdAt: entry.createdAt,
-  }));
-}
-
-export async function queryAuditLog(filters: AuditQuery): Promise<AuditEntry[]> {
-  const conditions = [];
-
-  if (filters.action) {
-    conditions.push(eq(auditLog.action, filters.action));
-  }
-  if (filters.actorId) {
-    conditions.push(eq(auditLog.actorId, filters.actorId));
-  }
-  if (filters.actorType) {
-    conditions.push(eq(auditLog.actorType, filters.actorType));
-  }
-  if (filters.resourceType) {
-    conditions.push(eq(auditLog.resourceType, filters.resourceType));
-  }
-  if (filters.resourceId) {
-    conditions.push(eq(auditLog.resourceId, filters.resourceId));
-  }
-  if (filters.startDate) {
-    conditions.push(gt(auditLog.createdAt, filters.startDate));
-  }
-  if (filters.endDate) {
-    conditions.push(lt(auditLog.createdAt, filters.endDate));
+      logger.audit(`Audit: ${entry.action}`, entry);
+    } catch (error) {
+      logger.error("Failed to create audit entry", error instanceof Error ? error : undefined);
+    }
   }
 
-  const limit = filters.limit ?? 100;
-  const offset = filters.offset ?? 0;
-  const baseQuery = db.select().from(auditLog);
-  const rows = conditions.length > 0
-    ? await baseQuery.where(and(...conditions)).orderBy(desc(auditLog.createdAt)).limit(limit).offset(offset)
-    : await baseQuery.orderBy(desc(auditLog.createdAt)).limit(limit).offset(offset);
+  async getAuditEntries(filters?: {
+    action?: AuditAction;
+    actorId?: string;
+    resourceType?: string;
+    limit?: number;
+  }): Promise<AuditEntry[]> {
+    const limit = filters?.limit ?? 100;
+    const conditions = [];
 
-  return rows.map(mapToAuditEntry);
-}
+    if (filters?.action) {
+      conditions.push(eq(auditLog.action, filters.action));
+    }
+    if (filters?.actorId) {
+      conditions.push(eq(auditLog.actorId, filters.actorId));
+    }
+    if (filters?.resourceType) {
+      conditions.push(eq(auditLog.resourceType, filters.resourceType));
+    }
 
-export async function getAuditTimeline(resourceType: string, resourceId: string): Promise<AuditEntry[]> {
-  const rows = await db
-    .select()
-    .from(auditLog)
-    .where(and(eq(auditLog.resourceType, resourceType), eq(auditLog.resourceId, resourceId)))
-    .orderBy(desc(auditLog.createdAt));
+    const baseQuery = db.select().from(auditLog);
+    const rows = conditions.length > 0
+      ? await baseQuery.where(and(...conditions)).orderBy(desc(auditLog.createdAt)).limit(limit)
+      : await baseQuery.orderBy(desc(auditLog.createdAt)).limit(limit);
 
-  return rows.map(mapToAuditEntry);
-}
+    return rows.map((entry) => ({
+      id: entry.id,
+      action: entry.action as AuditAction,
+      actorId: entry.actorId ?? undefined,
+      actorType: entry.actorType as AuditEntry["actorType"] ?? undefined,
+      resourceType: entry.resourceType ?? undefined,
+      resourceId: entry.resourceId ?? undefined,
+      metadata: entry.metadata as Record<string, unknown> | undefined,
+      ipAddress: entry.ipAddress ?? undefined,
+      userAgent: entry.userAgent ?? undefined,
+      createdAt: entry.createdAt,
+    }));
+  }
 
-export async function searchAuditLog(queryStr: string): Promise<AuditEntry[]> {
-  const rows = await db
-    .select()
-    .from(auditLog)
-    .where(ilike(auditLog.action, `%${queryStr}%`))
-    .orderBy(desc(auditLog.createdAt));
+  async queryAuditLog(filters: AuditQuery): Promise<AuditEntry[]> {
+    const conditions = [];
 
-  return rows.map(mapToAuditEntry);
-}
+    if (filters.action) {
+      conditions.push(eq(auditLog.action, filters.action));
+    }
+    if (filters.actorId) {
+      conditions.push(eq(auditLog.actorId, filters.actorId));
+    }
+    if (filters.actorType) {
+      conditions.push(eq(auditLog.actorType, filters.actorType));
+    }
+    if (filters.resourceType) {
+      conditions.push(eq(auditLog.resourceType, filters.resourceType));
+    }
+    if (filters.resourceId) {
+      conditions.push(eq(auditLog.resourceId, filters.resourceId));
+    }
+    if (filters.startDate) {
+      conditions.push(gt(auditLog.createdAt, filters.startDate));
+    }
+    if (filters.endDate) {
+      conditions.push(lt(auditLog.createdAt, filters.endDate));
+    }
 
-export async function exportAuditLog(filters?: AuditQuery): Promise<string> {
-  const entries = filters ? await queryAuditLog(filters) : await getAuditEntries();
+    const limit = filters.limit ?? 100;
+    const offset = filters.offset ?? 0;
+    const baseQuery = db.select().from(auditLog);
+    const rows = conditions.length > 0
+      ? await baseQuery.where(and(...conditions)).orderBy(desc(auditLog.createdAt)).limit(limit).offset(offset)
+      : await baseQuery.orderBy(desc(auditLog.createdAt)).limit(limit).offset(offset);
 
-  const headers = ["id", "action", "actorId", "actorType", "resourceType", "resourceId", "metadata", "ipAddress", "userAgent", "createdAt"];
-  const csvRows = [
-    headers.join(","),
-    ...entries.map((entry) =>
-      [
-        entry.id,
-        entry.action,
-        entry.actorId ?? "",
-        entry.actorType ?? "",
-        entry.resourceType ?? "",
-        entry.resourceId ?? "",
-        JSON.stringify(entry.metadata ?? {}).replace(/,/g, ";"),
-        entry.ipAddress ?? "",
-        entry.userAgent ?? "",
-        entry.createdAt.toISOString(),
-      ].join(",")
-    ),
-  ];
+    return rows.map(mapToAuditEntry);
+  }
 
-  return csvRows.join("\n");
+  async getAuditTimeline(resourceType: string, resourceId: string): Promise<AuditEntry[]> {
+    const rows = await db
+      .select()
+      .from(auditLog)
+      .where(and(eq(auditLog.resourceType, resourceType), eq(auditLog.resourceId, resourceId)))
+      .orderBy(desc(auditLog.createdAt));
+
+    return rows.map(mapToAuditEntry);
+  }
+
+  async searchAuditLog(queryStr: string): Promise<AuditEntry[]> {
+    const rows = await db
+      .select()
+      .from(auditLog)
+      .where(ilike(auditLog.action, `%${queryStr}%`))
+      .orderBy(desc(auditLog.createdAt));
+
+    return rows.map(mapToAuditEntry);
+  }
+
+  async exportAuditLog(filters?: AuditQuery): Promise<string> {
+    const entries = filters ? await this.queryAuditLog(filters) : await this.getAuditEntries();
+
+    const headers = ["id", "action", "actorId", "actorType", "resourceType", "resourceId", "metadata", "ipAddress", "userAgent", "createdAt"];
+    const csvRows = [
+      headers.join(","),
+      ...entries.map((entry) =>
+        [
+          entry.id,
+          entry.action,
+          entry.actorId ?? "",
+          entry.actorType ?? "",
+          entry.resourceType ?? "",
+          entry.resourceId ?? "",
+          JSON.stringify(entry.metadata ?? {}).replace(/,/g, ";"),
+          entry.ipAddress ?? "",
+          entry.userAgent ?? "",
+          entry.createdAt.toISOString(),
+        ].join(",")
+      ),
+    ];
+
+    return csvRows.join("\n");
+  }
 }
 
 function mapToAuditEntry(entry: typeof auditLog.$inferSelect): AuditEntry {
@@ -157,4 +173,24 @@ function mapToAuditEntry(entry: typeof auditLog.$inferSelect): AuditEntry {
     userAgent: entry.userAgent ?? undefined,
     createdAt: entry.createdAt,
   };
+}
+
+export async function queryAuditLog(filters: AuditQuery): Promise<AuditEntry[]> {
+  const repo = new DefaultAuditRepository();
+  return repo.queryAuditLog(filters);
+}
+
+export async function exportAuditLog(filters?: AuditQuery): Promise<string> {
+  const repo = new DefaultAuditRepository();
+  return repo.exportAuditLog(filters);
+}
+
+export async function getAuditTimeline(resourceType: string, resourceId: string): Promise<AuditEntry[]> {
+  const repo = new DefaultAuditRepository();
+  return repo.getAuditTimeline(resourceType, resourceId);
+}
+
+export async function searchAuditLog(queryStr: string): Promise<AuditEntry[]> {
+  const repo = new DefaultAuditRepository();
+  return repo.searchAuditLog(queryStr);
 }

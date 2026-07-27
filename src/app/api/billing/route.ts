@@ -3,7 +3,8 @@ import { NextResponse } from "next/server";
 import type { RequestContext } from "@/core/middleware/types";
 import { runMiddleware } from "@/core/middleware/compose";
 import { userAuthentication } from "@/core/middleware";
-import { defaultEmailService } from "@/modules/email";
+import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
+import { successResponse } from "@/app/api/mappers/response";
 import { cookies } from "next/headers";
 import { resolveCurrencyInfo } from "@/lib/currency/formatter";
 
@@ -27,13 +28,11 @@ export async function GET(request: NextRequest) {
     ip: request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0].trim() || undefined,
   };
 
-  const errorResponse = await runMiddleware([
+  const middlewareError = await runMiddleware([
     userAuthentication(),
   ], ctx);
 
-  if (errorResponse) {
-    return errorResponse;
-  }
+  if (middlewareError) return middlewareError;
 
   const cookieStore = await cookies();
   const locale = cookieStore.get("tamer_locale")?.value || "en";
@@ -48,7 +47,7 @@ export async function GET(request: NextRequest) {
       maximumFractionDigits: info.maximumFractionDigits,
     }).format(amount);
 
-  return NextResponse.json({
+  return NextResponse.json(successResponse({
     plan: "Pro",
     nextInvoice: fmt(49.0),
     nextInvoiceDate: "Nov 1, 2026",
@@ -67,7 +66,7 @@ export async function GET(request: NextRequest) {
       storage: { used: 24.5, limit: 100, unit: "GB" },
       apiCalls: { used: 3420, limit: 10000 },
     },
-  });
+  }));
 }
 
 export async function POST(request: NextRequest) {
@@ -115,11 +114,12 @@ export async function POST(request: NextRequest) {
 
     if (!email || !userName || !invoiceNumber || !totalPayment) {
       return NextResponse.json(
-        { message: "Missing required payment fields" },
+        { success: false, error: { code: "VALIDATION_ERROR", message: "Missing required payment fields" } },
         { status: 400 }
       );
     }
 
+    const { defaultEmailService } = await import("@/modules/email");
     await defaultEmailService.sendPaymentSuccess({
       email,
       userName,
@@ -133,14 +133,8 @@ export async function POST(request: NextRequest) {
       dashboardUrl: dashboardUrl || `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/dashboard`,
     });
 
-    return NextResponse.json({
-      message: "Payment confirmation email sent successfully",
-    });
+    return NextResponse.json(successResponse({ message: "Payment confirmation email sent successfully" }));
   } catch (error) {
-    console.error("Billing email error:", error);
-    return NextResponse.json(
-      { message: "An error occurred while sending payment confirmation email" },
-      { status: 500 }
-    );
+    return mapErrorToResponse(error);
   }
 }

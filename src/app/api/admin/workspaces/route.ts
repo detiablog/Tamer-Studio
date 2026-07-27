@@ -1,76 +1,102 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { db } from "@/lib/db";
-import { workspace } from "@/lib/db/schema/identity";
-import { sql, eq, desc } from "drizzle-orm";
+import type { RequestContext } from "@/core/middleware/types";
+import { runMiddleware } from "@/core/middleware/compose";
+import { adminAuthentication, requireAdminPermission } from "@/core/middleware";
+import { WorkspaceService } from "@/core/workspace/workspace.service";
+import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
+import { successResponse } from "@/app/api/mappers/response";
+import { z } from "zod";
 
-const MOCK_WORKSPACES = [
-  { id: "ws_1", name: "Default Workspace", slug: "default", description: "Main workspace", status: "active", createdAt: new Date().toISOString() },
-  { id: "ws_2", name: "Development", slug: "development", description: "Dev environment", status: "active", createdAt: new Date().toISOString() },
-  { id: "ws_3", name: "Testing", slug: "testing", description: "QA workspace", status: "active", createdAt: new Date().toISOString() },
-];
+const CreateWorkspaceSchema = z.object({
+  name: z.string().min(1, "Name is required").max(255),
+  slug: z.string().min(1, "Slug is required").max(255),
+  type: z.string().default("personal") as z.ZodType<"personal" | "team">,
+  ownerId: z.string().min(1, "Owner ID is required"),
+  organizationId: z.string().optional(),
+  settings: z.record(z.string(), z.unknown()).optional(),
+  limits: z.record(z.string(), z.unknown()).optional(),
+});
 
 export async function GET(request: NextRequest) {
+  const ctx: RequestContext = {
+    request,
+    params: {},
+    state: {
+      rateLimit: undefined,
+      origin: undefined,
+      adminSession: undefined,
+      userSession: undefined,
+      authError: undefined,
+      permissionError: undefined,
+      csrfError: undefined,
+      rateLimitError: undefined,
+      auditContext: undefined,
+    },
+    method: "GET",
+    pathname: request.nextUrl.pathname,
+    ip: request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0].trim() || undefined,
+  };
+
+  const middlewareError = await runMiddleware([adminAuthentication(), requireAdminPermission("workspaces.read")], ctx);
+  if (middlewareError) return middlewareError;
+
   try {
-    const rows = await db.select().from(workspace).orderBy(desc(workspace.createdAt));
-    if (rows.length > 0) {
-      const data = rows.map((w) => ({
-        id: w.id,
-        name: w.name,
-        slug: w.slug,
-        description: w.description,
-        status: w.status,
-        createdAt: new Date(w.createdAt).toLocaleDateString(),
-      }));
-      return NextResponse.json({ success: true, data, count: data.length, source: "database" });
-    }
-    return NextResponse.json({ success: true, data: MOCK_WORKSPACES, count: MOCK_WORKSPACES.length, source: "mock" });
+    const service = new WorkspaceService();
+    const workspaces = await service.listWorkspaces();
+    return NextResponse.json(successResponse(workspaces));
   } catch (error) {
-    return NextResponse.json({ success: true, data: MOCK_WORKSPACES, count: MOCK_WORKSPACES.length, source: "mock" });
+    return mapErrorToResponse(error);
   }
 }
 
 export async function POST(request: NextRequest) {
+  const ctx: RequestContext = {
+    request,
+    params: {},
+    state: {
+      rateLimit: undefined,
+      origin: undefined,
+      adminSession: undefined,
+      userSession: undefined,
+      authError: undefined,
+      permissionError: undefined,
+      csrfError: undefined,
+      rateLimitError: undefined,
+      auditContext: undefined,
+    },
+    method: "POST",
+    pathname: request.nextUrl.pathname,
+    ip: request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0].trim() || undefined,
+  };
+
+  const middlewareError = await runMiddleware([adminAuthentication(), requireAdminPermission("workspaces.write")], ctx);
+  if (middlewareError) return middlewareError;
+
   try {
     const body = await request.json();
-    const { name, slug, description, status } = body;
+    const parsed = CreateWorkspaceSchema.safeParse(body);
 
-    if (!name || !slug) {
+    if (!parsed.success) {
       return NextResponse.json(
-        { success: false, error: "Name and slug required" },
-        { status: 400 }
+        { success: false, error: { code: "VALIDATION_ERROR", message: "Invalid input", details: { fieldErrors: parsed.error.flatten().fieldErrors } } },
+        { status: 422 }
       );
     }
 
-    const workspaceId = `ws_${Date.now()}`;
-    await db.insert(workspace).values({
-      id: workspaceId,
-      name,
-      slug,
-      description,
-      type: "personal",
-      ownerId: "user_admin_default",
-      status: status || "active",
+    const service = new WorkspaceService();
+    const workspace = await service.createWorkspace({
+      name: parsed.data.name,
+      slug: parsed.data.slug,
+      type: parsed.data.type,
+      ownerId: parsed.data.ownerId,
+      organizationId: parsed.data.organizationId,
+      settings: parsed.data.settings,
+      limits: parsed.data.limits,
     });
 
-    const [w] = await db.select().from(workspace).where(eq(workspace.id, workspaceId)).limit(1);
-
-    return NextResponse.json({
-      success: true,
-      message: "Workspace created successfully",
-      data: {
-        id: w.id,
-        name: w.name,
-        slug: w.slug,
-        description: w.description,
-        status: w.status,
-        createdAt: new Date(w.createdAt).toLocaleDateString(),
-      },
-    });
+    return NextResponse.json(successResponse(workspace, "Workspace created successfully"));
   } catch (error) {
-    return NextResponse.json(
-      { success: false, error: String(error) },
-      { status: 500 }
-    );
+    return mapErrorToResponse(error);
   }
 }

@@ -1,20 +1,18 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import type { NextRequest } from "next/server";
+import { SystemService } from "@/core/admin/system/system.service";
 import { metrics } from "@/core/observability/metrics";
-import { logger } from "@/core/logger";
-import { sql } from "drizzle-orm";
 
 export async function GET() {
-  const health: Record<string, { status: string; latencyMs?: number }> = {};
-  const overallChecks: string[] = [];
+  const systemService = new SystemService();
+  const dbHealth = await systemService.checkDatabaseHealth();
 
-  const dbStart = Date.now();
-  try {
-    await db.execute(sql`SELECT 1`);
-    health.database = { status: "healthy", latencyMs: Date.now() - dbStart };
-  } catch (error) {
-    health.database = { status: "unhealthy" };
-    logger.error("Health check: database unreachable", error instanceof Error ? error : undefined);
+  const health: Record<string, { status: string; latencyMs?: number }> = {
+    database: dbHealth,
+  };
+
+  const overallChecks: string[] = [];
+  if (dbHealth.status !== "healthy") {
     overallChecks.push("database");
   }
 

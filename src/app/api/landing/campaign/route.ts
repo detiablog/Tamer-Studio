@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { landingSection } from "@/lib/db/schema/landing";
-import { eq } from "drizzle-orm";
-import { db } from "@/lib/db";
 import { cookies } from "next/headers";
+import { LandingService } from "@/core/landing/landing.service";
+import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
+import { successResponse, errorResponse } from "@/app/api/mappers/response";
 
 export async function GET(request: NextRequest) {
   try {
@@ -27,17 +27,14 @@ export async function GET(request: NextRequest) {
       countryCode = country;
     }
 
-    const section = await db
-      .select()
-      .from(landingSection)
-      .where(eq(landingSection.sectionKey, "campaign-banner"))
-      .limit(1);
+    const service = new LandingService();
+    const section = await service.getSectionByKey("campaign-banner");
 
-    if (!section || section.length === 0) {
-      return NextResponse.json({ success: true, data: null });
+    if (!section) {
+      return NextResponse.json(successResponse({ data: null }));
     }
 
-    const config = (section[0].config ?? {}) as Record<string, unknown>;
+    const config = (section.config ?? {}) as Record<string, unknown>;
     const discount = (config.discount as number) || 0;
     const countdownEnd = (config.countdownEnd as string) || "";
     const visible = config.visible !== false;
@@ -52,15 +49,14 @@ export async function GET(request: NextRequest) {
     }
 
     if (!isActive) {
-      return NextResponse.json({ success: true, data: null });
+      return NextResponse.json(successResponse({ data: null }));
     }
 
-    return NextResponse.json({
-      success: true,
+    return NextResponse.json(successResponse({
       data: {
-        sectionKey: section[0].sectionKey,
-        title: section[0].title,
-        description: section[0].description,
+        sectionKey: section.sectionKey,
+        title: section.title,
+        description: section.description,
         badge: (config.badge as string) || "Campaign",
         ctaText: (config.ctaText as string) || "Claim Now",
         ctaHref: (config.ctaHref as string) || "/register",
@@ -68,9 +64,8 @@ export async function GET(request: NextRequest) {
         countdownEnd,
         visible,
       },
-    });
+    }));
   } catch (error) {
-    console.error("[GET /api/landing/campaign] Error:", error);
-    return NextResponse.json({ success: true, data: null });
+    return NextResponse.json(successResponse({ data: null }));
   }
 }
