@@ -46,6 +46,21 @@ export { DefaultCredentialResolver } from "./security";
 export type { ConfigService, CredentialResolutionContext, ResolvedCredentials, CredentialResolver } from "./security";
 export { ProviderCredentialLoader } from "./security";
 
+export { DefaultModelRegistry, defaultModelRegistry, createModelId } from "./models";
+export type { ModelRegistry, ResolvedModel, ModelRequirements } from "./models";
+
+export { DefaultAICache, createAICache } from "./cache";
+export type { AICache, AICacheConfig, CacheEntry, CacheStats } from "./cache";
+
+export { DefaultUsageRuntime, createUsageRuntime } from "./usage";
+export type { UsageRuntime, UsageRecord, UsageSummary, UsageFilters, ProviderUsageSummary, ModelUsageSummary, DailyUsageSummary } from "./usage";
+
+export { DefaultObservabilityRuntime, createObservabilityRuntime } from "./observability";
+export type { ObservabilityRuntime, MetricPoint, MetricSeries, TraceSpan, LogEntry, ProviderLatencyMetrics } from "./observability";
+
+export { DefaultDeveloperRuntime, createDeveloperRuntime } from "./developer";
+export type { DeveloperRuntime, DebugContext, DebugStep, MockProviderConfig, DryRunResult } from "./developer";
+
 export * from "./services";
 export * from "./types/domain";
 export * from "./types/pipeline";
