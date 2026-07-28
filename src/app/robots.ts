@@ -1,19 +1,22 @@
 import { MetadataRoute } from "next";
 import { config } from "@/core/config";
+import { getSEORuntime } from "@/core/seo";
 
 export default function robots(): MetadataRoute.Robots {
+  const seoRuntime = getSEORuntime();
   const isProduction = config.app.env === "production";
 
-  if (isProduction) {
-    return {
-      rules: { userAgent: "*", allow: "/" },
-      sitemap: `${config.app.url}/sitemap.xml`,
-    };
-  }
+  const robotsResult = seoRuntime.getRobotsRuntime().resolveRobotsTxt({
+    isProduction,
+    baseUrl: config.app.url,
+  });
 
   return {
-    rules: [
-      { userAgent: "*", disallow: ["/", "/(dashboard)", "/(auth)", "/admin", "/api"] },
-    ],
+    rules: robotsResult.rules.map((rule) => ({
+      userAgent: rule.userAgent,
+      allow: rule.allow,
+      disallow: rule.disallow,
+    })),
+    sitemap: robotsResult.sitemap,
   };
 }

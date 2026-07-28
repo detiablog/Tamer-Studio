@@ -8,11 +8,26 @@ import { LocalizationProvider } from "@/providers/localization";
 import { CurrencyProvider } from "@/providers/currency";
 import { HtmlLangUpdater } from "@/components/providers/HtmlLangUpdater";
 import { config } from "@/core/config";
+import { getSEORuntime } from "@/core/seo";
 import Script from "next/script";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
 const SITE_URL = config.app.url;
+const seoRuntime = getSEORuntime();
+
+const orgSchema = seoRuntime.getSchemaRuntime().resolveOrganization({
+  name: "Tamer Studio",
+  url: SITE_URL,
+  description: "Tamer Studio is an AI-first production operating system. Plan, generate, organize, review, and publish content without switching between tools.",
+  logo: new URL("/favicon.svg", SITE_URL).toString(),
+  contactPoint: {
+    "@type": "ContactPoint",
+    email: "support@tamer.studio",
+    contactType: "customer support",
+    availableLanguage: ["English", "Bahasa Indonesia"],
+  },
+});
 
 export const metadata = {
   title: {
@@ -71,20 +86,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 id="json-ld"
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{
-                  __html: JSON.stringify({
-                    "@context": "https://schema.org",
-                    "@type": "Organization",
-                    name: "Tamer Studio",
-                    url: SITE_URL,
-                    description: "Tamer Studio is an AI-first production operating system. Plan, generate, organize, review, and publish content without switching between tools.",
-                    logo: new URL("/favicon.svg", SITE_URL).toString(),
-                    contactPoint: {
-                      "@type": "ContactPoint",
-                      email: "support@tamer.studio",
-                      contactType: "customer support",
-                      availableLanguage: ["English", "Bahasa Indonesia"],
-                    },
-                  }),
+                  __html: JSON.stringify(orgSchema),
                 }}
               />
               {children}

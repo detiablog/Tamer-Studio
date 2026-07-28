@@ -1,79 +1,52 @@
 import { Suspense } from 'react';
-import { LandingPageContent } from '@/components/landing/LandingPageContent';
+import { HomepageRuntimeContent } from '@/components/homepage/HomepageRuntimeContent';
 import { LandingKeyboardShortcuts } from '@/components/landing/LandingKeyboardShortcuts';
-import { getLocalizationService } from '@/lib/localization';
-import { regionService } from '@/core/localization/region.service';
+import { getSEORuntime } from '@/core/seo';
 
 export async function generateMetadata() {
-  const service = getLocalizationService();
-  const locale = service.getLocale();
+  const seoRuntime = getSEORuntime();
 
   try {
-    const [seoRes, detectRes] = await Promise.all([
-      fetch(new URL('/api/landing/seo', process.env.VERCEL_URL || 'http://localhost:3000'), {
-        headers: {
-          'accept-language': locale,
-        },
-        cache: 'no-store',
-      }).catch(() => null),
-      fetch(new URL('/api/localization/detect', process.env.VERCEL_URL || 'http://localhost:3000'), {
-        cache: 'no-store',
-      }).catch(() => null),
-    ]);
-
-    let seoData = null;
-    let detectData = null;
-
-    if (seoRes?.ok) {
-      seoData = await seoRes.json();
-    }
-    if (detectRes?.ok) {
-      detectData = await detectRes.json();
-    }
-
-    const title = seoData?.data?.title || 'Tamer Studio — AI-first Production Operating System';
-    const description = seoData?.data?.description || 'Tamer Studio is the AI-first production operating system for creators, agencies, and businesses.';
-    const keywords = seoData?.data?.keywords || ['AI production platform', 'content production', 'AI generation', 'Tamer Studio'];
-    const image = seoData?.data?.image || 'https://tamer.studio/og-image.svg';
-    const url = seoData?.data?.url || 'https://tamer.studio';
-    const hreflangs: { hreflang: string; href: string }[] = seoData?.data?.hreflangs || [];
-    const ogLocale = seoData?.data?.locale || 'en_US';
+    const resolved = await seoRuntime.resolvePage({
+      route: '/',
+      title: 'Tamer Studio — AI-first Production Operating System',
+      description: 'Tamer Studio is the AI-first production operating system for creators, agencies, and businesses.',
+      keywords: ['AI production platform', 'content production', 'AI generation', 'Tamer Studio'],
+      type: 'website',
+      author: 'Tamer Studio',
+    });
 
     return {
       title: {
-        default: title,
+        default: resolved.metadata.title,
         template: `%s | Tamer Studio`,
       },
-      description,
-      keywords,
-      authors: [{ name: 'Tamer Studio' }],
-      creator: 'Tamer Studio',
+      description: resolved.metadata.description,
+      keywords: resolved.metadata.keywords,
+      authors: [{ name: resolved.metadata.author }],
+      creator: resolved.metadata.publisher,
       openGraph: {
-        title,
-        description,
-        type: 'website',
-        url,
-        siteName: 'Tamer Studio',
-        images: [
-          {
-            url: image,
-            width: 1200,
-            height: 630,
-            alt: title,
-          },
-        ],
-        locale: ogLocale,
+        title: resolved.openGraph.title,
+        description: resolved.openGraph.description,
+        type: resolved.openGraph.type as 'website',
+        url: resolved.openGraph.url,
+        siteName: resolved.openGraph.siteName,
+        images: resolved.openGraph.images,
+        locale: resolved.openGraph.locale,
       },
       twitter: {
-        card: 'summary_large_image',
-        title,
-        description,
-        images: [image],
+        card: resolved.twitter.card,
+        title: resolved.twitter.title,
+        description: resolved.twitter.description,
+        images: resolved.twitter.images,
       },
-      robots: { index: true, follow: true },
+      robots: {
+        index: resolved.robots.index,
+        follow: resolved.robots.follow,
+      },
       alternates: {
-        canonical: url,
-        languages: hreflangs.reduce<Record<string, string>>((acc: Record<string, string>, h: { hreflang: string; href: string }) => {
+        canonical: resolved.canonical.canonical,
+        languages: resolved.hreflang.reduce<Record<string, string>>((acc, h) => {
           acc[h.hreflang] = h.href;
           return acc;
         }, {}),
@@ -97,7 +70,7 @@ export default function HomePage() {
       <LandingKeyboardShortcuts />
       <main className="flex-1">
         <Suspense fallback={<LoadingFallback />}>
-          <LandingPageContent />
+          <HomepageRuntimeContent />
         </Suspense>
       </main>
     </div>

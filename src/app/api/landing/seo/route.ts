@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { cookies } from "next/headers";
-import { getLocalizationService } from "@/lib/localization";
+import { getSEORuntime } from "@/core/seo";
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,44 +11,51 @@ export async function GET(request: NextRequest) {
       request.headers.get("accept-language")?.split(",")[0]?.split("-")[0] ||
       "en";
 
-    const service = getLocalizationService();
-    service.setLocale(locale as any);
+    const seoRuntime = getSEORuntime();
 
-    const title = service.t("marketing.seoTitle", "Tamer Studio - AI-Powered Production Platform");
-    const description = service.t("marketing.seoDescription", "Build, deploy, and scale AI-powered applications with Tamer Studio. Multi-provider AI, automated production pipelines, and enterprise-grade infrastructure.");
-    const keywords = service.t("marketing.seoKeywords", "AI, production platform, automation, AI providers, multi-model, enterprise AI");
-    const image = service.t("marketing.seoImage", "https://tamer.studio/og-image.png");
+    const metadataResult = seoRuntime.resolveMetadata({
+      route: '/',
+      locale,
+    });
+
+    const resolved = await seoRuntime.resolvePage({
+      route: '/',
+      locale,
+      title: metadataResult.title,
+      description: metadataResult.description,
+      type: 'website',
+      author: 'Tamer Studio',
+    });
 
     return NextResponse.json({
       success: true,
       data: {
-        title,
-        description,
-        keywords,
-        image,
-        url: "https://tamer.studio",
-        type: "website",
+        title: resolved.metadata.title,
+        description: resolved.metadata.description,
+        keywords: resolved.metadata.keywords,
+        image: resolved.openGraph.images[0]?.url || 'https://tamer.studio/og-image.svg',
+        url: resolved.openGraph.url,
+        type: resolved.openGraph.type,
         locale,
-        hreflangs: [
-          { hreflang: "en", href: "https://tamer.studio" },
-          { hreflang: "id", href: "https://tamer.studio/id" },
-          { hreflang: "x-default", href: "https://tamer.studio" },
-        ],
+        hreflangs: resolved.hreflang.map(h => ({
+          hreflang: h.hreflang,
+          href: h.href,
+        })),
         twitter: {
-          card: "summary_large_image",
-          site: "@tamerstudio",
-          title,
-          description,
-          image,
+          card: resolved.twitter.card,
+          site: resolved.twitter.site,
+          title: resolved.twitter.title,
+          description: resolved.twitter.description,
+          image: resolved.twitter.images[0] || '',
         },
         openGraph: {
-          title,
-          description,
-          type: "website",
-          url: "https://tamer.studio",
-          image,
-          locale,
-          siteName: "Tamer Studio",
+          title: resolved.openGraph.title,
+          description: resolved.openGraph.description,
+          type: resolved.openGraph.type,
+          url: resolved.openGraph.url,
+          image: resolved.openGraph.images[0]?.url || '',
+          locale: resolved.openGraph.locale,
+          siteName: resolved.openGraph.siteName,
         },
       },
     });
