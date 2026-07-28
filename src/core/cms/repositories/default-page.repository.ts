@@ -1,8 +1,9 @@
 import { db } from "@/lib/db";
 import { cmsPage } from "@/lib/db/schema/cms";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, isNull } from "drizzle-orm";
 import { randomUUID } from "crypto";
-import type { CMSPageRepository, CMSPage, CMSCreatePageInput, CMSUpdatePageInput, CMSPageStatus, CMSContentType } from "./page.repository";
+import type { CMSPageRepository } from "./page.repository";
+import type { CMSPage, CMSCreatePageInput, CMSUpdatePageInput, CMSPageStatus, CMSContentType, CMSPermission } from "../cms.types";
 
 export class DefaultCMSPageRepository implements CMSPageRepository {
   async createPage(input: CMSCreatePageInput): Promise<CMSPage> {
@@ -89,7 +90,7 @@ export class DefaultCMSPageRepository implements CMSPageRepository {
   }
 
   async listPages(filters?: { status?: CMSPageStatus; contentType?: CMSContentType }): Promise<CMSPage[]> {
-    const conditions: unknown[] = [eq(cmsPage.deletedAt, null)];
+    const conditions: (ReturnType<typeof eq> | ReturnType<typeof isNull>)[] = [isNull(cmsPage.deletedAt)];
 
     if (filters?.status) {
       conditions.push(eq(cmsPage.status, filters.status));
@@ -103,6 +104,10 @@ export class DefaultCMSPageRepository implements CMSPageRepository {
   }
 
   private mapRow(row: typeof cmsPage.$inferSelect): CMSPage {
+    const toISOString = (val: string | Date | null): string => {
+      if (val === null) return new Date().toISOString();
+      return typeof val === 'string' ? val : val.toISOString();
+    };
     return {
       id: row.id,
       title: row.title,
@@ -120,19 +125,19 @@ export class DefaultCMSPageRepository implements CMSPageRepository {
       localization: {
         locale: row.localizationLocale,
         fallbackLocale: row.localizationFallbackLocale,
-        translations: row.localizationTranslations,
+        translations: row.localizationTranslations ?? {},
       },
       permissions: {
-        read: row.permissionsRead,
-        write: row.permissionsWrite,
-        publish: row.permissionsPublish,
+        read: (row.permissionsRead ?? []) as CMSPermission[],
+        write: (row.permissionsWrite ?? []) as CMSPermission[],
+        publish: (row.permissionsPublish ?? []) as CMSPermission[],
       },
       version: row.version,
       publishedVersion: row.publishedVersion ?? undefined,
-      scheduledAt: row.scheduledAt ? (typeof row.scheduledAt === 'string' ? row.scheduledAt : row.scheduledAt.toISOString()) : undefined,
-      createdAt: row.createdAt,
-      updatedAt: row.updatedAt,
-      publishedAt: row.publishedAt ? (typeof row.publishedAt === 'string' ? row.publishedAt : row.publishedAt.toISOString()) : undefined,
+      scheduledAt: row.scheduledAt ? toISOString(row.scheduledAt) : undefined,
+      createdAt: toISOString(row.createdAt),
+      updatedAt: toISOString(row.updatedAt),
+      publishedAt: row.publishedAt ? toISOString(row.publishedAt) : undefined,
       authorId: row.authorId,
     };
   }

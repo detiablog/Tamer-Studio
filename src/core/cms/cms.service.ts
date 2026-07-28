@@ -19,10 +19,12 @@ import type {
   CMSMedia,
   CMSVersion,
   CMSPublishPipeline,
+  CMSPublishStep,
   CMSCreatePageInput,
   CMSUpdatePageInput,
   CMSContentType,
   CMSPageStatus,
+  CMSPermission,
   CMSAuditEntry,
   ComponentDefinition,
   ComponentSchema,
@@ -141,8 +143,8 @@ export class CMSService {
     componentLibrary.register(definition);
     await this.componentRepo.createComponent({
       ...component,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     });
     logger.info("CMS component registered", { componentId: component.id, type: component.type });
     return component;
@@ -177,7 +179,7 @@ export class CMSService {
 
   async createSection(input: Partial<CMSSection> & { pageId: string }): Promise<CMSSection> {
     const id = randomUUID();
-    const now = new Date();
+    const now = new Date().toISOString();
     const maxOrder = await this.sectionRepo.getSectionsByPageId(input.pageId).then((sections) => Math.max(-1, ...sections.map((s) => s.order)));
     const sectionOrder = typeof input.order === "number" ? input.order : maxOrder + 1;
 
@@ -280,7 +282,7 @@ export class CMSService {
 
   async createBlock(input: Partial<CMSBlock> & { sectionId: string }): Promise<CMSBlock> {
     const id = randomUUID();
-    const now = new Date();
+    const now = new Date().toISOString();
     const block: CMSBlock = {
       id,
       sectionId: input.sectionId,
@@ -341,6 +343,7 @@ export class CMSService {
       contentId,
       contentType,
       status: "pending",
+      steps: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
@@ -357,7 +360,7 @@ export class CMSService {
     ];
 
     for (const step of steps) {
-      await this.publishRepo.createStep({ ...step, pipelineId: pipeline.id });
+      await this.publishRepo.createStep({ ...step, pipelineId: pipeline.id } as CMSPublishStep & { pipelineId: string });
     }
 
     logAction("cms.publish.created", contentId, "admin", { pipelineId: pipeline.id });

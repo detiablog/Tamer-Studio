@@ -85,8 +85,31 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ key: string }> }
 ) {
+  const resolvedParams = await params;
+  const ctx: RequestContext = {
+    request,
+    params: resolvedParams,
+    state: {
+      rateLimit: undefined,
+      origin: undefined,
+      adminSession: undefined,
+      userSession: undefined,
+      authError: undefined,
+      permissionError: undefined,
+      csrfError: undefined,
+      rateLimitError: undefined,
+      auditContext: undefined,
+    },
+    method: "GET",
+    pathname: request.nextUrl.pathname,
+    ip: request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0].trim() || undefined,
+  };
+
+  const middlewareError = await runMiddleware([adminAuthentication()], ctx);
+  if (middlewareError) return middlewareError;
+
   try {
-    const { key } = await params;
+    const { key } = resolvedParams;
     const sectionKey = decodeURIComponent(key);
     const pageId = await getOrCreateLandingPage(cmsService);
     const sections = await cmsService.listSections(pageId);

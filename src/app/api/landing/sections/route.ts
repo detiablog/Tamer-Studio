@@ -89,6 +89,28 @@ function mapCMSSectionToLanding(section: {
 }
 
 export async function GET(request: NextRequest) {
+  const ctx: RequestContext = {
+    request,
+    params: {},
+    state: {
+      rateLimit: undefined,
+      origin: undefined,
+      adminSession: undefined,
+      userSession: undefined,
+      authError: undefined,
+      permissionError: undefined,
+      csrfError: undefined,
+      rateLimitError: undefined,
+      auditContext: undefined,
+    },
+    method: "GET",
+    pathname: request.nextUrl.pathname,
+    ip: request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0].trim() || undefined,
+  };
+
+  const errorResponse = await runMiddleware([adminAuthentication()], ctx);
+  if (errorResponse) return errorResponse;
+
   try {
     const searchParams = request.nextUrl.searchParams;
     const pageId = await getOrCreateLandingPage(cmsService);

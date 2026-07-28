@@ -5,7 +5,7 @@ import { runMiddleware } from "@/core/middleware/compose";
 import { adminAuthentication } from "@/core/middleware";
 import { EmailAdminService } from "@/core/email/email-admin.service";
 import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
-import { successResponse, paginatedResponse } from "@/app/api/mappers/response";
+import { successResponse, errorResponse, paginatedResponse } from "@/app/api/mappers/response";
 
 export async function GET(request: NextRequest) {
   const ctx: RequestContext = {
@@ -27,8 +27,8 @@ export async function GET(request: NextRequest) {
     ip: request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0].trim() || undefined,
   };
 
-  const errorResponse = await runMiddleware([adminAuthentication()], ctx);
-  if (errorResponse) return errorResponse;
+  const authError = await runMiddleware([adminAuthentication()], ctx);
+  if (authError) return authError;
 
   try {
     const { searchParams } = new URL(request.url);
@@ -79,8 +79,8 @@ export async function POST(request: NextRequest) {
     ip: request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0].trim() || undefined,
   };
 
-  const errorResponse = await runMiddleware([adminAuthentication()], ctx);
-  if (errorResponse) return errorResponse;
+  const authError = await runMiddleware([adminAuthentication()], ctx);
+  if (authError) return authError;
 
   try {
     const body = await request.json();
@@ -97,8 +97,8 @@ export async function POST(request: NextRequest) {
     const updated = await service.retryQueue(ids);
 
     return NextResponse.json(successResponse({
-      message: `${updated.length} items queued for retry`,
-      data: updated,
+      message: `${Array.isArray(updated) ? updated.length : (updated ? 1 : 0)} item(s) queued for retry`,
+      data: Array.isArray(updated) ? updated : (updated ? [updated] : []),
     }));
   } catch (error) {
     return mapErrorToResponse(error);

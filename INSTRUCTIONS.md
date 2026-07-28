@@ -865,3 +865,24 @@ Before implementing any editable feature, AI MUST:
 If a new content type is required, AI MUST register it in the CMS Content Registry instead of creating a standalone implementation.
 
 Duplicate CMS implementations are forbidden.
+
+Runtime Configuration Policy
+
+Never use arbitrary ports.
+Always read .env.local first.
+If not found, read .env.
+Use the configured application port.
+Never change runtime ports unless explicitly instructed.
+If the configured port is already in use, identify the conflicting process and report it instead of silently switching to another port.
+All runtime commands (next dev, next start, tests, Playwright, API verification) must use the configured port unless the user explicitly requests otherwise.
+
+Runtime Port Policy
+
+Always use the application's configured port from .env.local or .env.
+Never choose an arbitrary fallback port automatically.
+If the configured port is occupied:
+identify the conflicting process,
+report it,
+stop the conflicting process only if explicitly permitted,
+or request confirmation before using another port.
+Every verification report must record why a different port was used, if applicable.

@@ -575,38 +575,37 @@ describe("Navigation Runtime", () => {
   });
 
   describe("NavigationCache", () => {
-    it("should set and get registry entries", () => {
+    it("should set and get registry entries", async () => {
       const cache = getNavigationCache();
-      cache.setRegistry("test-key", { value: "test" }, ["test"]);
-      const result = cache.getRegistry<{ value: string }>("test-key");
+      await cache.setRegistry("test-key", { value: "test" }, ["test"]);
+      const result = await cache.getRegistry<{ value: string }>("test-key");
       expect(result).toBeDefined();
       expect(result!.value).toBe("test");
     });
 
-    it("should invalidate by tag", () => {
+    it("should invalidate by tag", async () => {
       const cache = getNavigationCache();
-      cache.setRegistry("key-1", { value: "test1" }, ["tag-1"]);
-      cache.setRegistry("key-2", { value: "test2" }, ["tag-2"]);
-      cache.invalidateByTag("tag-1");
-      const result = cache.getRegistry("key-1");
+      await cache.setRegistry("key-1", { value: "test1" }, ["tag-1"]);
+      await cache.setRegistry("key-2", { value: "test2" }, ["tag-2"]);
+      await cache.invalidateByTag("tag-1");
+      const result = await cache.getRegistry("key-1");
       expect(result).toBeUndefined();
     });
 
-    it("should invalidate all", () => {
+    it("should invalidate all", async () => {
       const cache = getNavigationCache();
-      cache.setRegistry("key-1", { value: "test1" });
-      cache.setMenu("key-2", { value: "test2" });
-      cache.invalidateAll();
-      expect(cache.getRegistry("key-1")).toBeUndefined();
-      expect(cache.getMenu("key-2")).toBeUndefined();
+      await cache.setRegistry("key-1", { value: "test1" });
+      await cache.setMenu("key-2", { value: "test2" });
+      await cache.invalidateAll();
+      expect(await cache.getRegistry("key-1")).toBeUndefined();
+      expect(await cache.getMenu("key-2")).toBeUndefined();
     });
 
-    it("should return stats", () => {
+    it("should return stats", async () => {
       const cache = getNavigationCache();
-      cache.setRegistry("key-1", { value: "test" });
+      await cache.setRegistry("key-1", { value: "test" });
       const stats = cache.getStats();
-      expect(stats.totalSize).toBe(1);
-      expect(stats.registrySize).toBe(1);
+      expect(stats.size).toBe(1);
     });
   });
 
@@ -783,9 +782,9 @@ describe("Navigation Runtime", () => {
   });
 
   describe("NavigationAPI", () => {
-    it("should register navigation via API", () => {
+    it("should register navigation via API", async () => {
       const api = getNavigationAPI();
-      const result = api.registerNavigation({
+      const result = await api.registerNavigation({
         id: "api-item",
         module: "api-test",
         position: "sidebar",
@@ -799,9 +798,9 @@ describe("Navigation Runtime", () => {
       expect(result.data!.id).toBe("api-item");
     });
 
-    it("should retrieve navigation items via API", () => {
+    it("should retrieve navigation items via API", async () => {
       const api = getNavigationAPI();
-      api.registerNavigation({
+      await api.registerNavigation({
         id: "api-item-1",
         module: "api-test",
         position: "sidebar",
@@ -810,15 +809,15 @@ describe("Navigation Runtime", () => {
         route: "/api-item-1",
         order: 0,
       });
-      const result = api.getNavigationItem("api-item-1");
+      const result = await api.getNavigationItem("api-item-1");
       expect(result.success).toBe(true);
       expect(result.data).toBeDefined();
       expect(result.data!.id).toBe("api-item-1");
     });
 
-    it("should return paginated items", () => {
+    it("should return paginated items", async () => {
       const api = getNavigationAPI();
-      api.registerNavigation({
+      await api.registerNavigation({
         id: "pag-item-1",
         module: "api-test",
         position: "sidebar",
@@ -827,7 +826,7 @@ describe("Navigation Runtime", () => {
         route: "/pag-item-1",
         order: 0,
       });
-      api.registerNavigation({
+      await api.registerNavigation({
         id: "pag-item-2",
         module: "api-test",
         position: "sidebar",
@@ -842,9 +841,9 @@ describe("Navigation Runtime", () => {
       expect(result.pagination?.total).toBe(2);
     });
 
-    it("should handle breadcrumbs via API", () => {
+    it("should handle breadcrumbs via API", async () => {
       const api = getNavigationAPI();
-      api.registerNavigation({
+      await api.registerNavigation({
         id: "bc-item",
         module: "api-test",
         position: "sidebar",
@@ -853,14 +852,14 @@ describe("Navigation Runtime", () => {
         route: "/bc-item",
         order: 0,
       });
-      const result = api.getBreadcrumbs("/bc-item");
+      const result = await api.getBreadcrumbs("/bc-item");
       expect(result.success).toBe(true);
       expect(result.data).toBeDefined();
     });
 
-    it("should handle cache invalidation via API", () => {
+    it("should handle cache invalidation via API", async () => {
       const api = getNavigationAPI();
-      const result = api.invalidateCache();
+      const result = await api.invalidateCache();
       expect(result.success).toBe(true);
     });
 

@@ -516,7 +516,7 @@ export class DefaultDashboardRepository implements DashboardRepository {
       actorType: log.actorType,
       resourceType: log.resourceType,
       resourceId: log.resourceId,
-      createdAt: log.createdAt ? new Date(log.createdAt).toLocaleString() : "Unavailable",
+      createdAt: log.createdAt ? new Date(log.createdAt) : null,
       user: log.actorId || "system",
     }));
 

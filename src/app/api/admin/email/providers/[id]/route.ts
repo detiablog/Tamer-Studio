@@ -24,7 +24,7 @@ const UpdateProviderSchema = z.object({
   monthlyLimit: z.number().optional(),
   webhookSecret: z.string().optional(),
   domain: z.string().optional(),
-  config: z.record(z.unknown()).optional(),
+  config: z.record(z.string(), z.unknown()).optional(),
 });
 
 export async function GET(
@@ -121,6 +121,10 @@ export async function PUT(
     }
 
     const updated = await service.updateProvider(id, updateData as any);
+
+    if (!updated) {
+      return NextResponse.json({ success: false, error: "Failed to update provider" }, { status: 500 });
+    }
 
     return NextResponse.json(successResponse({
       ...updated,

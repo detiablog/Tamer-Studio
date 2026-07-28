@@ -26,7 +26,7 @@ export class UserService {
   }
 
   async getPreferences(userId: string): Promise<UserPreferences | undefined> {
-    return this.repository.getUserPreferences(userId);
+    return this.repository.getPreferences(userId);
   }
 
   async updatePreferences(userId: string, preferences: Record<string, unknown>): Promise<UserPreferences> {

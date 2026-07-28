@@ -4,6 +4,7 @@ import type { RequestContext } from "@/core/middleware/types";
 import { runMiddleware } from "@/core/middleware/compose";
 import { adminAuthentication } from "@/core/middleware";
 import { EmailAdminService } from "@/core/email/email-admin.service";
+import type { EmailProviderInput } from "@/core/email/email-admin.service";
 import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
 import { successResponse, paginatedResponse } from "@/app/api/mappers/response";
 import { z } from "zod";
@@ -21,7 +22,7 @@ const CreateProviderSchema = z.object({
   monthlyLimit: z.number().optional(),
   webhookSecret: z.string().optional(),
   domain: z.string().optional(),
-  credentials: z.record(z.unknown()).optional(),
+  credentials: z.record(z.string(), z.unknown()).optional(),
   isActive: z.boolean().optional(),
   priority: z.number().optional(),
   routingMode: z.string().optional(),
@@ -106,7 +107,7 @@ export async function POST(request: NextRequest) {
     }
 
     const service = new EmailAdminService();
-    const provider = await service.createProvider(parsed.data);
+    const provider = await service.createProvider(parsed.data as EmailProviderInput);
 
     return NextResponse.json(successResponse(provider, "Provider created successfully"), { status: 201 });
   } catch (error) {

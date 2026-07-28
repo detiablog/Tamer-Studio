@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { defaultEmailService } from "@/modules/email";
 import { UserService } from "@/core/users/user.service";
+import { auth } from "@/core/auth";
 import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
 import { successResponse, errorResponse } from "@/app/api/mappers/response";
 
@@ -36,12 +37,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(errorResponse("NOT_FOUND", "User not found for this token"), { status: 400 });
     }
 
-    const account = await userService.getAccountByUserId(existingUser.id);
-    if (!account) {
-      return NextResponse.json(errorResponse("NOT_FOUND", "No account found for this user"), { status: 400 });
-    }
-
-    await userService.resetPassword(account.id, parsed.data.password);
+    await (auth.api.resetPassword as Function)({
+      newPassword: parsed.data.password,
+      token: parsed.data.token,
+    });
     await defaultEmailService.invalidateToken(parsed.data.token);
 
     return NextResponse.json(successResponse({

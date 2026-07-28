@@ -12,6 +12,9 @@ import { getTranslation } from "@/lib/localization/translations";
 import type { Metadata } from "next";
 
 export async function generateMetadata(): Promise<Metadata> {
+  const cookieStore = await cookies();
+  const locale = cookieStore.get("tamer_locale")?.value || "en";
+  const t = (key: string, fallback?: string) => getTranslation(locale, key, fallback);
   return generatePageMetadata({
     route: "/projects",
     title: t("projects.metadataTitle", "Projects — Tamer Studio"),

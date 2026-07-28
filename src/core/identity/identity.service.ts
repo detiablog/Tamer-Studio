@@ -1,38 +1,35 @@
 import type { IdentityContext } from "./identity.types";
-import type { RbacResult } from "../rbac/rbac.types";
+import type { UserRole, Permission } from "../auth/permissions";
+import { getEffectivePermissions, hasPermission as checkPerm } from "../auth/permissions";
 
 import { UserService } from "../users/user.service";
 import { WorkspaceService } from "../workspace/workspace.service";
 import { OrganizationService } from "../organization/organization.service";
-import { RoleService } from "../roles/role.service";
-import { PermissionService } from "../permissions/permission.service";
 import { MembershipService } from "../membership/membership.service";
 import { ApiKeyService } from "../apikey/apikey.service";
-import { RbacService } from "../rbac/rbac.service";
 
 export class IdentityService {
   private userService = new UserService();
   private workspaceService = new WorkspaceService();
   private organizationService = new OrganizationService();
-  private roleService = new RoleService();
-  private permissionService = new PermissionService();
   private membershipService = new MembershipService();
   private apiKeyService = new ApiKeyService();
-  private rbacService = new RbacService();
 
   async getIdentityContext(userId: string): Promise<IdentityContext> {
-    const [profile, preferences, workspaces, organizations, permissionResolution] = await Promise.all([
+    const [profile, preferences, workspaces, organizations] = await Promise.all([
       this.userService.getProfile(userId),
       this.userService.getPreferences(userId),
       this.getUserWorkspaces(userId),
       this.getUserOrganizations(userId),
-      this.rbacService.resolvePermissions({ userId }),
     ]);
+    const user = await this.userService.getUserById(userId);
+    const userRole: UserRole = (user?.role as UserRole) ?? "user";
+    const permissions = getEffectivePermissions(userRole).map((p) => p as string);
     return {
       user: {
         id: userId,
-        email: "",
-        name: "",
+        email: user?.email ?? "",
+        name: user?.name ?? "",
       },
       profile: profile ? {
         avatar: profile.avatar,
@@ -45,8 +42,8 @@ export class IdentityService {
       preferences: preferences?.preferences ?? null,
       workspaces,
       organizations,
-      permissions: permissionResolution.permissions,
-      roles: permissionResolution.roles,
+      permissions,
+      roles: [userRole],
     };
   }
 
@@ -78,11 +75,17 @@ export class IdentityService {
     return [];
   }
 
-  async checkPermission(userId: string, permission: string, workspaceId?: string, organizationId?: string): Promise<RbacResult> {
-    return this.rbacService.checkPermission({ userId, workspaceId, organizationId, requiredPermission: permission });
+  async checkPermission(userId: string, permission: string, _workspaceId?: string, _organizationId?: string): Promise<{ allowed: boolean; roles: string[]; permissions: string[] }> {
+    const user = await this.userService.getUserById(userId);
+    const userRole: UserRole = (user?.role as UserRole) ?? "user";
+    const permissions = getEffectivePermissions(userRole).map((p) => p as string);
+    const allowed = permissions.includes(permission);
+    return { allowed, roles: [userRole], permissions };
   }
 
-  async hasPermission(userId: string, permission: string, workspaceId?: string, organizationId?: string): Promise<boolean> {
-    return this.rbacService.hasPermission(userId, permission, workspaceId, organizationId);
+  async hasPermission(userId: string, permission: string, _workspaceId?: string, _organizationId?: string): Promise<boolean> {
+    const user = await this.userService.getUserById(userId);
+    const userRole: UserRole = (user?.role as UserRole) ?? "user";
+    return checkPerm(userRole, permission as Permission);
   }
 }

@@ -44,3 +44,16 @@ export class TranslationRuntime {
     invalidateCache();
   }
 }
+
+let instance: TranslationRuntime | null = null;
+
+export function getTranslationRuntime(options?: TranslationRuntimeOptions): TranslationRuntime {
+  if (!instance) {
+    instance = new TranslationRuntime(options ?? { locale: "en" });
+  }
+  return instance;
+}
+
+export function resetTranslationRuntime(): void {
+  instance = null;
+}

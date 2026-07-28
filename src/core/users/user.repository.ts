@@ -119,7 +119,7 @@ export class UserRepository {
   }
 
   async upsertPreferences(userId: string, preferences: Record<string, unknown>): Promise<UserPreferences> {
-    const existing = await this.getUserPreferences(userId);
+    const existing = await this.getPreferences(userId);
     const now = new Date();
     if (existing) {
       await db.update(userPreferences).set({ preferences, updatedAt: now }).where(eq(userPreferences.userId, userId));

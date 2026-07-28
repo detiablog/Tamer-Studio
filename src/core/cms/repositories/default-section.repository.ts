@@ -71,7 +71,7 @@ export class DefaultCMSSectionRepository implements CMSSectionRepository {
 
   async reorderSections(pageId: string, sectionOrders: { id: string; order: number }[]): Promise<void> {
     for (const { id, order } of sectionOrders) {
-      await db.update(cmsSection).set({ order, updatedAt: new Date().toISOString() }).where(and(eq(cmsSection.id, id), eq(cmsSection.pageId, pageId)));
+      await db.update(cmsSection).set({ order, updatedAt: new Date() }).where(and(eq(cmsSection.id, id), eq(cmsSection.pageId, pageId)));
     }
   }
 

@@ -18,6 +18,7 @@ export interface EmailProviderInput {
   webhookSecret?: string;
   domain?: string;
   credentials?: Record<string, unknown>;
+  config?: Record<string, unknown>;
   isActive?: boolean;
   priority?: number;
   routingMode?: string;
@@ -548,7 +549,7 @@ export class EmailAdminService {
         if (!accessKeyId || !secretAccessKey) throw new Error("Missing AWS credentials");
         const { SESClient, GetSendQuotaCommand } = await import("@aws-sdk/client-ses");
         const client = new SESClient({
-          region: provider.config?.region || "us-east-1",
+          region: (provider.config?.region as string) || "us-east-1",
           credentials: { accessKeyId, secretAccessKey },
         });
         const result = await client.send(new GetSendQuotaCommand({}));

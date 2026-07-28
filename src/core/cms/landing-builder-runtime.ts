@@ -1,4 +1,7 @@
 import { CMSService } from "./cms.service";
+import { DefaultCMSBlockRepository } from "./repositories/default-block.repository";
+import { DefaultCMSComponentRepository } from "./repositories/default-component.repository";
+import { DefaultCMSPublishRepository } from "./repositories/default-publish.repository";
 import type {
   CMSPage,
   CMSSection,
@@ -32,6 +35,9 @@ export type ClipboardEntry = {
 
 export class LandingBuilderRuntime {
   private cmsService: CMSService;
+  private blockRepo: DefaultCMSBlockRepository;
+  private componentRepo: DefaultCMSComponentRepository;
+  private publishRepo: DefaultCMSPublishRepository;
   private currentPageId: string | null = null;
   private selection: EditorSelection | null = null;
   private clipboard: ClipboardEntry | null = null;
@@ -41,6 +47,9 @@ export class LandingBuilderRuntime {
 
   constructor(cmsService?: CMSService) {
     this.cmsService = cmsService ?? new CMSService();
+    this.blockRepo = new DefaultCMSBlockRepository();
+    this.componentRepo = new DefaultCMSComponentRepository();
+    this.publishRepo = new DefaultCMSPublishRepository();
   }
 
   // ─── Page Operations ───────────────────────────────────────────────
@@ -182,9 +191,10 @@ export class LandingBuilderRuntime {
   }
 
   async updateBlock(id: string, updates: Partial<CMSBlock>): Promise<CMSBlock> {
-    const block = await this.cmsService.updateBlock(id, updates);
+    const updated = await this.blockRepo.updateBlock(id, updates);
+    if (!updated) throw new Error("Block not found");
     this.pushHistory("block.updated", { id, updates });
-    return block;
+    return updated;
   }
 
   async deleteBlock(id: string): Promise<void> {

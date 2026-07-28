@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { cmsMedia } from "@/lib/db/schema/cms";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, type SQLWrapper } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import type { CMSMediaRepository } from "./media.repository";
 import type { CMSMedia } from "../cms.types";
@@ -31,7 +31,7 @@ export class DefaultCMSMediaRepository implements CMSMediaRepository {
   }
 
   async listMedia(filters?: { folder?: string; type?: string }): Promise<CMSMedia[]> {
-    const conditions: unknown[] = [];
+    const conditions: SQLWrapper[] = [];
 
     if (filters?.folder !== undefined) {
       conditions.push(eq(cmsMedia.folder, filters.folder));

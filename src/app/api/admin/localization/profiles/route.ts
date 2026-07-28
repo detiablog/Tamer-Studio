@@ -25,6 +25,14 @@ function getAdminFromContext(ctx: RequestContext) {
 }
 
 export async function GET(request: NextRequest) {
+  const ctx: RequestContext = {
+    request, params: {},
+    state: { rateLimit: undefined, origin: undefined, adminSession: undefined, userSession: undefined, authError: undefined, permissionError: undefined, csrfError: undefined, rateLimitError: undefined, auditContext: undefined },
+    method: "GET", pathname: request.nextUrl.pathname,
+    ip: request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0].trim() || undefined,
+  };
+  const middlewareError = await runMiddleware([adminAuthentication()], ctx);
+  if (middlewareError) return middlewareError;
   try {
     const profiles = await adminLocalizationService.getProfiles();
     return NextResponse.json({

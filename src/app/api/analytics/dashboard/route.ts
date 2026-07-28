@@ -1,7 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getWorkspaceDashboardMetrics } from "@/core/analytics/aggregation";
+import type { RequestContext } from "@/core/middleware/types";
+import { runMiddleware } from "@/core/middleware/compose";
+import { userAuthentication } from "@/core/middleware";
 
 export async function GET(request: NextRequest) {
+  const ctx: RequestContext = {
+    request, params: {},
+    state: { rateLimit: undefined, origin: undefined, adminSession: undefined, userSession: undefined, authError: undefined, permissionError: undefined, csrfError: undefined, rateLimitError: undefined, auditContext: undefined },
+    method: "GET", pathname: request.nextUrl.pathname,
+    ip: request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0].trim() || undefined,
+  };
+  const middlewareError = await runMiddleware([userAuthentication()], ctx);
+  if (middlewareError) return middlewareError;
+
   try {
     const workspaceId = request.nextUrl.searchParams.get("workspaceId");
     
@@ -11,10 +23,6 @@ export async function GET(request: NextRequest) {
         { status: 400 }
       );
     }
-
-    // Validate user has access to workspace (implement based on auth)
-    // const session = await getServerSession();
-    // if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const startDate = request.nextUrl.searchParams.get("startDate");
     const endDate = request.nextUrl.searchParams.get("endDate");
