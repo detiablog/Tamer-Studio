@@ -6,7 +6,6 @@ import type {
   CMSMedia,
   CMSVersion,
   CMSPublishPipeline,
-  CMSCreatePageInput,
   CMSUpdatePageInput,
   CMSContentType,
   CMSPageStatus,

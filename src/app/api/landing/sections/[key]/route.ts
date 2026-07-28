@@ -3,12 +3,15 @@ import type { NextRequest } from "next/server";
 import type { RequestContext } from "@/core/middleware/types";
 import { runMiddleware } from "@/core/middleware/compose";
 import { adminAuthentication } from "@/core/middleware";
-import { LandingService } from "@/core/landing/landing.service";
+import { CMSService } from "@/core/cms/cms.service";
+import { getOrCreateLandingPage } from "@/core/cms/landing-page.helper";
 import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
 import { successResponse } from "@/app/api/mappers/response";
 import { z } from "zod";
 import { validateConfigTranslationKeys } from "@/lib/localization/validation";
 import { logAdminAction } from "@/core/admin/audit";
+
+const cmsService = new CMSService();
 
 const UpdateSectionSchema = z.object({
   title: z.string().min(1).max(255).optional(),
@@ -30,6 +33,54 @@ function getAdminFromContext(ctx: RequestContext) {
   return ctx.state.adminSession;
 }
 
+function mapCMSSectionToLanding(section: {
+  id: string;
+  sectionKey: string;
+  type: string;
+  title: string;
+  description?: string;
+  component?: string;
+  order: number;
+  visible: boolean;
+  locked: boolean;
+  config: Record<string, unknown>;
+  styles: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+}): {
+  id: string;
+  sectionKey: string;
+  title: string;
+  description: string | null;
+  component: string;
+  type: string;
+  visible: boolean;
+  locked: boolean;
+  order: number;
+  config: Record<string, unknown>;
+  styles: Record<string, unknown>;
+  media: Array<{ id: string; url: string; alt: string; type: string; order: number }>;
+  createdAt: string;
+  updatedAt: string;
+} {
+  return {
+    id: section.id,
+    sectionKey: section.sectionKey,
+    title: section.title,
+    description: section.description ?? null,
+    component: section.component ?? "",
+    type: section.type,
+    visible: section.visible,
+    locked: section.locked,
+    order: section.order,
+    config: section.config ?? {},
+    styles: section.styles ?? {},
+    media: [],
+    createdAt: section.createdAt,
+    updatedAt: section.updatedAt,
+  };
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ key: string }> }
@@ -37,14 +88,15 @@ export async function GET(
   try {
     const { key } = await params;
     const sectionKey = decodeURIComponent(key);
-    const service = new LandingService();
-    const section = await service.getSectionByKey(sectionKey);
+    const pageId = await getOrCreateLandingPage(cmsService);
+    const sections = await cmsService.listSections(pageId);
+    const section = sections.find((s) => s.sectionKey === sectionKey);
 
     if (!section) {
       return NextResponse.json({ success: false, error: { code: "NOT_FOUND", message: "Section not found" } }, { status: 404 });
     }
 
-    return NextResponse.json(successResponse(section));
+    return NextResponse.json(successResponse(mapCMSSectionToLanding(section)));
   } catch (error) {
     return mapErrorToResponse(error);
   }
@@ -90,8 +142,10 @@ export async function PATCH(
       );
     }
 
-    const service = new LandingService();
-    const existing = await service.getSectionByKey(sectionKey);
+    const pageId = await getOrCreateLandingPage(cmsService);
+    const sections = await cmsService.listSections(pageId);
+    const existing = sections.find((s) => s.sectionKey === sectionKey);
+
     if (!existing) {
       return NextResponse.json({ success: false, error: { code: "NOT_FOUND", message: "Section not found" } }, { status: 404 });
     }
@@ -121,7 +175,7 @@ export async function PATCH(
       return NextResponse.json({ success: false, error: { code: "VALIDATION_ERROR", message: "No fields to update" } }, { status: 400 });
     }
 
-    const updated = await service.updateSection(sectionKey, updateData as any);
+    const updated = await cmsService.updateSection(existing.id, updateData);
 
     const admin = getAdminFromContext(ctx);
     if (admin?.adminId) {
@@ -132,7 +186,7 @@ export async function PATCH(
       }).catch(() => {});
     }
 
-    return NextResponse.json(successResponse(updated));
+    return NextResponse.json(successResponse(mapCMSSectionToLanding(updated)));
   } catch (error) {
     return mapErrorToResponse(error);
   }
@@ -169,8 +223,10 @@ export async function DELETE(
     const { key } = await params;
     const sectionKey = decodeURIComponent(key);
 
-    const service = new LandingService();
-    const existing = await service.getSectionByKey(sectionKey);
+    const pageId = await getOrCreateLandingPage(cmsService);
+    const sections = await cmsService.listSections(pageId);
+    const existing = sections.find((s) => s.sectionKey === sectionKey);
+
     if (!existing) {
       return NextResponse.json({ success: false, error: { code: "NOT_FOUND", message: "Section not found" } }, { status: 404 });
     }
@@ -179,7 +235,7 @@ export async function DELETE(
       return NextResponse.json({ success: false, error: { code: "PERMISSION_DENIED", message: "Cannot delete a locked section" } }, { status: 403 });
     }
 
-    await service.deleteSection(sectionKey);
+    await cmsService.deleteSection(existing.id);
 
     const admin = getAdminFromContext(ctx);
     if (admin?.adminId) {
@@ -235,19 +291,21 @@ export async function POST(
       );
     }
 
-    const service = new LandingService();
-    const existing = await service.getSectionByKey(sectionKey);
+    const pageId = await getOrCreateLandingPage(cmsService);
+    const sections = await cmsService.listSections(pageId);
+    const existing = sections.find((s) => s.sectionKey === sectionKey);
+
     if (!existing) {
       return NextResponse.json({ success: false, error: { code: "NOT_FOUND", message: "Section not found" } }, { status: 404 });
     }
 
     const newKey = parsed.data.newSectionKey || `${sectionKey}-copy-${Date.now()}`;
-    const existingDuplicate = await service.getSectionByKey(newKey);
+    const existingDuplicate = sections.find((s) => s.sectionKey === newKey);
     if (existingDuplicate) {
       return NextResponse.json({ success: false, error: { code: "CONFLICT", message: `Section with key "${newKey}" already exists` } }, { status: 409 });
     }
 
-    const duplicated = await service.duplicateSection(sectionKey, newKey);
+    const duplicated = await cmsService.duplicateSection(existing.id);
 
     const admin = getAdminFromContext(ctx);
     if (admin?.adminId) {
@@ -257,7 +315,7 @@ export async function POST(
       }).catch(() => {});
     }
 
-    return NextResponse.json(successResponse(duplicated));
+    return NextResponse.json(successResponse(mapCMSSectionToLanding(duplicated)));
   } catch (error) {
     return mapErrorToResponse(error);
   }
