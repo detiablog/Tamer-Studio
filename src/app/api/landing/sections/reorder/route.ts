@@ -3,11 +3,14 @@ import type { NextRequest } from "next/server";
 import type { RequestContext } from "@/core/middleware/types";
 import { runMiddleware } from "@/core/middleware/compose";
 import { adminAuthentication } from "@/core/middleware";
-import { LandingService } from "@/core/landing/landing.service";
+import { CMSService } from "@/core/cms/cms.service";
+import { getOrCreateLandingPage } from "@/core/cms/landing-page.helper";
 import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
-import { successResponse, errorResponse } from "@/app/api/mappers/response";
+import { successResponse } from "@/app/api/mappers/response";
 import { z } from "zod";
 import { logAdminAction } from "@/core/admin/audit";
+
+const cmsService = new CMSService();
 
 const ReorderSchema = z.object({
   sections: z.array(
@@ -56,8 +59,19 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    const service = new LandingService();
-    await service.reorderSections(parsed.data.sections);
+    const pageId = await getOrCreateLandingPage(cmsService);
+    const sections = await cmsService.listSections(pageId);
+    const sectionMap = new Map(sections.map((s) => [s.sectionKey, s.id]));
+
+    const reorderData = parsed.data.sections
+      .map((item) => {
+        const cmsId = sectionMap.get(item.sectionKey);
+        if (!cmsId) return null;
+        return { id: cmsId, order: item.order };
+      })
+      .filter((item): item is { id: string; order: number } => item !== null);
+
+    await cmsService.reorderSections(reorderData);
 
     const admin = getAdminFromContext(ctx);
     if (admin?.adminId) {

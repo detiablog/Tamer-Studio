@@ -3,12 +3,15 @@ import type { NextRequest } from "next/server";
 import type { RequestContext } from "@/core/middleware/types";
 import { runMiddleware } from "@/core/middleware/compose";
 import { adminAuthentication } from "@/core/middleware";
-import { LandingService } from "@/core/landing/landing.service";
+import { CMSService } from "@/core/cms/cms.service";
+import { getOrCreateLandingPage } from "@/core/cms/landing-page.helper";
 import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
 import { successResponse, paginatedResponse } from "@/app/api/mappers/response";
 import { z } from "zod";
 import { validateConfigTranslationKeys } from "@/lib/localization/validation";
 import { logAdminAction } from "@/core/admin/audit";
+
+const cmsService = new CMSService();
 
 const CreateSectionSchema = z.object({
   sectionKey: z.string().min(1, "Key is required").max(100),
@@ -37,30 +40,84 @@ function getAdminFromContext(ctx: RequestContext) {
   return ctx.state.adminSession;
 }
 
+function mapCMSSectionToLanding(section: {
+  id: string;
+  sectionKey: string;
+  type: string;
+  title: string;
+  description?: string;
+  component?: string;
+  order: number;
+  visible: boolean;
+  locked: boolean;
+  config: Record<string, unknown>;
+  styles: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+}): {
+  id: string;
+  sectionKey: string;
+  title: string;
+  description: string | null;
+  component: string;
+  type: string;
+  visible: boolean;
+  locked: boolean;
+  order: number;
+  config: Record<string, unknown>;
+  styles: Record<string, unknown>;
+  media: Array<{ id: string; url: string; alt: string; type: string; order: number }>;
+  createdAt: string;
+  updatedAt: string;
+} {
+  return {
+    id: section.id,
+    sectionKey: section.sectionKey,
+    title: section.title,
+    description: section.description ?? null,
+    component: section.component ?? "",
+    type: section.type,
+    visible: section.visible,
+    locked: section.locked,
+    order: section.order,
+    config: section.config ?? {},
+    styles: section.styles ?? {},
+    media: [],
+    createdAt: section.createdAt,
+    updatedAt: section.updatedAt,
+  };
+}
+
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const service = new LandingService();
+    const pageId = await getOrCreateLandingPage(cmsService);
 
-    const sections = await service.listSections({
-      search: searchParams.get("search") || undefined,
-      type: searchParams.get("type") || undefined,
-      visible: searchParams.get("visible") === "true" ? true : searchParams.get("visible") === "false" ? false : undefined,
-      locked: searchParams.get("locked") === "true" ? true : searchParams.get("locked") === "false" ? false : undefined,
-      limit: Math.min(parseInt(searchParams.get("limit") || "100", 10), 500),
+    const sections = await cmsService.listSections(pageId);
+
+    const filtered = sections.filter((s) => {
+      if (searchParams.get("type") && s.type !== searchParams.get("type")) return false;
+      if (searchParams.get("visible") === "true" && !s.visible) return false;
+      if (searchParams.get("visible") === "false" && s.visible) return false;
+      if (searchParams.get("locked") === "true" && !s.locked) return false;
+      if (searchParams.get("locked") === "false" && s.locked) return false;
+      return true;
     });
 
-    return NextResponse.json(paginatedResponse(sections, sections.length, 1, sections.length));
+    const mapped = filtered.map(mapCMSSectionToLanding);
+    const limit = Math.min(parseInt(searchParams.get("limit") || "100", 10), 500);
+    const paginated = mapped.slice(0, limit);
+
+    return NextResponse.json(paginatedResponse(paginated, mapped.length, 1, mapped.length));
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    const isMissingTable = /does not exist|undefined_table|relation.*does not exist|Failed query/i.test(message);
     return NextResponse.json(
       {
         success: false,
-        error: isMissingTable ? "Landing tables not found. Please run migrations." : "Failed to fetch landing sections",
+        error: "Failed to fetch landing sections",
         details: message,
       },
-      { status: isMissingTable ? 404 : 500 }
+      { status: 500 }
     );
   }
 }
@@ -99,7 +156,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { sectionKey, title, description, component, type, visible, locked, order, config, styles, media } = parsed.data;
+    const { sectionKey, title, description, component, type, visible, locked, order, config, styles } = parsed.data;
 
     if (config && typeof config === "object") {
       const validation = validateConfigTranslationKeys(config as Record<string, unknown>);
@@ -111,13 +168,14 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const service = new LandingService();
-    const existing = await service.getSectionByKey(sectionKey);
+    const pageId = await getOrCreateLandingPage(cmsService);
+    const existing = await cmsService.listSections(pageId).then((sections) => sections.find((s) => s.sectionKey === sectionKey));
     if (existing) {
       return NextResponse.json({ success: false, error: { code: "CONFLICT", message: `Section with key "${sectionKey}" already exists` } }, { status: 409 });
     }
 
-    const section = await service.createSection({
+    const section = await cmsService.createSection({
+      pageId,
       sectionKey,
       title,
       description,
@@ -128,7 +186,6 @@ export async function POST(request: NextRequest) {
       order,
       config,
       styles,
-      media,
     });
 
     const admin = getAdminFromContext(ctx);
@@ -140,7 +197,7 @@ export async function POST(request: NextRequest) {
       }).catch(() => {});
     }
 
-    return NextResponse.json(successResponse(section));
+    return NextResponse.json(successResponse(mapCMSSectionToLanding(section)));
   } catch (error) {
     return mapErrorToResponse(error);
   }

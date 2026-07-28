@@ -1,9 +1,7 @@
-"use client";
-
-import * as React from "react";
-import Link from "next/link";
-import { useLocalizationContext } from "@/providers/localization";
-import { cn } from "@/lib/utils";
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { getSEORuntime } from "@/core/seo";
+import { BlogPostContent } from "./BlogPostContent";
 
 const posts = [
   {
@@ -62,50 +60,82 @@ const posts = [
   },
 ];
 
-export default function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { t, locale } = useLocalizationContext();
-  const resolvedParams = React.use(params);
-  const post = posts.find((p) => p.slug === resolvedParams.slug);
-  const dateLocale = locale === "id" ? "id-ID" : "en-US";
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const post = posts.find((p) => p.slug === slug);
 
   if (!post) {
-    return (
-      <div className="mx-auto max-w-6xl px-6 py-20">
-        <h1 className="text-2xl font-semibold">Post not found</h1>
-        <Link href={"/blog" as any} className="text-primary hover:underline">{t("marketing.blogBackToBlog")}</Link>
-      </div>
-    );
+    return { title: "Post Not Found" };
   }
 
-  const related = posts.filter((p) => post.related.includes(p.slug));
+  const seoRuntime = getSEORuntime();
 
-  return (
-    <div className="mx-auto max-w-3xl px-6 py-20">
-      <Link href={"/blog" as any} className="text-sm text-muted-foreground hover:text-foreground">{t("marketing.blogBackToBlog")}</Link>
-      <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">{post.title}</h1>
-      <div className="mt-4 flex items-center gap-3 text-sm text-muted-foreground">
-        <span suppressHydrationWarning>{t("marketing.blogPublishedOn")} {new Date(post.date).toLocaleDateString(dateLocale)}</span>
-        <span>•</span>
-        <span>{t("marketing.blogByAuthor")} {post.author}</span>
-      </div>
-      <div className="mt-8 space-y-4 leading-7 text-muted-foreground">
-        {post.content.split("\n").map((paragraph, i) => (
-          <p key={i}>{paragraph}</p>
-        ))}
-      </div>
-      {related.length > 0 && (
-        <div className="mt-16 border-t pt-8">
-          <h2 className="text-lg font-semibold">{t("marketing.learnMore")}</h2>
-          <div className="mt-6 grid gap-4 sm:grid-cols-2">
-            {related.map((r) => (
-              <Link key={r.slug} href={`/blog/${r.slug}` as any} className="rounded-xl border border-border bg-card p-4 hover:border-foreground/20">
-                <h3 className="font-semibold">{r.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground line-clamp-2">{r.excerpt}</p>
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
+  const resolved = await seoRuntime.resolvePage({
+    route: `/blog/${slug}`,
+    title: post.title,
+    description: post.excerpt,
+    keywords: ["Tamer Studio", "blog", post.title],
+    type: "article",
+    author: post.author,
+    publishedTime: post.date,
+    image: "https://tamer.studio/og-image.svg",
+    schema: [
+      {
+        type: "Article",
+        data: {
+          title: post.title,
+          description: post.excerpt,
+          author: post.author,
+          datePublished: post.date,
+        },
+      },
+    ],
+    breadcrumbs: [
+      { label: "Home", href: "/" },
+      { label: "Blog", href: "/blog" },
+      { label: post.title, href: `/blog/${slug}` },
+    ],
+  });
+
+  return {
+    title: resolved.metadata.title,
+    description: resolved.metadata.description,
+    keywords: resolved.metadata.keywords,
+    authors: [{ name: resolved.metadata.author }],
+    openGraph: {
+      title: resolved.openGraph.title,
+      description: resolved.openGraph.description,
+      type: "article",
+      url: resolved.openGraph.url,
+      siteName: resolved.openGraph.siteName,
+      images: resolved.openGraph.images,
+      locale: resolved.openGraph.locale,
+      publishedTime: post.date,
+      authors: [post.author],
+    },
+    twitter: {
+      card: resolved.twitter.card,
+      title: resolved.twitter.title,
+      description: resolved.twitter.description,
+      images: resolved.twitter.images,
+    },
+    robots: {
+      index: resolved.robots.index,
+      follow: resolved.robots.follow,
+    },
+    alternates: {
+      canonical: resolved.canonical.canonical,
+    },
+  };
+}
+
+export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const post = posts.find((p) => p.slug === slug);
+
+  if (!post) {
+    notFound();
+  }
+
+  return <BlogPostContent post={post} />;
 }

@@ -1,6 +1,16 @@
 import { randomUUID } from "crypto";
 import { pageRegistry } from "./page.registry";
 import { componentLibrary } from "./components/component.library";
+import {
+  DefaultCMSPageRepository,
+  DefaultCMSSectionRepository,
+  DefaultCMSBlockRepository,
+  DefaultCMSComponentRepository,
+  DefaultCMSMediaRepository,
+  DefaultCMSVersionRepository,
+  DefaultCMSPublishRepository,
+  DefaultCMSAuditRepository,
+} from "./repositories";
 import type {
   CMSPage,
   CMSSection,
@@ -21,86 +31,77 @@ import { logger } from "@/core/logger/logger";
 import { logAction } from "@/core/audit";
 
 export class CMSService {
-  async createPage(input: CMSCreatePageInput): Promise<CMSPage> {
-    const id = randomUUID();
-    const now = new Date().toISOString();
-    const page: CMSPage = {
-      id,
-      title: input.title,
-      slug: input.slug,
-      status: input.status ?? "draft",
-      contentType: input.contentType ?? "page",
-      parentId: input.parentId,
-      seo: {
-        title: input.seo?.title,
-        description: input.seo?.description,
-        ogImage: input.seo?.ogImage,
-        canonical: input.seo?.canonical,
-        robots: input.seo?.robots,
-      },
-      localization: {
-        locale: input.localization?.locale ?? "en",
-        fallbackLocale: input.localization?.fallbackLocale ?? "en",
-        translations: input.localization?.translations ?? {},
-      },
-      permissions: {
-        read: input.permissions?.read ?? ["admin", "editor", "author", "viewer"],
-        write: input.permissions?.write ?? ["admin", "editor"],
-        publish: input.permissions?.publish ?? ["admin"],
-      },
-      version: 1,
-      createdAt: now,
-      updatedAt: now,
-      authorId: input.authorId,
-    };
+  private pageRepo: DefaultCMSPageRepository;
+  private sectionRepo: DefaultCMSSectionRepository;
+  private blockRepo: DefaultCMSBlockRepository;
+  private componentRepo: DefaultCMSComponentRepository;
+  private mediaRepo: DefaultCMSMediaRepository;
+  private versionRepo: DefaultCMSVersionRepository;
+  private publishRepo: DefaultCMSPublishRepository;
+  private auditRepo: DefaultCMSAuditRepository;
 
+  constructor(
+    pageRepo?: DefaultCMSPageRepository,
+    sectionRepo?: DefaultCMSSectionRepository,
+    blockRepo?: DefaultCMSBlockRepository,
+    componentRepo?: DefaultCMSComponentRepository,
+    mediaRepo?: DefaultCMSMediaRepository,
+    versionRepo?: DefaultCMSVersionRepository,
+    publishRepo?: DefaultCMSPublishRepository,
+    auditRepo?: DefaultCMSAuditRepository,
+  ) {
+    this.pageRepo = pageRepo ?? new DefaultCMSPageRepository();
+    this.sectionRepo = sectionRepo ?? new DefaultCMSSectionRepository();
+    this.blockRepo = blockRepo ?? new DefaultCMSBlockRepository();
+    this.componentRepo = componentRepo ?? new DefaultCMSComponentRepository();
+    this.mediaRepo = mediaRepo ?? new DefaultCMSMediaRepository();
+    this.versionRepo = versionRepo ?? new DefaultCMSVersionRepository();
+    this.publishRepo = publishRepo ?? new DefaultCMSPublishRepository();
+    this.auditRepo = auditRepo ?? new DefaultCMSAuditRepository();
+  }
+
+  async createPage(input: CMSCreatePageInput): Promise<CMSPage> {
+    const page = await this.pageRepo.createPage(input);
     pageRegistry.registerPage(page);
-    logAction("cms.page.created", input.authorId, "admin", { pageId: id, slug: input.slug });
-    logger.info("CMS page created", { pageId: id, slug: input.slug });
+    logAction("cms.page.created", input.authorId, "admin", { pageId: page.id, slug: input.slug });
+    logger.info("CMS page created", { pageId: page.id, slug: input.slug });
     return page;
   }
 
   async getPage(id: string): Promise<CMSPage | undefined> {
-    return pageRegistry.getPage(id);
+    return this.pageRepo.getPage(id);
   }
 
   async getPageBySlug(slug: string): Promise<CMSPage | undefined> {
-    return pageRegistry.getPageBySlug(slug);
+    return this.pageRepo.getPageBySlug(slug);
   }
 
   async updatePage(id: string, input: CMSUpdatePageInput): Promise<CMSPage> {
-    const existing = pageRegistry.getPage(id);
+    const existing = await this.pageRepo.getPage(id);
     if (!existing) throw new Error("Page not found");
 
-    const updates: Partial<CMSPage> = {
-      updatedAt: new Date().toISOString(),
-    };
-    if (input.title !== undefined) updates.title = input.title;
-    if (input.slug !== undefined) updates.slug = input.slug;
-    if (input.status !== undefined) updates.status = input.status;
-    if (input.seo !== undefined) updates.seo = { ...existing.seo, ...input.seo };
-    if (input.localization !== undefined) updates.localization = { ...existing.localization, ...input.localization };
-    if (input.permissions !== undefined) updates.permissions = { ...existing.permissions, ...input.permissions };
-    if (input.publishedVersion !== undefined) updates.publishedVersion = input.publishedVersion;
-    if (input.scheduledAt !== undefined) updates.scheduledAt = input.scheduledAt;
-
-    const updated = pageRegistry.updatePage(id, updates);
+    const updated = await this.pageRepo.updatePage(id, input);
     if (!updated) throw new Error("Failed to update page");
+
+    pageRegistry.updatePage(id, updated);
     logAction("cms.page.updated", existing.authorId, "admin", { pageId: id, changes: input });
     logger.info("CMS page updated", { pageId: id });
     return updated;
   }
 
   async deletePage(id: string): Promise<void> {
-    const existing = pageRegistry.getPage(id);
+    const existing = await this.pageRepo.getPage(id);
     if (!existing) throw new Error("Page not found");
+    await this.pageRepo.deletePage(id);
     pageRegistry.deletePage(id);
     logAction("cms.page.deleted", existing.authorId, "admin", { pageId: id });
     logger.info("CMS page deleted", { pageId: id });
   }
 
   async listPages(filters?: { status?: CMSPageStatus; contentType?: CMSContentType }): Promise<CMSPage[]> {
-    return pageRegistry.listPages(filters);
+    const pages = await this.pageRepo.listPages(filters);
+    pages.forEach((page) => pageRegistry.registerPage(page));
+    return pages;
   }
 
   async registerComponent(component: CMSComponent): Promise<CMSComponent> {
@@ -111,6 +112,11 @@ export class CMSService {
       permissions: component.permissions as string[],
     };
     componentLibrary.register(definition);
+    await this.componentRepo.createComponent({
+      ...component,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
     logger.info("CMS component registered", { componentId: component.id, type: component.type });
     return component;
   }
@@ -139,18 +145,24 @@ export class CMSService {
   async hasPermission(pageId: string, action: "read" | "write" | "publish", permission: string): Promise<boolean> {
     const page = pageRegistry.getPage(pageId);
     if (!page) return false;
-    return pageRegistry.hasPermission(page, action, permission as any);
+    return pageRegistry.hasPermission(page, action, permission as CMSPermission);
   }
 
   async createSection(input: Partial<CMSSection> & { pageId: string }): Promise<CMSSection> {
     const id = randomUUID();
     const now = new Date().toISOString();
+    const maxOrder = await this.sectionRepo.getSectionsByPageId(input.pageId).then((sections) => Math.max(-1, ...sections.map((s) => s.order)));
+    const sectionOrder = typeof input.order === "number" ? input.order : maxOrder + 1;
+
     const section: CMSSection = {
       id,
       pageId: input.pageId,
+      sectionKey: input.sectionKey ?? `section-${Date.now()}`,
       type: input.type ?? "hero",
       title: input.title ?? "",
-      order: input.order ?? 0,
+      description: input.description,
+      component: input.component,
+      order: sectionOrder,
       visible: input.visible ?? true,
       locked: input.locked ?? false,
       config: input.config ?? {},
@@ -159,72 +171,149 @@ export class CMSService {
       createdAt: now,
       updatedAt: now,
     };
+
+    const created = await this.sectionRepo.createSection(section);
     logAction("cms.section.created", input.pageId, "admin", { sectionId: id });
     logger.info("CMS section created", { sectionId: id, pageId: input.pageId });
-    return section;
+    return created;
   }
 
   async listSections(pageId: string): Promise<CMSSection[]> {
-    return [];
+    return this.sectionRepo.getSectionsByPageId(pageId);
   }
 
-  async createVersion(contentId: string, contentType: CMSContentType, data: Record<string, unknown>, authorId: string, message?: string): Promise<CMSVersion> {
+  async updateSection(id: string, updates: Partial<CMSSection>): Promise<CMSSection> {
+    const existing = await this.sectionRepo.getSection(id);
+    if (!existing) throw new Error("Section not found");
+
+    const updated = await this.sectionRepo.updateSection(id, updates);
+    if (!updated) throw new Error("Failed to update section");
+
+    logAction("cms.section.updated", existing.pageId, "admin", { sectionId: id, changes: updates });
+    logger.info("CMS section updated", { sectionId: id });
+    return updated;
+  }
+
+  async deleteSection(id: string): Promise<void> {
+    const existing = await this.sectionRepo.getSection(id);
+    if (!existing) throw new Error("Section not found");
+    await this.sectionRepo.deleteSection(id);
+    logAction("cms.section.deleted", existing.pageId, "admin", { sectionId: id });
+    logger.info("CMS section deleted", { sectionId: id });
+  }
+
+  async reorderSections(sectionOrders: { id: string; order: number }[]): Promise<void> {
+    for (const item of sectionOrders) {
+      await this.sectionRepo.updateSection(item.id, { order: item.order } as Partial<CMSSection>);
+    }
+  }
+
+  async duplicateSection(id: string): Promise<CMSSection> {
+    const existing = await this.sectionRepo.getSection(id);
+    if (!existing) throw new Error("Section not found");
+
+    const sections = await this.sectionRepo.getSectionsByPageId(existing.pageId);
+    const maxOrder = Math.max(-1, ...sections.map((s) => s.order));
+
+    const newSection = await this.sectionRepo.createSection({
+      ...existing,
+      id: randomUUID(),
+      sectionKey: `${existing.sectionKey}-copy-${Date.now()}`,
+      title: `${existing.title} (Copy)`,
+      order: maxOrder + 1,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+
+    return newSection;
+  }
+
+  async createBlock(input: Partial<CMSBlock> & { sectionId: string }): Promise<CMSBlock> {
     const id = randomUUID();
     const now = new Date().toISOString();
-    const version: CMSVersion = {
+    const block: CMSBlock = {
       id,
-      contentId,
-      contentType,
-      version: 1,
-      data,
-      authorId,
-      createdAt: now,
-      message,
-    };
-    logAction("cms.version.created", authorId, "admin", { contentId, version: 1 });
-    logger.info("CMS version created", { contentId, version: 1 });
-    return version;
-  }
-
-  async getVersions(contentId: string): Promise<CMSVersion[]> {
-    return [];
-  }
-
-  async createPublishPipeline(contentId: string, contentType: CMSContentType): Promise<CMSPublishPipeline> {
-    const id = randomUUID();
-    const now = new Date().toISOString();
-    const pipeline: CMSPublishPipeline = {
-      id,
-      contentId,
-      contentType,
-      status: "pending",
-      steps: [
-        { name: "validation", status: "pending" },
-        { name: "localization", status: "pending" },
-        { name: "seo", status: "pending" },
-        { name: "assets", status: "pending" },
-        { name: "links", status: "pending" },
-        { name: "publish", status: "pending" },
-        { name: "cache", status: "pending" },
-        { name: "search", status: "pending" },
-      ],
+      sectionId: input.sectionId,
+      type: input.type ?? "text",
+      properties: input.properties ?? {},
+      order: input.order ?? 0,
+      visible: input.visible ?? true,
       createdAt: now,
       updatedAt: now,
     };
-    logAction("cms.publish.created", contentId, "admin", { pipelineId: id });
-    logger.info("CMS publish pipeline created", { contentId, pipelineId: id });
+
+    const created = await this.blockRepo.createBlock(block);
+    logAction("cms.block.created", input.sectionId, "admin", { blockId: id });
+    logger.info("CMS block created", { blockId: id, sectionId: input.sectionId });
+    return created;
+  }
+
+  async listBlocks(sectionId: string): Promise<CMSBlock[]> {
+    return this.blockRepo.getBlocksBySectionId(sectionId);
+  }
+
+  async createVersion(contentId: string, contentType: CMSContentType, data: Record<string, unknown>, authorId: string, message?: string): Promise<CMSVersion> {
+    const existingVersions = await this.versionRepo.getVersionsByContentId(contentId);
+    const nextVersion = existingVersions.length + 1;
+
+    const version: CMSVersion = {
+      id: randomUUID(),
+      contentId,
+      contentType,
+      version: nextVersion,
+      data,
+      authorId,
+      createdAt: new Date().toISOString(),
+      message,
+    };
+
+    const created = await this.versionRepo.createVersion(version);
+    logAction("cms.version.created", authorId, "admin", { contentId, version: nextVersion });
+    logger.info("CMS version created", { contentId, version: nextVersion });
+    return created;
+  }
+
+  async getVersions(contentId: string): Promise<CMSVersion[]> {
+    return this.versionRepo.getVersionsByContentId(contentId);
+  }
+
+  async createPublishPipeline(contentId: string, contentType: CMSContentType): Promise<CMSPublishPipeline> {
+    const pipeline = await this.publishRepo.createPipeline({
+      id: randomUUID(),
+      contentId,
+      contentType,
+      status: "pending",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+
+    const steps = [
+      { name: "validation", status: "pending" as const },
+      { name: "localization", status: "pending" as const },
+      { name: "seo", status: "pending" as const },
+      { name: "assets", status: "pending" as const },
+      { name: "links", status: "pending" as const },
+      { name: "publish", status: "pending" as const },
+      { name: "cache", status: "pending" as const },
+      { name: "search", status: "pending" as const },
+    ];
+
+    for (const step of steps) {
+      await this.publishRepo.createStep({ ...step, pipelineId: pipeline.id });
+    }
+
+    logAction("cms.publish.created", contentId, "admin", { pipelineId: pipeline.id });
+    logger.info("CMS publish pipeline created", { contentId, pipelineId: pipeline.id });
     return pipeline;
   }
 
   async listMedia(filters?: { folder?: string; type?: string }): Promise<CMSMedia[]> {
-    return [];
+    return this.mediaRepo.listMedia(filters);
   }
 
   async registerMedia(input: Partial<CMSMedia>): Promise<CMSMedia> {
-    const id = randomUUID();
-    const now = new Date().toISOString();
-    const media: CMSMedia = {
-      id,
+    const media = await this.mediaRepo.createMedia({
+      id: randomUUID(),
       filename: input.filename ?? "unknown",
       url: input.url ?? "",
       alt: input.alt,
@@ -232,15 +321,15 @@ export class CMSService {
       size: input.size ?? 0,
       folder: input.folder,
       metadata: input.metadata ?? {},
-      createdAt: now,
-      updatedAt: now,
-    };
-    logAction("cms.media.uploaded", input.filename ?? "unknown", "admin", { mediaId: id });
-    logger.info("CMS media registered", { mediaId: id });
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+    logAction("cms.media.uploaded", input.filename ?? "unknown", "admin", { mediaId: media.id });
+    logger.info("CMS media registered", { mediaId: media.id });
     return media;
   }
 
   async getAuditLog(contentId?: string, contentType?: CMSContentType): Promise<CMSAuditEntry[]> {
-    return [];
+    return this.auditRepo.getAuditLog(contentId, contentType);
   }
 }

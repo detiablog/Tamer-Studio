@@ -62,8 +62,11 @@ export interface CMSPage {
 export interface CMSSection {
   id: string;
   pageId: string;
+  sectionKey: string;
   type: string;
   title: string;
+  description?: string;
+  component?: string;
   order: number;
   visible: boolean;
   locked: boolean;

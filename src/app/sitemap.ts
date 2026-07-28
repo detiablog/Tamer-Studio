@@ -1,28 +1,17 @@
 import { MetadataRoute } from "next";
 import { config } from "@/core/config";
-
-const baseUrl = config.app.url;
+import { getSEORuntime } from "@/core/seo";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const marketing = [
-    "/",
-    "/features",
-    "/pricing",
-    "/blog",
-    "/roadmap",
-    "/careers",
-    "/support",
-    "/docs",
-    "/about",
-    "/contact",
-    "/legal/privacy",
-    "/legal/terms",
-  ];
+  const seoRuntime = getSEORuntime();
+  const baseUrl = config.app.url;
 
-  return marketing.map((path) => ({
-    url: new URL(path, baseUrl).toString(),
-    lastModified: new Date("2026-07-25"),
-    changeFrequency: "weekly",
-    priority: path === "/" ? 1 : 0.7,
+  const sitemapResults = seoRuntime.resolveSitemap();
+
+  return sitemapResults.map((entry) => ({
+    url: entry.url,
+    lastModified: new Date(entry.lastModified),
+    changeFrequency: entry.changeFrequency as MetadataRoute.Sitemap[number]["changeFrequency"],
+    priority: entry.priority,
   }));
 }
