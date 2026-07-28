@@ -7,7 +7,7 @@ import type { CMSAuditEntry, CMSContentType } from "../cms.types";
 
 export class DefaultCMSAuditRepository implements CMSAuditRepository {
   async createEntry(entry: Omit<CMSAuditEntry, "id" | "timestamp">): Promise<CMSAuditEntry> {
-    const now = new Date().toISOString();
+    const now = new Date();
     const id = randomUUID();
     const [created] = await db.insert(cmsAuditEntry).values({
       id,
@@ -51,7 +51,7 @@ export class DefaultCMSAuditRepository implements CMSAuditRepository {
       contentType: row.contentType as CMSContentType,
       contentId: row.contentId,
       authorId: row.authorId,
-      timestamp: row.timestamp.toISOString(),
+      timestamp: typeof row.timestamp === 'string' ? row.timestamp : row.timestamp.toISOString(),
       metadata: row.metadata ?? {},
     };
   }

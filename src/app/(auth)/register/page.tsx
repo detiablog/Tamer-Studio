@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Sparkles, ArrowRight } from "lucide-react";
-import { authClient } from "@/lib/auth/auth-client";
+import { authClient } from "@/core/auth/client";
 import { RegisterForm } from "@/features/auth/components/register-form";
 import { useLocalizationContext } from "@/providers/localization";
 

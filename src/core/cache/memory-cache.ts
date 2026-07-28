@@ -1,21 +1,31 @@
-import { logger as _logger } from "@/core/logger/logger";
-import type { MemoryCache } from "./cache.types";
+import type { SharedCache, CacheStats } from "./cache.interface";
 
-interface EntryRecord {
+interface CacheEntry {
   value: unknown;
   expiresAt: number;
   tags: string[];
+  createdAt: number;
+  lastAccessedAt: number;
 }
 
-export class InMemoryCache implements MemoryCache {
-  private cache = new Map<string, EntryRecord>();
+export class MemoryCache implements SharedCache {
+  private cache = new Map<string, CacheEntry>();
   private tagIndex = new Map<string, Set<string>>();
   private hits = 0;
   private misses = 0;
-  private cleanupInterval: ReturnType<typeof setInterval>;
+  private evictions = 0;
+  private cleanupInterval: ReturnType<typeof setInterval> | null = null;
+  private readonly maxSize: number;
+  private readonly defaultTtl: number;
 
-  constructor(private maxSize = 10000) {
-    this.cleanupInterval = setInterval(() => this.cleanup(), 60000);
+  constructor(options?: { maxSize?: number; defaultTtl?: number; cleanupIntervalMs?: number }) {
+    this.maxSize = options?.maxSize ?? 1000;
+    this.defaultTtl = options?.defaultTtl ?? 60_000;
+
+    const interval = options?.cleanupIntervalMs ?? 60_000;
+    if (typeof setInterval !== "undefined") {
+      this.cleanupInterval = setInterval(() => this.cleanup(), interval);
+    }
   }
 
   async get<T>(key: string): Promise<T | undefined> {
@@ -25,36 +35,61 @@ export class InMemoryCache implements MemoryCache {
       return undefined;
     }
     if (entry.expiresAt > 0 && entry.expiresAt < Date.now()) {
-      this.cache.delete(key);
-      entry.tags.forEach((tag) => this.tagIndex.get(tag)?.delete(key));
+      this.deleteEntry(key);
       this.misses++;
       return undefined;
     }
+    entry.lastAccessedAt = Date.now();
     this.hits++;
     return entry.value as T;
   }
 
-  async set<T>(_key: string, value: T, ttlMs?: number, tags?: string[]): Promise<void> {
+  async set<T>(key: string, value: T, options?: { ttl?: number; tags?: string[] }): Promise<void> {
+    if (this.cache.has(key)) {
+      this.deleteEntry(key);
+    }
+
     this.evictIfFull();
-    const expiresAt = ttlMs ? Date.now() + ttlMs : 0;
-    const entry: EntryRecord = { value, expiresAt, tags: tags ?? [] };
-    this.cache.set(_key, entry);
-    tags?.forEach((tag) => {
-      let set = this.tagIndex.get(tag);
-      if (!set) {
-        set = new Set();
-        this.tagIndex.set(tag, set);
-      }
-      set.add(_key);
-    });
+
+    const ttl = options?.ttl ?? this.defaultTtl;
+    const entry: CacheEntry = {
+      value,
+      expiresAt: ttl > 0 ? Date.now() + ttl : 0,
+      tags: options?.tags ?? [],
+      createdAt: Date.now(),
+      lastAccessedAt: Date.now(),
+    };
+
+    this.cache.set(key, entry);
+    this.addToTagIndex(key, entry.tags);
   }
 
   async delete(key: string): Promise<void> {
-    const entry = this.cache.get(key);
-    if (entry) {
-      entry.tags.forEach((tag) => this.tagIndex.get(tag)?.delete(key));
-      this.cache.delete(key);
+    this.deleteEntry(key);
+  }
+
+  async invalidateByTag(tag: string): Promise<void> {
+    const keys = this.tagIndex.get(tag);
+    if (!keys) return;
+    for (const key of keys) {
+      this.deleteEntry(key);
     }
+    this.tagIndex.delete(tag);
+  }
+
+  async invalidateAll(): Promise<void> {
+    this.cache.clear();
+    this.tagIndex.clear();
+  }
+
+  async has(key: string): Promise<boolean> {
+    const entry = this.cache.get(key);
+    if (!entry) return false;
+    if (entry.expiresAt > 0 && entry.expiresAt < Date.now()) {
+      this.deleteEntry(key);
+      return false;
+    }
+    return true;
   }
 
   async clear(): Promise<void> {
@@ -62,59 +97,84 @@ export class InMemoryCache implements MemoryCache {
     this.tagIndex.clear();
     this.hits = 0;
     this.misses = 0;
+    this.evictions = 0;
   }
 
-  async invalidateByTag(tag: string): Promise<void> {
-    const keys = this.tagIndex.get(tag);
-    if (!keys) return;
-    keys.forEach((key) => {
-      const entry = this.cache.get(key);
-      if (entry) {
-        entry.tags.forEach((t) => this.tagIndex.get(t)?.delete(key));
-        this.cache.delete(key);
-      }
-    });
-    this.tagIndex.delete(tag);
-  }
-
-  async has(key: string): Promise<boolean> {
-    const entry = this.cache.get(key);
-    if (!entry) return false;
-    if (entry.expiresAt > 0 && entry.expiresAt < Date.now()) {
-      this.cache.delete(key);
-      return false;
-    }
-    return true;
-  }
-
-  getStats(): { size: number; hits: number; misses: number } {
-    this.cleanup();
+  getStats(): CacheStats {
     return {
       size: this.cache.size,
       hits: this.hits,
       misses: this.misses,
+      evictions: this.evictions,
+      tags: this.tagIndex.size,
     };
   }
 
-  private cleanup(): void {
-    const now = Date.now();
-    for (const [key, entry] of this.cache) {
-      if (entry.expiresAt > 0 && entry.expiresAt < now) {
-        entry.tags.forEach((tag) => this.tagIndex.get(tag)?.delete(key));
-        this.cache.delete(key);
+  destroy(): void {
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = null;
+    }
+  }
+
+  private deleteEntry(key: string): void {
+    const entry = this.cache.get(key);
+    if (!entry) return;
+    this.removeFromTagIndex(key, entry.tags);
+    this.cache.delete(key);
+  }
+
+  private addToTagIndex(key: string, tags: string[]): void {
+    for (const tag of tags) {
+      let set = this.tagIndex.get(tag);
+      if (!set) {
+        set = new Set();
+        this.tagIndex.set(tag, set);
+      }
+      set.add(key);
+    }
+  }
+
+  private removeFromTagIndex(key: string, tags: string[]): void {
+    for (const tag of tags) {
+      const set = this.tagIndex.get(tag);
+      if (set) {
+        set.delete(key);
+        if (set.size === 0) {
+          this.tagIndex.delete(tag);
+        }
       }
     }
   }
 
   private evictIfFull(): void {
     while (this.cache.size >= this.maxSize) {
-      const oldestKey = this.cache.keys().next().value;
-      if (oldestKey) {
-        this.cache.delete(oldestKey);
-        const entry = this.cache.get(oldestKey);
-        entry?.tags.forEach((tag) => this.tagIndex.get(tag)?.delete(oldestKey));
-      } else {
-        break;
+      this.evictLRU();
+    }
+  }
+
+  private evictLRU(): void {
+    let lruKey: string | null = null;
+    let lruTime = Infinity;
+
+    for (const [key, entry] of this.cache) {
+      if (entry.lastAccessedAt < lruTime) {
+        lruTime = entry.lastAccessedAt;
+        lruKey = key;
+      }
+    }
+
+    if (lruKey) {
+      this.deleteEntry(lruKey);
+      this.evictions++;
+    }
+  }
+
+  private cleanup(): void {
+    const now = Date.now();
+    for (const [key, entry] of this.cache) {
+      if (entry.expiresAt > 0 && entry.expiresAt < now) {
+        this.deleteEntry(key);
       }
     }
   }

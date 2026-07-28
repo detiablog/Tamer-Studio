@@ -1,11 +1,16 @@
+import { redirect } from "next/navigation";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { PageLayout } from "@/components/ui/PageLayout";
+import { getAdminSession } from "@/core/admin/session";
 
 export const dynamic = "force-dynamic";
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  // In development, skip session validation
-  // In production, implement proper session checking
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const session = await getAdminSession();
+
+  if (!session) {
+    redirect("/admin/login");
+  }
 
   return (
     <AdminShell>

@@ -1,4 +1,4 @@
-import type { UsageRecord, UsageCollector, UsageSummary } from "@/lib/ai/types/billing";
+import type { UsageRecord, UsageCollector, UsageSummary } from "@/core/types/billing";
 
 export class UsageService implements UsageCollector {
   private records = new Map<string, UsageRecord>();

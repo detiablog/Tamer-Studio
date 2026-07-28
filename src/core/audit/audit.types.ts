@@ -148,7 +148,10 @@ export type AuditAction =
   | "cms.version.created"
   | "cms.publish.created"
   | "cms.publish.completed"
-  | "cms.publish.failed";
+  | "cms.publish.failed"
+  | "media.uploaded"
+  | "media.deleted"
+  | "media.updated";
 
 export interface AuditQuery {
   action?: AuditAction;

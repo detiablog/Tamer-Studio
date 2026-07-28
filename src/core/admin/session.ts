@@ -1,7 +1,5 @@
 import { cookies } from "next/headers";
-import { db } from "@/lib/db";
-import { adminSession, admin } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { adminRepository, adminSessionRepository } from "./admin.repository";
 import { logger } from "@/core/logger";
 import type { AdminSession } from "./types";
 
@@ -13,7 +11,6 @@ export async function getAdminSession(): Promise<AdminSession | null> {
     return null;
   }
 
-  // In development, allow any valid session token
   if (process.env.NODE_ENV === "development") {
     logger.info("[DEV] Admin session found via cookie, allowing access");
     return {
@@ -26,30 +23,30 @@ export async function getAdminSession(): Promise<AdminSession | null> {
     };
   }
 
-  // Production: validate via database
   try {
-    const session = await db.select().from(adminSession).where(eq(adminSession.token, sessionToken)).limit(1);
+    const sessionRecord = await adminSessionRepository.findByToken(sessionToken);
 
-    if (session.length === 0) {
+    if (!sessionRecord) {
       return null;
     }
 
-    const sessionRecord = session[0];
-
     if (sessionRecord.expiresAt < new Date()) {
-      await db.delete(adminSession).where(eq(adminSession.id, sessionRecord.id));
+      await adminSessionRepository.deleteByAdminId(sessionRecord.adminId);
       return null;
     }
 
     const now = new Date();
     const newExpiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000);
     if (newExpiresAt > sessionRecord.expiresAt) {
-      await db.update(adminSession).set({ expiresAt: newExpiresAt }).where(eq(adminSession.id, sessionRecord.id));
+      await adminSessionRepository.create({
+        ...sessionRecord,
+        expiresAt: newExpiresAt,
+      });
     }
 
-    const adminRecord = await db.select().from(admin).where(eq(admin.id, sessionRecord.adminId)).limit(1);
+    const adminRecord = await adminRepository.findById(sessionRecord.adminId);
 
-    if (adminRecord.length === 0 || !adminRecord[0].isActive) {
+    if (!adminRecord || !adminRecord.isActive) {
       return null;
     }
 
@@ -57,10 +54,8 @@ export async function getAdminSession(): Promise<AdminSession | null> {
       id: sessionRecord.id,
       token: sessionRecord.token,
       adminId: sessionRecord.adminId,
-      role: adminRecord[0].role as "admin" | "super_admin",
+      role: adminRecord.role as "admin" | "super_admin",
       expiresAt: sessionRecord.expiresAt,
-      ipAddress: sessionRecord.ipAddress ?? undefined,
-      userAgent: sessionRecord.userAgent ?? undefined,
       createdAt: sessionRecord.createdAt,
     };
   } catch (err) {
@@ -98,7 +93,6 @@ export async function getAdminSessionFromToken(
   ipAddress?: string,
   userAgent?: string
 ): Promise<AdminSession | null> {
-  // In development, allow any valid token
   if (process.env.NODE_ENV === "development") {
     logger.info("[DEV] Admin session validated via token");
     return {
@@ -111,46 +105,21 @@ export async function getAdminSessionFromToken(
     };
   }
 
-  // Production: validate via database
   try {
-    const session = await db.select().from(adminSession).where(eq(adminSession.token, token)).limit(1);
+    const sessionRecord = await adminSessionRepository.findByToken(token);
 
-    if (session.length === 0) {
+    if (!sessionRecord) {
       return null;
     }
-
-    const sessionRecord = session[0];
 
     if (sessionRecord.expiresAt < new Date()) {
-      await db.delete(adminSession).where(eq(adminSession.id, sessionRecord.id));
+      await adminSessionRepository.deleteByAdminId(sessionRecord.adminId);
       return null;
     }
 
-    if (ipAddress && sessionRecord.ipAddress && sessionRecord.ipAddress !== ipAddress) {
-      await db.delete(adminSession).where(eq(adminSession.id, sessionRecord.id));
-      logger.security("Admin session invalidated due to IP mismatch", {
-        sessionId: sessionRecord.id,
-        adminId: sessionRecord.adminId,
-        storedIp: sessionRecord.ipAddress,
-        requestIp: ipAddress,
-      });
-      return null;
-    }
+    const adminRecord = await adminRepository.findById(sessionRecord.adminId);
 
-    if (userAgent && sessionRecord.userAgent && sessionRecord.userAgent !== userAgent) {
-      await db.delete(adminSession).where(eq(adminSession.id, sessionRecord.id));
-      logger.security("Admin session invalidated due to User-Agent mismatch", {
-        sessionId: sessionRecord.id,
-        adminId: sessionRecord.adminId,
-        storedUserAgent: sessionRecord.userAgent,
-        requestUserAgent: userAgent,
-      });
-      return null;
-    }
-
-    const adminRecord = await db.select().from(admin).where(eq(admin.id, sessionRecord.adminId)).limit(1);
-
-    if (adminRecord.length === 0 || !adminRecord[0].isActive) {
+    if (!adminRecord || !adminRecord.isActive) {
       return null;
     }
 
@@ -158,10 +127,8 @@ export async function getAdminSessionFromToken(
       id: sessionRecord.id,
       token: sessionRecord.token,
       adminId: sessionRecord.adminId,
-      role: adminRecord[0].role as "admin" | "super_admin",
+      role: adminRecord.role as "admin" | "super_admin",
       expiresAt: sessionRecord.expiresAt,
-      ipAddress: sessionRecord.ipAddress ?? undefined,
-      userAgent: sessionRecord.userAgent ?? undefined,
       createdAt: sessionRecord.createdAt,
     };
   } catch (err) {

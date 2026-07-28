@@ -8,17 +8,17 @@ export class SitemapRuntime {
     this.baseUrl = baseUrl || "https://tamer.studio";
   }
 
-  resolve(input: SEOSitemapInput): SEOSitemapResult[] {
+  async resolve(input: SEOSitemapInput): Promise<SEOSitemapResult[]> {
     const cache = getSEOCache();
     const cacheKey = cache.buildKey(["sitemap", input.locale ?? "all"]);
 
-    const cached = cache.get<SEOSitemapResult[]>(cacheKey);
+    const cached = await cache.get<SEOSitemapResult[]>(cacheKey);
     if (cached) return cached;
 
     const routes = input.routes || this.getDefaultRoutes();
     const results: SEOSitemapResult[] = routes.map((route) => this.resolveRoute(route, input.baseUrl));
 
-    cache.set(cacheKey, results, ["sitemap"]);
+    await cache.set(cacheKey, results, { tags: ["sitemap"] });
     return results;
   }
 

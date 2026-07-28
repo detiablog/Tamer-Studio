@@ -1,4 +1,4 @@
-import { authClient } from "@/lib/auth/auth-client";
+import { authClient } from "@/core/auth/client";
 import type { RegisterSchema } from "../schemas/register.schema";
 
 export type { RegisterSchema } from "../schemas/register.schema";

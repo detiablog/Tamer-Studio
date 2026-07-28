@@ -1,20 +1,35 @@
 import * as React from "react";
+import { cookies } from "next/headers";
 import { AppShell } from "@/components/ui/AppShell";
 import { PageLayout } from "@/components/ui/PageLayout";
 import { ProjectList } from "@/features/project/ProjectList";
+import { generatePageMetadata } from "@/core/seo";
+import { getTranslation } from "@/lib/localization/translations";
+import type { Metadata } from "next";
 
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
-  return { title: `Project — ${id} - Tamer Studio` };
+  const cookieStore = await cookies();
+  const locale = cookieStore.get("tamer_locale")?.value || "en";
+  const t = (key: string, fallback?: string) => getTranslation(locale, key, fallback);
+  return generatePageMetadata({
+    route: `/projects/${id}`,
+    title: `${t("projects.pageTitle", "Projects")} — ${id}`,
+    description: t("projects.metadataDescription", "Create and manage production projects, assets, and schedules."),
+    type: "website",
+  });
 }
 
-export default function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = React.use(params);
+export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const cookieStore = await cookies();
+  const locale = cookieStore.get("tamer_locale")?.value || "en";
+  const t = (key: string, fallback?: string) => getTranslation(locale, key, fallback);
   return (
     <AppShell>
-        <PageLayout title="Project" breadcrumb={[{ label: "Projects", href: "/projects" }, { label: id }]}> 
+        <PageLayout title={t("projects.pageTitle", "Projects")} breadcrumb={[{ label: t("projects.pageTitle", "Projects"), href: "/projects" }, { label: id }]}> 
           <div className="rounded-3xl border border-border bg-muted/20 p-8 text-center text-sm text-muted-foreground">
-            Project detail coming soon.
+            {t("projects.detailComingSoon", "Project detail coming soon.")}
           </div>
         </PageLayout>
     </AppShell>

@@ -38,10 +38,10 @@ interface LandingDataState {
 }
 
 export function useLandingData() {
-  const { locale, currency, t } = useLocalizationContext();
+  const { locale, t } = useLocalizationContext();
   const [data, setData] = useState<LandingDataState>({
     locale,
-    currency,
+    currency: "USD",
     country: null,
     timezone: null,
     currencyProfile: null,
@@ -75,7 +75,7 @@ export function useLandingData() {
 
       setData({
         locale,
-        currency,
+        currency: "USD",
         country: null,
         timezone: null,
         currencyProfile: currencyProfile?.data?.data ?? null,
@@ -94,7 +94,7 @@ export function useLandingData() {
         error: err instanceof Error ? err : new Error("Failed to load landing data"),
       }));
     }
-  }, [locale, currency]);
+  }, [locale]);
 
   useEffect(() => {
     fetchData();

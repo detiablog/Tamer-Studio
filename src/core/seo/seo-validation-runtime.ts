@@ -19,11 +19,11 @@ export class ValidationRuntime {
     this.baseUrl = baseUrl || "https://tamer.studio";
   }
 
-  validate(input: SEOValidationInput): SEOValidationResult {
+  async validate(input: SEOValidationInput): Promise<SEOValidationResult> {
     const cache = getSEOCache();
     const cacheKey = cache.buildKey(["validation", input.route]);
 
-    const cached = cache.get<SEOValidationResult>(cacheKey);
+    const cached = await cache.get<SEOValidationResult>(cacheKey);
     if (cached) return cached;
 
     const issues: SEOValidationIssue[] = [];
@@ -66,7 +66,7 @@ export class ValidationRuntime {
       score,
     };
 
-    cache.set(cacheKey, result, ["validation"]);
+    await cache.set(cacheKey, result, { tags: ["validation"] });
     return result;
   }
 
@@ -214,8 +214,8 @@ export class ValidationRuntime {
     return issues;
   }
 
-  validateAllRoutes(routes: Array<{ route: string; input: SEOValidationInput }>): SEOValidationResult[] {
-    return routes.map((r) => this.validate({ ...r.input, route: r.route }));
+  async validateAllRoutes(routes: Array<{ route: string; input: SEOValidationInput }>): Promise<SEOValidationResult[]> {
+    return Promise.all(routes.map((r) => this.validate({ ...r.input, route: r.route })));
   }
 
   getBaseUrl(): string {

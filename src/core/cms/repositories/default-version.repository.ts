@@ -7,7 +7,7 @@ import type { CMSVersion, CMSContentType } from "../cms.types";
 
 export class DefaultCMSVersionRepository implements CMSVersionRepository {
   async createVersion(version: CMSVersion): Promise<CMSVersion> {
-    const now = new Date().toISOString();
+    const now = new Date();
     const id = version.id ?? randomUUID();
     const [created] = await db.insert(cmsVersion).values({
       id,
@@ -54,7 +54,7 @@ export class DefaultCMSVersionRepository implements CMSVersionRepository {
       version: row.version,
       data: row.data ?? {},
       authorId: row.authorId,
-      createdAt: row.createdAt.toISOString(),
+      createdAt: typeof row.createdAt === 'string' ? row.createdAt : row.createdAt.toISOString(),
       message: row.message ?? undefined,
     };
   }

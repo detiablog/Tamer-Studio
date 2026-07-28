@@ -1,9 +1,9 @@
 import * as React from "react"
 import { Button } from "./button"
 
-export function ActionButton({ children, variant = "default", onClick }: { children: React.ReactNode; variant?: React.ComponentProps<typeof Button>['variant']; onClick?: () => void }) {
+export function ActionButton({ children, variant = "default", onClick, disabled }: { children: React.ReactNode; variant?: React.ComponentProps<typeof Button>['variant']; onClick?: () => void; disabled?: boolean }) {
   return (
-    <Button variant={variant} onClick={onClick} className="ml-2">
+    <Button variant={variant} onClick={onClick} disabled={disabled} className="ml-2">
       {children}
     </Button>
   )

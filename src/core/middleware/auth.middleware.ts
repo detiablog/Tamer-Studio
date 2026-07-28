@@ -102,10 +102,19 @@ export function userAuthentication(allowAnonymous = false): Middleware {
 
 export function eitherAuthentication(): Middleware {
   return async (ctx: RequestContext): Promise<void | SecurityError> => {
-    const adminResult = await adminAuthentication(true)(ctx);
-    if (!adminResult && !ctx.state.authError) {
-      return await userAuthentication(true)(ctx);
+    const adminResult = await adminAuthentication(false)(ctx);
+    if (!adminResult && ctx.state.adminSession) {
+      return;
     }
-    return adminResult;
+
+    const userResult = await userAuthentication(false)(ctx);
+    if (!userResult && ctx.state.userSession) {
+      return;
+    }
+
+    return adminResult || userResult || {
+      status: 401,
+      message: "Authentication required",
+    };
   };
 }

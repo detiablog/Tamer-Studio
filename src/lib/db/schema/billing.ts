@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, jsonb, index, unique } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, jsonb, index, unique, boolean } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 export const wallet = pgTable(
@@ -130,7 +130,7 @@ export const subscription = pgTable(
     status: text("status").notNull().default("active"),
     currentPeriodStart: timestamp("current_period_start").notNull(),
     currentPeriodEnd: timestamp("current_period_end").notNull(),
-    cancelAtPeriodEnd: text("cancel_at_period_end").notNull().default("false"),
+    cancelAtPeriodEnd: boolean("cancel_at_period_end").notNull().default(false),
     metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull().default({}),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")

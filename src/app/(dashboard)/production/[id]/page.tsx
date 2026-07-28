@@ -27,13 +27,13 @@ export default function ProductionDetailPage({ params }: { params: Promise<{ id:
     const loadedJob = productionStore.get(id);
     setJob(loadedJob);
     if (loadedJob?.name) {
-      document.title = `${loadedJob.name} - Production - Tamer Studio`;
-      setContent(`Workflow: ${loadedJob.workflowName}\nProject: ${loadedJob.project}\nStatus: ${loadedJob.status}`);
+      document.title = `${loadedJob.name} - ${t("dashboard.production")} - ${t("brand.name")}`;
+      setContent(`${t("production.workflow")}: ${loadedJob.workflowName}\n${t("production.project")}: ${loadedJob.project}\n${t("common.status")}: ${loadedJob.status}`);
       setWorkspaceId(loadedJob.workspace);
     }
     // In real app, get token from session
     setUserToken("mock-token-" + Math.random().toString(36).slice(2));
-  }, [id]);
+  }, [id, t]);
 
   const handleExecuteProduction = async () => {
     if (!job) return;
@@ -117,7 +117,7 @@ export default function ProductionDetailPage({ params }: { params: Promise<{ id:
         <PageLayout
           title={t("production.detail.pageTitle", "Production")}
           description={t("production.detail.productionPipeline", "Production pipeline and queues.")}
-          breadcrumb={[{ label: "Production", href: "/production" }, { label: "Detail" }]}
+          breadcrumb={[{ label: t("dashboard.production"), href: "/production" }, { label: "Detail" }]}
         >
           <div className="rounded-3xl border border-border bg-muted/20 p-8 text-center text-sm text-muted-foreground">
             {t("production.detail.notFound", "Production job not found.")}
@@ -133,7 +133,7 @@ export default function ProductionDetailPage({ params }: { params: Promise<{ id:
         title={job.name}
         description={job.workflowName}
         breadcrumb={[
-          { label: "Production", href: "/production" },
+          { label: t("dashboard.production"), href: "/production" },
           { label: job.id },
         ]}
       >
@@ -155,7 +155,7 @@ export default function ProductionDetailPage({ params }: { params: Promise<{ id:
                 {job.status}
               </Badge>
               <Badge tone="info">{job.workflowType}</Badge>
-              <Badge tone="muted">{job.priority} Priority</Badge>
+              <Badge tone="muted">{job.priority} {t("production.priority")}</Badge>
             </div>
             <div className="flex flex-wrap gap-2">
               {job.status === "Failed" && (

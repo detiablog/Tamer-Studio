@@ -10,10 +10,12 @@ export async function GET(request: NextRequest) {
 
     const seoRuntime = getSEORuntime();
 
-    const validation = await seoRuntime.resolveValidation({
+    const resolved = await seoRuntime.resolvePage({
       route,
       locale,
     });
+
+    const validation = resolved.validation;
 
     return NextResponse.json({
       success: true,

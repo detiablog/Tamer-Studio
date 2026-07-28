@@ -2,11 +2,11 @@ import { MetadataRoute } from "next";
 import { config } from "@/core/config";
 import { getSEORuntime } from "@/core/seo";
 
-export default function robots(): MetadataRoute.Robots {
+export default async function robots(): Promise<MetadataRoute.Robots> {
   const seoRuntime = getSEORuntime();
   const isProduction = config.app.env === "production";
 
-  const robotsResult = seoRuntime.getRobotsRuntime().resolveRobotsTxt({
+  const robotsResult = await seoRuntime.getRobotsRuntime().resolveRobotsTxt({
     isProduction,
     baseUrl: config.app.url,
   });

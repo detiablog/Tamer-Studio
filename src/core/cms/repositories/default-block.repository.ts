@@ -7,7 +7,7 @@ import type { CMSBlock } from "../cms.types";
 
 export class DefaultCMSBlockRepository implements CMSBlockRepository {
   async createBlock(block: CMSBlock): Promise<CMSBlock> {
-    const now = new Date().toISOString();
+    const now = new Date();
     const id = block.id ?? randomUUID();
     const [created] = await db.insert(cmsBlock).values({
       id,
@@ -42,7 +42,7 @@ export class DefaultCMSBlockRepository implements CMSBlockRepository {
     if (!existing) return undefined;
 
     const set: Record<string, unknown> = {
-      updatedAt: new Date().toISOString(),
+      updatedAt: new Date(),
     };
 
     if (updates.type !== undefined) set.type = updates.type;
@@ -66,8 +66,8 @@ export class DefaultCMSBlockRepository implements CMSBlockRepository {
       properties: row.properties ?? {},
       order: row.order,
       visible: row.visible,
-      createdAt: row.createdAt.toISOString(),
-      updatedAt: row.updatedAt.toISOString(),
+      createdAt: typeof row.createdAt === 'string' ? row.createdAt : row.createdAt.toISOString(),
+      updatedAt: typeof row.updatedAt === 'string' ? row.updatedAt : row.updatedAt.toISOString(),
     };
   }
 }

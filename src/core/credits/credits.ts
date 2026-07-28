@@ -1,4 +1,4 @@
-import type { CreditEngine } from "@/lib/ai/types/billing";
+import type { CreditEngine } from "@/core/types/billing";
 export class DefaultCreditEngine implements CreditEngine {
   private rates: Map<string, number> = new Map([
     ["USD", 100],

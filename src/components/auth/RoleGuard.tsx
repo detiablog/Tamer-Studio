@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { authClient } from "@/lib/auth/auth-client";
-import { type UserRole, type Permission } from "@/lib/auth/permissions";
+import { authClient } from "@/core/auth/client";
+import { type UserRole, type Permission } from "@/core/auth/permissions";
 import { usePermissions } from "./use-permissions";
 
 type RoleGuardProps = {

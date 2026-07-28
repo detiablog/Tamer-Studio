@@ -1,4 +1,4 @@
-import type { Invoice, InvoiceLineItem } from "@/lib/ai/types/billing";
+import type { Invoice, InvoiceLineItem } from "@/core/types/billing";
 import { db } from "@/lib/db";
 import { invoice as invoiceTable } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";

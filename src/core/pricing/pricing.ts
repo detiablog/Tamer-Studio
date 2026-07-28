@@ -1,4 +1,4 @@
-import type { ProviderPricing } from "@/lib/ai/types/billing";
+import type { ProviderPricing } from "@/core/types/billing";
 
 export interface PricingRule {
   providerId: string;

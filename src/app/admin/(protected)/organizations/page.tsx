@@ -217,8 +217,8 @@ export default function AdminOrganizationsPage() {
               keyExtractor={(o) => o.id}
               columns={[
                 { key: "name", header: t("admin.organization", "Organization"), render: (o: any) => <span className="font-medium text-sm">{o.name}</span> },
-                { key: "plan", header: t("admin.plan", "Plan"), render: (o: any) => <Badge>{o.plan}</Badge> },
-                { key: "status", header: t("admin.status", "Status"), render: (o: any) => <Badge tone={o.status === "Active" ? "success" : "muted"}>{o.status}</Badge> },
+                { key: "plan", header: t("admin.plan", "Plan"), render: (o: any) => <Badge>{t(`plan${o.plan}`, o.plan)}</Badge> },
+                { key: "status", header: t("admin.status", "Status"), render: (o: any) => <Badge tone={o.status === "Active" ? "success" : "muted"}>{t(`admin.${o.status.toLowerCase()}`, o.status)}</Badge> },
                 { key: "members", header: t("admin.members", "Members"), align: "center", render: (o: any) => <span className="text-sm">{o.members}</span> },
                 { key: "created", header: t("admin.createdAt", "Created"), render: (o: any) => <span className="text-sm">{o.createdAt}</span> },
                 { key: "actions", header: "", align: "right", render: (o: any) => (
@@ -254,9 +254,9 @@ export default function AdminOrganizationsPage() {
               <div>
                 <label className="text-sm font-medium mb-1.5 block">{t("admin.plan", "Plan")}</label>
                 <select value={formData.plan} onChange={(e) => setFormData({ ...formData, plan: e.target.value })} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm">
-                  <option value="Starter">Starter</option>
-                  <option value="Pro">Pro</option>
-                  <option value="Enterprise">Enterprise</option>
+                  <option value="Starter">{t("planStarter", "Starter")}</option>
+                  <option value="Pro">{t("planPro", "Pro")}</option>
+                  <option value="Enterprise">{t("planEnterprise", "Enterprise")}</option>
                 </select>
               </div>
               <div className="flex gap-2 pt-4">
@@ -285,9 +285,9 @@ export default function AdminOrganizationsPage() {
               <div>
                 <label className="text-sm font-medium mb-1.5 block">{t("admin.plan", "Plan")}</label>
                 <select value={formData.plan} onChange={(e) => setFormData({ ...formData, plan: e.target.value })} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm">
-                  <option value="Starter">Starter</option>
-                  <option value="Pro">Pro</option>
-                  <option value="Enterprise">Enterprise</option>
+                  <option value="Starter">{t("planStarter", "Starter")}</option>
+                  <option value="Pro">{t("planPro", "Pro")}</option>
+                  <option value="Enterprise">{t("planEnterprise", "Enterprise")}</option>
                 </select>
               </div>
               <div>

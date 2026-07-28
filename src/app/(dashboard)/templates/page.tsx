@@ -9,17 +9,27 @@ import { Badge } from "@/components/ui/Badge"
 import { Button } from "@/components/ui/button"
 import { FileText, Star, Copy, Search } from "lucide-react"
 import { useLocalizationContext } from "@/providers/localization"
-
-const TEMPLATES = [
-  { id: "1", name: "YouTube Script Template", category: "Script", uses: 24, favorite: true },
-  { id: "2", name: "Product Image Prompt", category: "Prompt", uses: 18, favorite: false },
-  { id: "3", name: "Social Media Batch", category: "Production", uses: 12, favorite: true },
-  { id: "4", name: "Voiceover Style Guide", category: "Prompt", uses: 8, favorite: false },
-  { id: "5", name: "Affiliate Review Framework", category: "Script", uses: 15, favorite: true },
-]
+import { templateStore, type Template } from "@/features/templates/templates.store"
 
 export default function TemplatesPage() {
   const { t } = useLocalizationContext();
+  const [templates, setTemplates] = React.useState<Template[]>([]);
+  const [search, setSearch] = React.useState("");
+
+  React.useEffect(() => {
+    setTemplates(templateStore.getAll());
+  }, []);
+
+  const filtered = React.useMemo(() => {
+    if (!search) return templates;
+    const q = search.toLowerCase();
+    return templates.filter(
+      (tpl) =>
+        tpl.name.toLowerCase().includes(q) ||
+        tpl.category.toLowerCase().includes(q)
+    );
+  }, [templates, search]);
+
   return (
     <AppShell>
       <PageLayout
@@ -35,41 +45,49 @@ export default function TemplatesPage() {
                 <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
                 <input
                   type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
                   placeholder={t("templates.searchPlaceholder", "Search templates...")}
-                  aria-label="Search templates"
+                  aria-label={t("templates.searchAria")}
                   className="w-full rounded-lg border bg-background pl-9 pr-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
                 />
               </div>
               <Button variant="outline" size="sm">{t("templates.filter", "Filter")}</Button>
             </div>
 
-            <div className="space-y-3">
-              {TEMPLATES.map((template) => (
-                <div key={template.id} className="flex items-center justify-between rounded-xl border border-border bg-muted/20 p-4 transition hover:border-foreground/10">
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted/40">
-                      <FileText className="size-5 text-muted-foreground" />
+            {filtered.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-8">
+                {search ? t("templates.noResults") : t("templates.empty")}
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {filtered.map((template) => (
+                  <div key={template.id} className="flex items-center justify-between rounded-xl border border-border bg-muted/20 p-4 transition hover:border-foreground/10">
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted/40">
+                        <FileText className="size-5 text-muted-foreground" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-medium">{template.name}</h4>
+                          {template.favorite && <Star className="size-4 text-amber-500 fill-amber-500" />}
+                        </div>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge tone="muted">{template.category}</Badge>
+                          <span className="text-xs text-muted-foreground">{template.uses} {t("templates.uses", "uses")}</span>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-medium">{template.name}</h4>
-                        {template.favorite && <Star className="size-4 text-amber-500 fill-amber-500" />}
-                      </div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge tone="muted">{template.category}</Badge>
-                        <span className="text-xs text-muted-foreground">{template.uses} {t("templates.uses", "uses")}</span>
-                      </div>
+                    <div className="flex items-center gap-1">
+                      <Button variant="ghost" size="icon" className="size-8">
+                        <Copy className="size-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm">{t("templates.use", "Use")}</Button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="icon" className="size-8">
-                      <Copy className="size-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm">{t("templates.use", "Use")}</Button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </DashboardCard>
         </div>
       </PageLayout>

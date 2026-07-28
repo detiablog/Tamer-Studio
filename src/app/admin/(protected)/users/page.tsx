@@ -254,7 +254,7 @@ export default function AdminUsersPage() {
                       <option value="all">{t("admin.allStatus", "All Status")}</option>
                       <option value="active">{t("admin.active", "Active")}</option>
                       <option value="pending">{t("admin.pending", "Pending")}</option>
-                      <option value="suspended">t("admin.suspended", "Suspended")</option>
+                      <option value="suspended">{t("admin.suspended", "Suspended")}</option>
                     </select>
                   </div>
                   <div>
@@ -313,8 +313,8 @@ export default function AdminUsersPage() {
                       <p className="text-xs text-muted-foreground">{u.email}</p>
                     </div>
                   )},
-                  { key: "role", header: t("admin.role", "Role"), align: "center", render: (u: any) => <Badge tone={u.role.toLowerCase() === "admin" ? "info" : "muted"}>{u.role}</Badge> },
-                  { key: "status", header: t("admin.status", "Status"), align: "center", render: (u: any) => <Badge tone={u.status.toLowerCase() === "active" ? "success" : u.status.toLowerCase() === "pending" ? "warning" : "muted"}>{u.status}</Badge> },
+                  { key: "role", header: t("admin.role", "Role"), align: "center", render: (u: any) => <Badge tone={u.role.toLowerCase() === "admin" ? "info" : "muted"}>{t(`admin.role${u.role.charAt(0).toUpperCase() + u.role.slice(1).toLowerCase()}`, u.role)}</Badge> },
+                  { key: "status", header: t("admin.status", "Status"), align: "center", render: (u: any) => <Badge tone={u.status.toLowerCase() === "active" ? "success" : u.status.toLowerCase() === "pending" ? "warning" : "muted"}>{t(`admin.${u.status.toLowerCase()}`, u.status)}</Badge> },
                   { key: "emailVerified", header: t("admin.emailVerified", "Email Verified"), align: "center", render: (u: any) => <Badge tone={u.emailVerified ? "success" : "warning"}>{u.emailVerified ? t("common.yes", "Yes") : t("common.no", "No")}</Badge> },
                   { key: "joined", header: t("admin.joined", "Joined"), render: (u: any) => <span className="text-sm">{u.joined}</span> },
                   { key: "lastActive", header: t("admin.lastActive", "Last Active"), render: (u: any) => <span className="text-sm">{u.lastActive}</span> },
@@ -420,8 +420,8 @@ export default function AdminUsersPage() {
               <div>
                 <label className="text-sm font-medium mb-1.5 block">{t("admin.role", "Role")}</label>
                 <select value={formData.role} onChange={(e) => setFormData({ ...formData, role: e.target.value })} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm">
-                  <option value="admin">Admin</option>
-                  <option value="user">User</option>
+                  <option value="admin">{t("admin.roleAdmin", "Admin")}</option>
+                  <option value="user">{t("admin.roleUser", "User")}</option>
                 </select>
               </div>
               <div>
@@ -429,7 +429,7 @@ export default function AdminUsersPage() {
                 <select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm">
                   <option value="active">{t("admin.active", "Active")}</option>
                   <option value="pending">{t("admin.pending", "Pending")}</option>
-                  <option value="suspended">Suspended</option>
+                  <option value="suspended">{t("admin.suspended", "Suspended")}</option>
                 </select>
               </div>
               <div className="flex gap-2 pt-4">

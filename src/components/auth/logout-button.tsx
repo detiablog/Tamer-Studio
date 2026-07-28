@@ -3,7 +3,7 @@
 import { LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { authClient } from "@/lib/auth/auth-client";
+import { authClient } from "@/core/auth/client";
 import { Button } from "@/components/ui/button";
 import { logger } from "@/core/logger";
 

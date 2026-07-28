@@ -1,6 +1,4 @@
-import { db } from "@/lib/db";
-import { admin } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { adminRepository } from "./admin.repository";
 
 export class AdminService {
   async getAdminProfile(adminId: string): Promise<{
@@ -12,19 +10,16 @@ export class AdminService {
     lastLoginAt?: Date;
     createdAt: Date;
   } | undefined> {
-    const rows = await db.select().from(admin).where(eq(admin.id, adminId)).limit(1);
-    if (rows.length === 0) return undefined;
-    const record = rows[0];
-    const initials = record.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
+    const record = await adminRepository.findById(adminId);
+    if (!record) return undefined;
     return {
       id: record.id,
       email: record.email,
       name: record.name,
       role: record.role,
       isActive: record.isActive,
-      lastLoginAt: record.lastLoginAt,
+      lastLoginAt: record.lastLoginAt ?? undefined,
       createdAt: record.createdAt,
-      initials,
     };
   }
 }

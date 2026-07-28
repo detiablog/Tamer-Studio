@@ -4,6 +4,7 @@ import * as React from "react"
 import Link from "next/link"
 import { Search } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useLocalizationContext } from "@/providers/localization"
 
 type CommandItem = {
   id: string
@@ -13,22 +14,23 @@ type CommandItem = {
   shortcut?: string[]
 }
 
-const COMMANDS: CommandItem[] = [
-  { id: "dashboard", title: "Go to Dashboard", href: "/dashboard", category: "Navigation", shortcut: ["⌘", "D"] },
-  { id: "workspace", title: "Open Workspace", href: "/workspace", category: "Navigation", shortcut: ["⌘", "W"] },
-  { id: "projects", title: "Open Projects", href: "/projects", category: "Navigation", shortcut: ["⌘", "P"] },
-  { id: "media", title: "Open Media Library", href: "/media", category: "Navigation", shortcut: ["⌘", "M"] },
-  { id: "production", title: "Open Production", href: "/production", category: "Navigation", shortcut: ["⌘", "R"] },
-  { id: "ai", title: "Open AI Platform", href: "/ai", category: "Navigation", shortcut: ["⌘", "A"] },
-  { id: "publishing", title: "Open Publishing", href: "/publishing", category: "Navigation", shortcut: ["⌘", "U"] },
-  { id: "settings", title: "Open Settings", href: "/settings", category: "Navigation", shortcut: ["⌘", "S"] },
-]
-
 export function CommandPalette() {
+  const { t } = useLocalizationContext()
   const [open, setOpen] = React.useState(false)
   const [query, setQuery] = React.useState("")
   const [selectedIndex, setSelectedIndex] = React.useState(0)
   const inputRef = React.useRef<HTMLInputElement>(null)
+
+  const COMMANDS: CommandItem[] = [
+    { id: "dashboard", title: t("commandPalette.goToDashboard"), href: "/dashboard", category: t("commandPalette.navigation"), shortcut: ["⌘", "D"] },
+    { id: "workspace", title: t("commandPalette.openWorkspace"), href: "/workspace", category: t("commandPalette.navigation"), shortcut: ["⌘", "W"] },
+    { id: "projects", title: t("commandPalette.openProjects"), href: "/projects", category: t("commandPalette.navigation"), shortcut: ["⌘", "P"] },
+    { id: "media", title: t("commandPalette.openMediaLibrary"), href: "/media", category: t("commandPalette.navigation"), shortcut: ["⌘", "M"] },
+    { id: "production", title: t("commandPalette.openProduction"), href: "/production", category: t("commandPalette.navigation"), shortcut: ["⌘", "R"] },
+    { id: "ai", title: t("commandPalette.openAIPlatform"), href: "/ai", category: t("commandPalette.navigation"), shortcut: ["⌘", "A"] },
+    { id: "publishing", title: t("commandPalette.openPublishing"), href: "/publishing", category: t("commandPalette.navigation"), shortcut: ["⌘", "U"] },
+    { id: "settings", title: t("commandPalette.openSettings"), href: "/settings", category: t("commandPalette.navigation"), shortcut: ["⌘", "S"] },
+  ]
 
   const results = React.useMemo(() => {
     if (!query.trim()) return COMMANDS
@@ -73,7 +75,7 @@ export function CommandPalette() {
   if (!open) return null
 
   const grouped = results.reduce<Record<string, CommandItem[]>>((acc, item) => {
-    const cat = item.category ?? "Other"
+    const cat = item.category ?? t("commandPalette.other")
     if (!acc[cat]) acc[cat] = []
     acc[cat].push(item)
     return acc
@@ -85,7 +87,7 @@ export function CommandPalette() {
         className="w-full max-w-2xl rounded-2xl bg-card p-1 shadow-2xl ring-1 ring-foreground/10"
         role="dialog"
         aria-modal="true"
-        aria-label="Command palette"
+        aria-label={t("commandPalette.ariaLabel")}
       >
         <div className="flex items-center gap-3 px-4 py-3">
           <Search className="size-4 text-muted-foreground shrink-0" aria-hidden="true" />
@@ -94,9 +96,9 @@ export function CommandPalette() {
             autoFocus
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Type a command or search..."
+            placeholder={t("commandPalette.placeholder")}
             className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground/60"
-            aria-label="Search commands"
+            aria-label={t("commandPalette.searchAria")}
           />
           <kbd className="hidden sm:inline-flex items-center gap-1 text-[10px] text-muted-foreground/70 border border-border/60 rounded px-1.5 py-0.5">
             ESC
@@ -138,16 +140,16 @@ export function CommandPalette() {
           ))}
           {results.length === 0 ? (
             <div className="px-3 py-6 text-center text-sm text-muted-foreground">
-              No results found for &quot;{query}&quot;
+              {t("commandPalette.noResults", `No results found for "${query}"`)}
             </div>
           ) : null}
         </div>
 
         <div className="flex items-center justify-between border-t border-border/60 px-4 py-2 text-[11px] text-muted-foreground/70">
           <span className="flex items-center gap-3">
-            <span className="flex items-center gap-1"><kbd className="border border-border/60 rounded px-1 py-0.5">↑↓</kbd> Navigate</span>
-            <span className="flex items-center gap-1"><kbd className="border border-border/60 rounded px-1 py-0.5">↵</kbd> Select</span>
-            <span className="flex items-center gap-1"><kbd className="border border-border/60 rounded px-1 py-0.5">ESC</kbd> Close</span>
+            <span className="flex items-center gap-1"><kbd className="border border-border/60 rounded px-1 py-0.5">↑↓</kbd> {t("commandPalette.navigate")}</span>
+            <span className="flex items-center gap-1"><kbd className="border border-border/60 rounded px-1 py-0.5">↵</kbd> {t("commandPalette.select")}</span>
+            <span className="flex items-center gap-1"><kbd className="border border-border/60 rounded px-1 py-0.5">ESC</kbd> {t("commandPalette.close")}</span>
           </span>
         </div>
       </div>

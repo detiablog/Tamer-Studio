@@ -5,5 +5,6 @@ export type { EventSubscriber } from "./event-subscriber";
 export { EventQueue } from "./event-queue";
 export { EventLog, type EventLogEntry } from "./event-log";
 export { AsyncEventBus, type AsyncEventBusOptions } from "./async-event-bus";
+export { initializeEventHub, shutdownEventHub, isEventHubInitialized, getEventLog } from "./event-hub";
 export type { Event, DomainEvent, ApplicationEvent, EventHandler, EventSubscription, EventType, DomainEventType, ApplicationEventType } from "./event";
 export type { Event as IEvent } from "./event";

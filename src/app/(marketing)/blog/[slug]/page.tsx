@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getSEORuntime } from "@/core/seo";
+import { generatePageMetadata } from "@/core/seo";
 import { BlogPostContent } from "./BlogPostContent";
 
 const posts = [
@@ -68,9 +68,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     return { title: "Post Not Found" };
   }
 
-  const seoRuntime = getSEORuntime();
-
-  const resolved = await seoRuntime.resolvePage({
+  return generatePageMetadata({
     route: `/blog/${slug}`,
     title: post.title,
     description: post.excerpt,
@@ -78,7 +76,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     type: "article",
     author: post.author,
     publishedTime: post.date,
-    image: "https://tamer.studio/og-image.svg",
+    breadcrumbs: [
+      { label: "Home", href: "/" },
+      { label: "Blog", href: "/blog" },
+      { label: post.title, href: `/blog/${slug}` },
+    ],
     schema: [
       {
         type: "Article",
@@ -90,43 +92,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         },
       },
     ],
-    breadcrumbs: [
-      { label: "Home", href: "/" },
-      { label: "Blog", href: "/blog" },
-      { label: post.title, href: `/blog/${slug}` },
-    ],
   });
-
-  return {
-    title: resolved.metadata.title,
-    description: resolved.metadata.description,
-    keywords: resolved.metadata.keywords,
-    authors: [{ name: resolved.metadata.author }],
-    openGraph: {
-      title: resolved.openGraph.title,
-      description: resolved.openGraph.description,
-      type: "article",
-      url: resolved.openGraph.url,
-      siteName: resolved.openGraph.siteName,
-      images: resolved.openGraph.images,
-      locale: resolved.openGraph.locale,
-      publishedTime: post.date,
-      authors: [post.author],
-    },
-    twitter: {
-      card: resolved.twitter.card,
-      title: resolved.twitter.title,
-      description: resolved.twitter.description,
-      images: resolved.twitter.images,
-    },
-    robots: {
-      index: resolved.robots.index,
-      follow: resolved.robots.follow,
-    },
-    alternates: {
-      canonical: resolved.canonical.canonical,
-    },
-  };
 }
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {

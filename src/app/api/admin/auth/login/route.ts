@@ -1,7 +1,8 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { loginAdmin } from "@/core/admin/login";
-import { checkRateLimit, getClientIdentifier } from "@/core/security/rate-limit";
+import { checkInMemoryRateLimit } from "@/core/security/rate-limit";
+import { getClientIdentifier } from "@/core/security/ratelimit";
 import { logAdminAction } from "@/core/audit/audit.service";
 import { logger } from "@/core/logger";
 
@@ -11,7 +12,7 @@ export async function POST(request: NextRequest) {
     const limit = 5;
     const windowMs = 15 * 60 * 1000;
 
-    if (!checkRateLimit(`admin:auth:post:${identifier}`, limit, windowMs)) {
+    if (!checkInMemoryRateLimit(`admin:auth:post:${identifier}`, limit, windowMs)) {
       return NextResponse.json({ success: false, reason: "rate_limited" }, { status: 429 });
     }
 

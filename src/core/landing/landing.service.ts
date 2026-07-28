@@ -1,6 +1,4 @@
-import { db } from "@/lib/db";
-import { landingSection, landingMedia } from "@/lib/db/schema/landing";
-import { eq, and, asc, desc, sql, inArray } from "drizzle-orm";
+import { landingRepository } from "./landing.repository";
 import { randomUUID } from "crypto";
 
 export interface LandingSection {
@@ -61,6 +59,37 @@ export interface UpdateSectionInput {
   styles?: Record<string, unknown>;
 }
 
+function mapMediaRow(m: { id: string; sectionKey: string; url: string; alt: string | null; type: string; order: number; createdAt: Date }): LandingMedia {
+  return {
+    id: m.id,
+    sectionKey: m.sectionKey,
+    url: m.url,
+    alt: m.alt || undefined,
+    type: m.type,
+    order: m.order,
+    createdAt: m.createdAt,
+  };
+}
+
+function mapSectionWithMedia(section: any, mediaRows: any[]): LandingSection {
+  return {
+    id: section.id,
+    sectionKey: section.sectionKey,
+    title: section.title,
+    description: section.description || undefined,
+    component: section.component || undefined,
+    type: section.type,
+    visible: section.visible,
+    locked: section.locked,
+    order: section.order,
+    config: (section.config as Record<string, unknown>) || {},
+    styles: (section.styles as Record<string, unknown>) || {},
+    media: mediaRows.map(mapMediaRow),
+    createdAt: section.createdAt,
+    updatedAt: section.updatedAt,
+  };
+}
+
 export class LandingService {
   async listSections(filters?: {
     search?: string;
@@ -69,139 +98,58 @@ export class LandingService {
     locked?: boolean;
     limit?: number;
   }): Promise<LandingSection[]> {
-    const conditions: any[] = [];
-
-    if (filters?.type) {
-      conditions.push(eq(landingSection.type, filters.type));
-    }
-    if (filters?.visible !== undefined) {
-      conditions.push(eq(landingSection.visible, filters.visible));
-    }
-    if (filters?.locked !== undefined) {
-      conditions.push(eq(landingSection.locked, filters.locked));
-    }
-
-    let query = db.select().from(landingSection);
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions)) as typeof query;
-    }
-
-    const sections = await query
-      .orderBy(asc(landingSection.order), desc(landingSection.createdAt))
-      .limit(filters?.limit || 500);
+    const sections = await landingRepository.findSections({
+      type: filters?.type,
+      visible: filters?.visible,
+      locked: filters?.locked,
+      limit: filters?.limit,
+    });
 
     const sectionKeys = sections.map((s) => s.sectionKey);
-    let mediaRows: LandingMedia[] = [];
-
-    if (sectionKeys.length > 0) {
-      try {
-        const media = await db
-          .select()
-          .from(landingMedia)
-          .where(inArray(landingMedia.sectionKey, sectionKeys))
-          .orderBy(asc(landingMedia.order));
-        mediaRows = media.map((m) => ({
-          id: m.id,
-          sectionKey: m.sectionKey,
-          url: m.url,
-          alt: m.alt || undefined,
-          type: m.type,
-          order: m.order,
-          createdAt: m.createdAt,
-        }));
-      } catch {
-        // media table may not exist yet
-      }
-    }
+    const mediaRows = await landingRepository.findMediaBySectionKeys(sectionKeys);
 
     const mediaBySection = mediaRows.reduce<Record<string, LandingMedia[]>>((acc, m) => {
       if (!acc[m.sectionKey]) acc[m.sectionKey] = [];
-      acc[m.sectionKey].push(m);
+      acc[m.sectionKey].push(mapMediaRow(m));
       return acc;
     }, {});
 
-    return sections.map((section) => ({
-      id: section.id,
-      sectionKey: section.sectionKey,
-      title: section.title,
-      description: section.description || undefined,
-      component: section.component || undefined,
-      type: section.type,
-      visible: section.visible,
-      locked: section.locked,
-      order: section.order,
-      config: (section.config as Record<string, unknown>) || {},
-      styles: (section.styles as Record<string, unknown>) || {},
-      media: mediaBySection[section.sectionKey] || [],
-      createdAt: section.createdAt,
-      updatedAt: section.updatedAt,
-    }));
+    return sections.map((section) => mapSectionWithMedia(section, mediaBySection[section.sectionKey] || []));
   }
 
   async getSectionByKey(sectionKey: string): Promise<LandingSection | undefined> {
-    const sections = await db.select().from(landingSection).where(eq(landingSection.sectionKey, sectionKey)).limit(1);
-    if (sections.length === 0) return undefined;
+    const section = await landingRepository.findSectionByKey(sectionKey);
+    if (!section) return undefined;
 
-    const section = sections[0];
-    let media: LandingMedia[] = [];
-    try {
-      const mediaRows = await db.select().from(landingMedia).where(eq(landingMedia.sectionKey, sectionKey)).orderBy(asc(landingMedia.order));
-      media = mediaRows.map((m) => ({
-        id: m.id,
-        sectionKey: m.sectionKey,
-        url: m.url,
-        alt: m.alt || undefined,
-        type: m.type,
-        order: m.order,
-        createdAt: m.createdAt,
-      }));
-    } catch {
-      // media table may not exist yet
-    }
-
-    return {
-      id: section.id,
-      sectionKey: section.sectionKey,
-      title: section.title,
-      description: section.description || undefined,
-      component: section.component || undefined,
-      type: section.type,
-      visible: section.visible,
-      locked: section.locked,
-      order: section.order,
-      config: (section.config as Record<string, unknown>) || {},
-      styles: (section.styles as Record<string, unknown>) || {},
-      media,
-      createdAt: section.createdAt,
-      updatedAt: section.updatedAt,
-    };
+    const mediaRows = await landingRepository.findMediaBySectionKey(sectionKey);
+    return mapSectionWithMedia(section, mediaRows);
   }
 
   async createSection(input: CreateSectionInput): Promise<LandingSection> {
     const id = randomUUID();
     const now = new Date();
-    const maxOrder = await db.select({ max: sql<number>`MAX(${landingSection.order})` }).from(landingSection).then((r) => r[0]?.max ?? -1);
+    const maxOrder = await landingRepository.getMaxOrder();
     const sectionOrder = typeof input.order === "number" ? input.order : maxOrder + 1;
 
-    const result = await db.transaction(async (tx) => {
-      const [created] = await tx.insert(landingSection).values({
+    const result = await landingRepository.runTransaction(async (tx) => {
+      const created = await landingRepository.createSection({
         id,
         sectionKey: input.sectionKey,
         title: input.title,
-        description: input.description ?? null,
-        component: input.component ?? "",
-        type: input.type || "hero",
-        visible: input.visible ?? true,
-        locked: input.locked ?? false,
+        description: input.description,
+        component: input.component,
+        type: input.type,
+        visible: input.visible,
+        locked: input.locked,
         order: sectionOrder,
-        config: (input.config ?? {}) as Record<string, unknown>,
-        styles: (input.styles ?? {}) as Record<string, unknown>,
+        config: input.config,
+        styles: input.styles,
         createdAt: now,
         updatedAt: now,
-      }).returning();
+      });
 
       if (input.media && input.media.length > 0) {
-        await tx.insert(landingMedia).values(
+        await landingRepository.createMedia(
           input.media.map((m, idx) => ({
             id: randomUUID(),
             sectionKey: input.sectionKey,
@@ -218,15 +166,9 @@ export class LandingService {
     });
 
     return {
-      id: result.id,
-      sectionKey: result.sectionKey,
-      title: result.title,
+      ...result,
       description: result.description || undefined,
       component: result.component || undefined,
-      type: result.type,
-      visible: result.visible,
-      locked: result.locked,
-      order: result.order,
       config: (result.config as Record<string, unknown>) || {},
       styles: (result.styles as Record<string, unknown>) || {},
       media: input.media?.map((m, idx) => ({
@@ -238,14 +180,12 @@ export class LandingService {
         order: typeof m.order === "number" ? m.order : idx,
         createdAt: now,
       })) || [],
-      createdAt: result.createdAt,
-      updatedAt: result.updatedAt,
     };
   }
 
   async updateSection(sectionKey: string, input: UpdateSectionInput): Promise<LandingSection> {
-    const existing = await db.select().from(landingSection).where(eq(landingSection.sectionKey, sectionKey)).limit(1);
-    if (existing.length === 0) throw new Error("Section not found");
+    const existing = await landingRepository.findSectionByKey(sectionKey);
+    if (!existing) throw new Error("Section not found");
 
     const updates: Record<string, unknown> = { updatedAt: new Date() };
     if (input.title !== undefined) updates.title = input.title;
@@ -258,55 +198,26 @@ export class LandingService {
     if (input.config !== undefined) updates.config = input.config;
     if (input.styles !== undefined) updates.styles = input.styles;
 
-    const [updated] = await db.update(landingSection).set(updates).where(eq(landingSection.sectionKey, sectionKey)).returning();
+    const updated = await landingRepository.updateSection(sectionKey, updates);
+    if (!updated) throw new Error("Section not found");
 
-    const media: LandingMedia[] = [];
-    try {
-      const mediaRows = await db.select().from(landingMedia).where(eq(landingMedia.sectionKey, sectionKey)).orderBy(asc(landingMedia.order));
-      media.push(...mediaRows.map((m) => ({
-        id: m.id,
-        sectionKey: m.sectionKey,
-        url: m.url,
-        alt: m.alt || undefined,
-        type: m.type,
-        order: m.order,
-        createdAt: m.createdAt,
-      })));
-    } catch {
-      // media table may not exist yet
-    }
-
-    return {
-      id: updated.id,
-      sectionKey: updated.sectionKey,
-      title: updated.title,
-      description: updated.description || undefined,
-      component: updated.component || undefined,
-      type: updated.type,
-      visible: updated.visible,
-      locked: updated.locked,
-      order: updated.order,
-      config: (updated.config as Record<string, unknown>) || {},
-      styles: (updated.styles as Record<string, unknown>) || {},
-      media,
-      createdAt: updated.createdAt,
-      updatedAt: updated.updatedAt,
-    };
+    const mediaRows = await landingRepository.findMediaBySectionKey(sectionKey);
+    return mapSectionWithMedia(updated, mediaRows);
   }
 
   async deleteSection(sectionKey: string): Promise<boolean> {
-    const existing = await db.select().from(landingSection).where(eq(landingSection.sectionKey, sectionKey)).limit(1);
-    if (existing.length === 0) return false;
+    const existing = await landingRepository.findSectionByKey(sectionKey);
+    if (!existing) return false;
 
-    const deletedOrder = existing[0].order;
+    const deletedOrder = existing.order;
 
-    await db.transaction(async (tx) => {
-      await tx.delete(landingMedia).where(eq(landingMedia.sectionKey, sectionKey));
-      await tx.delete(landingSection).where(eq(landingSection.sectionKey, sectionKey));
+    await landingRepository.runTransaction(async (tx) => {
+      await landingRepository.deleteMediaBySectionKey(sectionKey);
+      await landingRepository.deleteSection(sectionKey);
 
-      const remaining = await tx.select().from(landingSection).where(sql`${landingSection.order} > ${deletedOrder}`).orderBy(asc(landingSection.order));
+      const remaining = await landingRepository.findSectionsWithOrderGreaterThan(deletedOrder);
       for (const s of remaining) {
-        await tx.update(landingSection).set({ order: s.order - 1 }).where(eq(landingSection.sectionKey, s.sectionKey));
+        await landingRepository.updateSectionOrder(s.sectionKey, s.order - 1);
       }
     });
 
@@ -314,49 +225,34 @@ export class LandingService {
   }
 
   async duplicateSection(sectionKey: string, newSectionKey: string): Promise<LandingSection> {
-    const existing = await db.select().from(landingSection).where(eq(landingSection.sectionKey, sectionKey)).limit(1);
-    if (existing.length === 0) throw new Error("Section not found");
+    const existing = await landingRepository.findSectionByKey(sectionKey);
+    if (!existing) throw new Error("Section not found");
 
-    const source = existing[0];
-    const maxOrder = await db.select({ max: sql<number>`MAX(${landingSection.order})` }).from(landingSection).then((r) => r[0]?.max ?? -1);
+    const maxOrder = await landingRepository.getMaxOrder();
     const now = new Date();
     const newId = randomUUID();
 
-    let mediaRows: LandingMedia[] = [];
-    try {
-      const rows = await db.select().from(landingMedia).where(eq(landingMedia.sectionKey, sectionKey)).orderBy(asc(landingMedia.order));
-      mediaRows = rows.map((m) => ({
-        id: m.id,
-        sectionKey: m.sectionKey,
-        url: m.url,
-        alt: m.alt || undefined,
-        type: m.type,
-        order: m.order,
-        createdAt: m.createdAt,
-      }));
-    } catch {
-      // media table may not exist yet
-    }
+    const mediaRows = await landingRepository.findMediaBySectionKey(sectionKey);
 
-    const result = await db.transaction(async (tx) => {
-      const [created] = await tx.insert(landingSection).values({
+    const result = await landingRepository.runTransaction(async (tx) => {
+      const created = await landingRepository.createSection({
         id: newId,
         sectionKey: newSectionKey,
-        title: `${source.title} (Copy)`,
-        description: source.description,
-        component: source.component,
-        type: source.type,
-        visible: source.visible,
+        title: `${existing.title} (Copy)`,
+        description: existing.description,
+        component: existing.component ?? undefined,
+        type: existing.type,
+        visible: existing.visible,
         locked: false,
         order: maxOrder + 1,
-        config: (source.config as Record<string, unknown>) || {},
-        styles: (source.styles as Record<string, unknown>) || {},
+        config: (existing.config as Record<string, unknown>) || {},
+        styles: (existing.styles as Record<string, unknown>) || {},
         createdAt: now,
         updatedAt: now,
-      }).returning();
+      });
 
       if (mediaRows.length > 0) {
-        await tx.insert(landingMedia).values(
+        await landingRepository.createMedia(
           mediaRows.map((m) => ({
             id: randomUUID(),
             sectionKey: newSectionKey,
@@ -372,27 +268,12 @@ export class LandingService {
       return created;
     });
 
-    return {
-      id: result.id,
-      sectionKey: result.sectionKey,
-      title: result.title,
-      description: result.description || undefined,
-      component: result.component || undefined,
-      type: result.type,
-      visible: result.visible,
-      locked: result.locked,
-      order: result.order,
-      config: (result.config as Record<string, unknown>) || {},
-      styles: (result.styles as Record<string, unknown>) || {},
-      media: [],
-      createdAt: result.createdAt,
-      updatedAt: result.updatedAt,
-    };
+    return mapSectionWithMedia(result, []);
   }
 
   async reorderSections(orders: Array<{ sectionKey: string; order: number }>): Promise<void> {
     const sectionKeys = orders.map((o) => o.sectionKey);
-    const existing = await db.select().from(landingSection).where(inArray(landingSection.sectionKey, sectionKeys));
+    const existing = await landingRepository.findSectionsByKeys(sectionKeys);
     const existingKeys = new Set(existing.map((s) => s.sectionKey));
     const missing = sectionKeys.filter((k) => !existingKeys.has(k));
     if (missing.length > 0) {
@@ -405,9 +286,9 @@ export class LandingService {
       throw new Error("Duplicate orders detected");
     }
 
-    await db.transaction(async (tx) => {
+    await landingRepository.runTransaction(async (tx) => {
       for (const item of orders) {
-        await tx.update(landingSection).set({ order: item.order, updatedAt: new Date() }).where(eq(landingSection.sectionKey, item.sectionKey));
+        await landingRepository.updateSectionOrder(item.sectionKey, item.order);
       }
     });
   }

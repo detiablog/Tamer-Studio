@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 import { subscription } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
-import type { Plan, PlanFeature, Subscription } from "@/lib/ai/types/billing";
+import type { Plan, PlanFeature, Subscription } from "@/core/types/billing";
 import { defaultPlans } from "./plans";
 
 export interface SubscriptionRepository {
@@ -22,7 +22,7 @@ export class DefaultSubscriptionRepository implements SubscriptionRepository {
       status: row.status as Subscription["status"],
       currentPeriodStart: row.currentPeriodStart.toISOString(),
       currentPeriodEnd: row.currentPeriodEnd.toISOString(),
-      cancelAtPeriodEnd: row.cancelAtPeriodEnd === "true",
+      cancelAtPeriodEnd: row.cancelAtPeriodEnd,
       metadata: row.metadata as Record<string, unknown>,
       createdAt: row.createdAt.toISOString(),
       updatedAt: row.updatedAt.toISOString(),
@@ -40,7 +40,7 @@ export class DefaultSubscriptionRepository implements SubscriptionRepository {
       status: "active",
       currentPeriodStart: now,
       currentPeriodEnd: periodEnd,
-      cancelAtPeriodEnd: "false",
+      cancelAtPeriodEnd: false,
       metadata: {},
     });
     return {

@@ -8,11 +8,11 @@ export class CanonicalRuntime {
     this.defaultBaseUrl = baseUrl || "https://tamer.studio";
   }
 
-  resolve(input: SEOCanonicalInput): SEOCanonicalResult {
+  async resolve(input: SEOCanonicalInput): Promise<SEOCanonicalResult> {
     const cache = getSEOCache();
     const cacheKey = cache.buildKey(["canonical", input.route, input.locale ?? "en"]);
 
-    const cached = cache.get<SEOCanonicalResult>(cacheKey);
+    const cached = await cache.get<SEOCanonicalResult>(cacheKey);
     if (cached) return cached;
 
     const base = input.baseUrl || this.defaultBaseUrl;
@@ -32,20 +32,20 @@ export class CanonicalRuntime {
       alternates: [],
     };
 
-    cache.set(cacheKey, result, ["canonical", locale ?? "en"]);
+    await cache.set(cacheKey, result, { tags: ["canonical", locale ?? "en"] });
     return result;
   }
 
-  resolveWithAlternates(
+  async resolveWithAlternates(
     input: SEOCanonicalInput,
     locales: string[],
     defaultLocale?: string
-  ): SEOCanonicalResult {
+  ): Promise<SEOCanonicalResult> {
     const base = input.baseUrl || this.defaultBaseUrl;
     const def = defaultLocale || "en";
     const route = this.normalizeRoute(input.route);
 
-    const canonical = this.resolve({ ...input, locale: def });
+    const canonical = await this.resolve({ ...input, locale: def });
 
     const alternates = locales.map((locale) => {
       const href = locale === def

@@ -1,29 +1,32 @@
 "use client";
 
 import * as React from "react";
+import useSWR from "swr";
 import { useLocalizationContext } from "@/providers/localization";
 import { useCurrencyContext } from "@/providers/currency";
-import { cn } from "@/lib/utils";
 import { DashboardCard } from "@/components/ui/DashboardCard";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Filter, Plus, RefreshCw, Edit, Trash2, ToggleLeft, ToggleRight, X } from "lucide-react";
+import { Search, Filter, Plus, RefreshCw, ToggleLeft, ToggleRight, Trash2, X, Loader } from "lucide-react";
 import { toast } from "sonner";
 import { Breadcrumbs } from "@/components/admin/Breadcrumbs";
 
-const MOCK_COUPONS = [
-  { id: "c_1", code: "SAVE20", discount: "20%", type: "Percentage", expires: "Dec 31, 2026", usageCount: 142, maxUsage: 500, status: "Active" },
-  { id: "c_2", code: "WELCOME10", discount: "10%", type: "Percentage", expires: "Jan 31, 2027", usageCount: 89, maxUsage: 200, status: "Active" },
-  { id: "c_3", code: "FLAT50", discount: 50, type: "Fixed", expires: "Nov 15, 2026", usageCount: 23, maxUsage: 100, status: "Active" },
-  { id: "c_4", code: "EXPIRED5", discount: "5%", type: "Percentage", expires: "Jun 30, 2026", usageCount: 45, maxUsage: 100, status: "Expired" },
-];
+const fetcher = (url: string) =>
+  fetch(url)
+    .then((r) => {
+      if (!r.ok) throw new Error(`API error: ${r.status}`);
+      return r.json();
+    })
+    .catch((error) => {
+      console.error(`[Fetcher] Failed to fetch ${url}:`, error);
+      throw error;
+    });
 
 export default function CouponsPage() {
   const { t } = useLocalizationContext();
   const { formatCurrency } = useCurrencyContext();
-  const [coupons, setCoupons] = React.useState(MOCK_COUPONS);
   const [search, setSearch] = React.useState("");
   const [filterOpen, setFilterOpen] = React.useState(false);
   const [statusFilter, setStatusFilter] = React.useState<string>("all");
@@ -31,33 +34,117 @@ export default function CouponsPage() {
   const [formData, setFormData] = React.useState({ code: "", discount: "", type: "Percentage", expires: "", status: "Active" });
   const [formLoading, setFormLoading] = React.useState(false);
 
-  const filtered = coupons.filter((c) => {
-    const matchesSearch = c.code.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter === "all" || c.status.toLowerCase() === statusFilter.toLowerCase();
-    return matchesSearch && matchesStatus;
+  const { data, error, isLoading, mutate } = useSWR("/api/admin/coupons", fetcher, {
+    revalidateOnFocus: false,
+    shouldRetryOnError: false,
+    dedupingInterval: 0,
   });
+
+  const coupons = React.useMemo(() => {
+    if (data?.success) {
+      if (Array.isArray(data.data)) return data.data;
+      if (data.data?.data && Array.isArray(data.data.data)) return data.data.data;
+    }
+    return [];
+  }, [data]);
+
+  const filtered = React.useMemo(() => {
+    return coupons.filter((c: any) => {
+      const matchesSearch = (c.code || "").toLowerCase().includes(search.toLowerCase());
+      const matchesStatus = statusFilter === "all" || (c.status || "").toLowerCase() === statusFilter.toLowerCase();
+      return matchesSearch && matchesStatus;
+    });
+  }, [coupons, search, statusFilter]);
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormLoading(true);
-    await new Promise((r) => setTimeout(r, 500));
-    setCoupons((prev) => [...prev, { ...formData, id: `c_${prev.length + 1}`, usageCount: 0, maxUsage: 100 }]);
-    setFormData({ code: "", discount: "", type: "Percentage", expires: "", status: "Active" });
-    setAddOpen(false);
-    setFormLoading(false);
-    toast.success(t("admin.coupons.created", "Coupon created"));
+    try {
+      const res = await fetch("/api/admin/coupons", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      if (!res.ok) throw new Error("Failed to create coupon");
+      setFormData({ code: "", discount: "", type: "Percentage", expires: "", status: "Active" });
+      setAddOpen(false);
+      toast.success(t("admin.coupons.created", "Coupon created"));
+      mutate();
+    } catch {
+      toast.error(t("admin.coupons.createFailed", "Failed to create coupon"));
+    } finally {
+      setFormLoading(false);
+    }
   };
 
-  const handleToggle = (id: string) => {
-    setCoupons((prev) => prev.map((c) => c.id === id ? { ...c, status: c.status === "Active" ? "Expired" : "Active" } : c));
-    toast.success(t("admin.coupons.statusUpdated", "Coupon status updated"));
+  const handleToggle = async (id: string) => {
+    const coupon = coupons.find((c: any) => c.id === id);
+    const newStatus = coupon?.status === "Active" ? "Expired" : "Active";
+    try {
+      const res = await fetch(`/api/admin/coupons/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (!res.ok) throw new Error("Failed to update coupon status");
+      toast.success(t("admin.coupons.statusUpdated", "Coupon status updated"));
+      mutate();
+    } catch {
+      toast.error(t("admin.coupons.statusUpdateFailed", "Failed to update coupon status"));
+    }
   };
 
-  const handleDelete = (id: string, code: string) => {
+  const handleDelete = async (id: string, code: string) => {
     if (!confirm(t("admin.coupons.deleteConfirm", 'Delete coupon "{0}"?').replace("{0}", code))) return;
-    setCoupons((prev) => prev.filter((c) => c.id !== id));
-    toast.success(t("admin.coupons.deleted", "Coupon deleted"));
+    try {
+      const res = await fetch(`/api/admin/coupons/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete coupon");
+      toast.success(t("admin.coupons.deleted", "Coupon deleted"));
+      mutate();
+    } catch {
+      toast.error(t("admin.coupons.deleteFailed", "Failed to delete coupon"));
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <Breadcrumbs items={[{ label: t("admin.coupons", "Coupons") }]} />
+        <DashboardCard>
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold">{t("admin.coupons", "Coupons")}</h1>
+            <p className="text-muted-foreground text-sm mt-1">{t("admin.coupons.description", "Manage discount codes and promotions")}</p>
+          </div>
+          <div className="flex items-center justify-center py-12">
+            <Loader className="size-6 animate-spin text-muted-foreground" />
+            <p className="ml-2 text-muted-foreground">{t("common.loading", "Loading...")}</p>
+          </div>
+        </DashboardCard>
+      </div>
+    );
+  }
+
+  if (error && !data) {
+    return (
+      <div className="space-y-6">
+        <Breadcrumbs items={[{ label: t("admin.coupons", "Coupons") }]} />
+        <DashboardCard>
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold">{t("admin.coupons", "Coupons")}</h1>
+            <p className="text-muted-foreground text-sm mt-1">{t("admin.coupons.description", "Manage discount codes and promotions")}</p>
+          </div>
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <p className="text-destructive mb-2">{t("common.error", "Failed to load data")}</p>
+            <p className="text-sm text-muted-foreground mb-4">{error.message}</p>
+            <Button variant="outline" size="sm" onClick={() => mutate()}>
+              <RefreshCw className="mr-2 size-4" />
+              {t("common.retry", "Retry")}
+            </Button>
+          </div>
+        </DashboardCard>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -88,25 +175,31 @@ export default function CouponsPage() {
           )}
         </div>
 
-        <AdminDataTable
-          data={filtered}
-          keyExtractor={(c) => c.id}
-          columns={[
-            { key: "code", header: t("admin.coupons.code", "Code"), render: (c: any) => <p className="font-medium text-sm">{c.code}</p> },
-            { key: "discount", header: t("admin.coupons.discount", "Discount"), render: (c: any) => <span className="text-sm">{c.type === "Fixed" ? formatCurrency(c.discount) : c.discount} ({c.type})</span> },
-            { key: "status", header: t("common.status", "Status"), render: (c: any) => <Badge tone={c.status === "Active" ? "success" : "muted"}>{c.status}</Badge> },
-            { key: "usageCount", header: t("admin.coupons.usage", "Usage"), render: (c: any) => <span className="text-sm">{c.usageCount} / {c.maxUsage}</span> },
-            { key: "expires", header: t("admin.coupons.expires", "Expires"), render: (c: any) => <span className="text-sm">{c.expires}</span> },
-            { key: "actions", header: "", align: "right", render: (c: any) => (
-              <div className="flex items-center gap-1 justify-end">
-                <Button variant="ghost" size="icon-xs" onClick={() => handleToggle(c.id)} aria-label={t("admin.coupons.toggle", "Toggle coupon")}>
-                  {c.status === "Active" ? <ToggleRight className="size-4 text-green-600" /> : <ToggleLeft className="size-4 text-muted-foreground" />}
-                </Button>
-                <Button variant="ghost" size="icon-xs" onClick={() => handleDelete(c.id, c.code)} aria-label={t("admin.coupons.delete", "Delete coupon")} className="text-destructive hover:text-destructive"><Trash2 className="size-3.5" /></Button>
-              </div>
-            )},
-          ]}
-        />
+        {filtered.length === 0 ? (
+          <div className="text-center py-12 text-muted-foreground text-sm">
+            {t("admin.coupons.noCoupons", "No coupons found")}
+          </div>
+        ) : (
+          <AdminDataTable
+            data={filtered}
+            keyExtractor={(c) => c.id}
+            columns={[
+              { key: "code", header: t("admin.coupons.code", "Code"), render: (c: any) => <p className="font-medium text-sm">{c.code}</p> },
+              { key: "discount", header: t("admin.coupons.discount", "Discount"), render: (c: any) => <span className="text-sm">{c.type === "Fixed" ? formatCurrency(c.discount || c.value) : c.discount || c.value} ({c.type})</span> },
+              { key: "status", header: t("common.status", "Status"), render: (c: any) => <Badge tone={c.status === "Active" ? "success" : "muted"}>{c.status}</Badge> },
+              { key: "usageCount", header: t("admin.coupons.usage", "Usage"), render: (c: any) => <span className="text-sm">{c.usageCount || c.uses || 0} / {c.maxUsage || c.limit || "\u221e"}</span> },
+              { key: "expires", header: t("admin.coupons.expires", "Expires"), render: (c: any) => <span className="text-sm">{c.expires}</span> },
+              { key: "actions", header: "", align: "right", render: (c: any) => (
+                <div className="flex items-center gap-1 justify-end">
+                  <Button variant="ghost" size="icon-xs" onClick={() => handleToggle(c.id)} aria-label={t("admin.coupons.toggle", "Toggle coupon")}>
+                    {c.status === "Active" ? <ToggleRight className="size-4 text-green-600" /> : <ToggleLeft className="size-4 text-muted-foreground" />}
+                  </Button>
+                  <Button variant="ghost" size="icon-xs" onClick={() => handleDelete(c.id, c.code)} aria-label={t("admin.coupons.delete", "Delete coupon")} className="text-destructive hover:text-destructive"><Trash2 className="size-3.5" /></Button>
+                </div>
+              )},
+            ]}
+          />
+        )}
       </DashboardCard>
 
       {addOpen && (
@@ -118,8 +211,8 @@ export default function CouponsPage() {
               <button onClick={() => setAddOpen(false)} className="text-muted-foreground hover:text-foreground"><X className="size-5" /></button>
             </div>
             <form onSubmit={handleAdd} className="space-y-4">
-              <div><label className="text-sm font-medium mb-1.5 block">{t("admin.coupons.code", "Code")}</label><Input value={formData.code} onChange={(e) => setFormData({ ...formData, code: e.target.value })} placeholder={t("admin.coupons.codePlaceholder", "SAVE20")} required /></div>
-              <div><label className="text-sm font-medium mb-1.5 block">{t("admin.coupons.discount", "Discount")}</label><Input value={formData.discount} onChange={(e) => setFormData({ ...formData, discount: e.target.value })} placeholder={t("admin.coupons.discountPlaceholder", "20%")} required /></div>
+              <div><label className="text-sm font-medium mb-1.5 block">{t("admin.coupons.code", "Code")}</label><Input value={formData.code} onChange={(e) => setFormData({ ...formData, code: e.target.value })} placeholder="SAVE20" required /></div>
+              <div><label className="text-sm font-medium mb-1.5 block">{t("admin.coupons.discount", "Discount")}</label><Input value={formData.discount} onChange={(e) => setFormData({ ...formData, discount: e.target.value })} placeholder="20%" required /></div>
               <div><label className="text-sm font-medium mb-1.5 block">{t("admin.coupons.type", "Type")}</label><select value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"><option value="Percentage">{t("admin.coupons.percentage", "Percentage")}</option><option value="Fixed">{t("admin.coupons.fixed", "Fixed")}</option></select></div>
               <div><label className="text-sm font-medium mb-1.5 block">{t("admin.coupons.expiry", "Expires")}</label><Input type="date" value={formData.expires} onChange={(e) => setFormData({ ...formData, expires: e.target.value })} required /></div>
               <div className="flex gap-2 pt-4">

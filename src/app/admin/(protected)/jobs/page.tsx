@@ -1,85 +1,116 @@
 "use client";
 
 import * as React from "react";
+import useSWR from "swr";
 import { cn } from "@/lib/utils";
 import { DashboardCard } from "@/components/ui/DashboardCard";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Filter, Plus, Loader, X, RefreshCw, Play, Pause, XCircle, RotateCcw, Eye } from "lucide-react";
+import { Search, Filter, Loader, RefreshCw, Play, Pause, XCircle, RotateCcw, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { Breadcrumbs } from "@/components/admin/Breadcrumbs";
 import { useLocalizationContext } from "@/providers/localization";
 
-const MOCK_JOBS = [
-  { id: "job_1", name: "Hero Video Render", status: "Running", progress: 72, owner: "Alice Johnson", createdAt: "23/07/2026", queue: "default" },
-  { id: "job_2", name: "Product Image Batch", status: "Queued", progress: 0, owner: "Bob Smith", createdAt: "23/07/2026", queue: "default" },
-  { id: "job_3", name: "Voiceover Generation", status: "Running", progress: 45, owner: "Carol White", createdAt: "22/07/2026", queue: "audio" },
-  { id: "job_4", name: "Thumbnail Extraction", status: "Completed", progress: 100, owner: "Alice Johnson", createdAt: "22/07/2026", queue: "default" },
-  { id: "job_5", name: "Watermark Apply", status: "Failed", progress: 30, owner: "Bob Smith", createdAt: "21/07/2026", queue: "default" },
-  { id: "job_6", name: "Subtitle Sync", status: "Queued", progress: 0, owner: "Carol White", createdAt: "21/07/2026", queue: "audio" },
-  { id: "job_7", name: "4K Upscale", status: "Running", progress: 88, owner: "Alice Johnson", createdAt: "20/07/2026", queue: "processing" },
-  { id: "job_8", name: "Metadata Extract", status: "Completed", progress: 100, owner: "Bob Smith", createdAt: "20/07/2026", queue: "default" },
-];
+const fetcher = (url: string) =>
+  fetch(url)
+    .then((r) => {
+      if (!r.ok) throw new Error(`API error: ${r.status}`);
+      return r.json();
+    })
+    .catch((error) => {
+      console.error(`[Fetcher] Failed to fetch ${url}:`, error);
+      throw error;
+    });
 
 export default function JobsPage() {
   const { t } = useLocalizationContext();
-  const [jobs, setJobs] = React.useState(MOCK_JOBS);
   const [search, setSearch] = React.useState("");
   const [filterOpen, setFilterOpen] = React.useState(false);
   const [statusFilter, setStatusFilter] = React.useState<string>("all");
-  const [loading, setLoading] = React.useState(false);
 
-  const filtered = jobs.filter((j) => {
-    const matchesSearch = j.name.toLowerCase().includes(search.toLowerCase()) || j.owner.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter === "all" || j.status.toLowerCase() === statusFilter.toLowerCase();
-    return matchesSearch && matchesStatus;
+  const { data, error, isLoading, mutate } = useSWR("/api/admin/jobs", fetcher, {
+    revalidateOnFocus: false,
+    shouldRetryOnError: false,
+    dedupingInterval: 0,
   });
 
-  const handleRetry = (id: string) => {
-    setJobs((prev) => prev.map((j) => (j.id === id ? { ...j, status: "Queued", progress: 0 } : j)));
-    toast.success(t("admin.jobQueuedForRetry", "Job queued for retry"));
+  const jobs = React.useMemo(() => {
+    if (data?.success && Array.isArray(data.data)) return data.data;
+    return [];
+  }, [data]);
+
+  const filtered = React.useMemo(() => {
+    return jobs.filter((j: any) => {
+      const matchesSearch = (j.name || "").toLowerCase().includes(search.toLowerCase()) || (j.owner || "").toLowerCase().includes(search.toLowerCase());
+      const matchesStatus = statusFilter === "all" || (j.status || "").toLowerCase() === statusFilter.toLowerCase();
+      return matchesSearch && matchesStatus;
+    });
+  }, [jobs, search, statusFilter]);
+
+  const handleJobAction = async (id: string, action: string) => {
+    try {
+      const res = await fetch(`/api/admin/jobs/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      });
+      if (!res.ok) throw new Error(`Failed to ${action} job`);
+      toast.success(t(`admin.job${action.charAt(0).toUpperCase() + action.slice(1)}`, `Job ${action}`));
+      mutate();
+    } catch {
+      toast.error(t(`admin.job${action.charAt(0).toUpperCase() + action.slice(1)}Failed`, `Failed to ${action} job`));
+    }
   };
 
+  const handleRetry = (id: string) => handleJobAction(id, "retry");
   const handleCancel = (id: string) => {
     if (!confirm(t("admin.confirmCancelJob", "Cancel this job?"))) return;
-    setJobs((prev) => prev.map((j) => (j.id === id ? { ...j, status: "Cancelled", progress: 0 } : j)));
-    toast.success(t("admin.jobCancelled", "Job cancelled"));
+    handleJobAction(id, "cancel");
   };
+  const handlePause = (id: string) => handleJobAction(id, "pause");
+  const handleResume = (id: string) => handleJobAction(id, "resume");
 
-  const handlePause = (id: string) => {
-    setJobs((prev) => prev.map((j) => (j.id === id ? { ...j, status: "Paused", progress: j.progress } : j)));
-    toast.success(t("admin.jobPaused", "Job paused"));
-  };
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <Breadcrumbs items={[{ label: t("admin.jobs", "Jobs") }]} />
+        <DashboardCard>
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold">{t("admin.jobs", "Jobs")}</h1>
+            <p className="text-muted-foreground text-sm mt-1">{t("admin.jobsDescription", "Monitor and manage background jobs")}</p>
+          </div>
+          <div className="flex items-center justify-center py-12">
+            <Loader className="size-6 animate-spin text-muted-foreground" />
+            <p className="ml-2 text-muted-foreground">{t("admin.loadingJobs", "Loading jobs...")}</p>
+          </div>
+        </DashboardCard>
+      </div>
+    );
+  }
 
-  const handleResume = (id: string) => {
-    setJobs((prev) => prev.map((j) => (j.id === id ? { ...j, status: "Running", progress: j.progress } : j)));
-    toast.success(t("admin.jobResumed", "Job resumed"));
-  };
-
-  const handleViewLogs = (id: string) => {
-    const job = jobs.find((j) => j.id === id);
-    const mockLogs = [
-      { time: "14:30:01", level: "INFO", message: `Job ${job?.name} started` },
-      { time: "14:30:05", level: "INFO", message: "Processing step 1/4" },
-      { time: "14:30:12", level: "INFO", message: "Processing step 2/4" },
-      { time: "14:30:20", level: "WARN", message: "High memory usage detected" },
-      { time: "14:30:28", level: "INFO", message: "Processing step 3/4" },
-      { time: "14:30:35", level: "INFO", message: "Processing step 4/4" },
-    ];
-    const logText = mockLogs.map((l) => `[${l.time}] ${l.level}: ${l.message}`).join("\n");
-    alert(t("admin.viewLogs", `Logs for "${job?.name}":\n\n${logText}`));
-  };
-
-  const handleRefresh = () => {
-    setLoading(true);
-    setTimeout(() => {
-      setJobs(MOCK_JOBS);
-      setLoading(false);
-      toast.success(t("admin.dashboardRefreshed", "Dashboard refreshed"));
-    }, 800);
-  };
+  if (error && !data) {
+    return (
+      <div className="space-y-6">
+        <Breadcrumbs items={[{ label: t("admin.jobs", "Jobs") }]} />
+        <DashboardCard>
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold">{t("admin.jobs", "Jobs")}</h1>
+            <p className="text-muted-foreground text-sm mt-1">{t("admin.jobsDescription", "Monitor and manage background jobs")}</p>
+          </div>
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <p className="text-destructive mb-2">{t("common.error", "Failed to load data")}</p>
+            <p className="text-sm text-muted-foreground mb-4">{error.message}</p>
+            <Button variant="outline" size="sm" onClick={() => mutate()}>
+              <RefreshCw className="mr-2 size-4" />
+              {t("common.retry", "Retry")}
+            </Button>
+          </div>
+        </DashboardCard>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -90,8 +121,8 @@ export default function JobsPage() {
             <h1 className="text-3xl font-bold">{t("admin.jobs", "Jobs")}</h1>
             <p className="text-muted-foreground text-sm mt-1">{t("admin.jobsDescription", "Monitor and manage background jobs")}</p>
           </div>
-          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={loading}>
-            <RefreshCw className={cn("mr-2 size-4", loading && "animate-spin")} />
+          <Button variant="outline" size="sm" onClick={() => mutate()}>
+            <RefreshCw className="mr-2 size-4" />
             {t("common.refresh", "Refresh")}
           </Button>
         </div>
@@ -122,10 +153,9 @@ export default function JobsPage() {
           </div>
         </div>
 
-        {loading && jobs.length === 0 ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader className="size-6 animate-spin text-muted-foreground" />
-            <p className="ml-2 text-muted-foreground">{t("admin.loadingJobs", "Loading jobs...")}</p>
+        {filtered.length === 0 ? (
+          <div className="text-center py-12 text-muted-foreground text-sm">
+            {t("admin.noJobs", "No jobs found")}
           </div>
         ) : (
           <AdminDataTable
@@ -134,7 +164,7 @@ export default function JobsPage() {
             columns={[
               { key: "name", header: t("admin.job", "Job"), render: (j: any) => <p className="font-medium text-sm">{j.name}</p> },
               { key: "status", header: t("admin.status", "Status"), render: (j: any) => <Badge tone={j.status === "Running" ? "info" : j.status === "Completed" ? "success" : j.status === "Failed" ? "warning" : j.status === "Paused" ? "muted" : "default"}>{j.status}</Badge> },
-              { key: "progress", header: t("admin.progress", "Progress"), render: (j: any) => <div className="flex items-center gap-2"><div className="h-1.5 w-20 overflow-hidden rounded-full bg-muted/40"><div className="h-full rounded-full bg-primary transition-all" style={{ width: `${j.progress}%` }} /></div><span className="text-xs text-muted-foreground">{j.progress}%</span></div> },
+              { key: "progress", header: t("admin.progress", "Progress"), render: (j: any) => <div className="flex items-center gap-2"><div className="h-1.5 w-20 overflow-hidden rounded-full bg-muted/40"><div className="h-full rounded-full bg-primary transition-all" style={{ width: `${j.progress || 0}%` }} /></div><span className="text-xs text-muted-foreground">{j.progress || 0}%</span></div> },
               { key: "owner", header: t("admin.owner", "Owner"), render: (j: any) => <span className="text-sm">{j.owner}</span> },
               { key: "queue", header: t("admin.queue", "Queue"), render: (j: any) => <span className="text-xs text-muted-foreground">{j.queue}</span> },
               { key: "createdAt", header: t("admin.created", "Created"), render: (j: any) => <span className="text-sm">{j.createdAt}</span> },
@@ -144,7 +174,6 @@ export default function JobsPage() {
                   {j.status === "Paused" && <Button variant="ghost" size="icon-xs" onClick={() => handleResume(j.id)} aria-label={t("admin.resumeJob", "Resume job")}><Play className="size-3.5" /></Button>}
                   {(j.status === "Failed" || j.status === "Queued") && <Button variant="ghost" size="icon-xs" onClick={() => handleRetry(j.id)} aria-label={t("admin.retryJob", "Retry job")}><RotateCcw className="size-3.5" /></Button>}
                   {j.status === "Running" && <Button variant="ghost" size="icon-xs" onClick={() => handleCancel(j.id)} aria-label={t("admin.cancelJob", "Cancel job")} className="text-destructive hover:text-destructive"><XCircle className="size-3.5" /></Button>}
-                  <Button variant="ghost" size="icon-xs" onClick={() => handleViewLogs(j.id)} aria-label={t("admin.viewLogs", "View logs")}><Eye className="size-3.5" /></Button>
                 </div>
               )},
             ]}

@@ -2,8 +2,6 @@ import { pgTable, text, timestamp, jsonb, index, unique, boolean } from "drizzle
 import { relations } from "drizzle-orm";
 import { user } from "./auth";
 
-export { user } from "./auth";
-
 export const userProfile = pgTable(
   "user_profile",
   {

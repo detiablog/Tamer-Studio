@@ -8,6 +8,8 @@ export { CMSNavigationIntegration, getCMSNavigationIntegration, resetCMSNavigati
 export { NavigationLocalizationIntegration, getNavigationLocalization, resetNavigationLocalization } from "./navigation-localization";
 export { NavigationSEOIntegration, getNavigationSEO, resetNavigationSEO } from "./navigation-seo";
 export { NavigationAPI, getNavigationAPI, resetNavigationAPI } from "./navigation-api";
+export { bootstrapNavigation, resetBootstrap } from "./navigation-bootstrap";
+export { resolveIcon, registerIcon } from "./navigation-icons";
 export type {
   NavigationItem,
   NavigationMenu,

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { LogIn, ArrowRight, Lock } from "lucide-react";
-import { authClient } from "@/lib/auth/auth-client";
+import { authClient } from "@/core/auth/client";
 import { LoginForm } from "@/features/auth/components/login-form";
 import { useLocalizationContext } from "@/providers/localization";
 

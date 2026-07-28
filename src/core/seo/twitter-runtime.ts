@@ -10,12 +10,12 @@ export class TwitterRuntime {
     this.defaultCreator = creator || "@tamerstudio";
   }
 
-  resolve(input: SEOTwitterInput): SEOTwitterResult {
+  async resolve(input: SEOTwitterInput): Promise<SEOTwitterResult> {
     const cache = getSEOCache();
     const inputKey = input.title + (input.image || "");
     const cacheKey = cache.buildKey(["twitter", inputKey]);
 
-    const cached = cache.get<SEOTwitterResult>(cacheKey);
+    const cached = await cache.get<SEOTwitterResult>(cacheKey);
     if (cached) return cached;
 
     const result: SEOTwitterResult = {
@@ -27,11 +27,11 @@ export class TwitterRuntime {
       site: input.site || this.defaultSite,
     };
 
-    cache.set(cacheKey, result, ["twitter"]);
+    await cache.set(cacheKey, result, { tags: ["twitter"] });
     return result;
   }
 
-  resolveForPage(input: SEOTwitterInput): SEOTwitterResult {
+  async resolveForPage(input: SEOTwitterInput): Promise<SEOTwitterResult> {
     return this.resolve(input);
   }
 

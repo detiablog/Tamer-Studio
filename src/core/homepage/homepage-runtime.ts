@@ -65,7 +65,7 @@ export class HomepageRuntime {
     );
 
     if (this.config.cacheEnabled && !context.isPreview) {
-      const cached = cache.get(cacheKey);
+      const cached = await cache.get(cacheKey);
       if (cached) return cached;
     }
 
@@ -88,7 +88,7 @@ export class HomepageRuntime {
     };
 
     if (this.config.cacheEnabled && !context.isPreview) {
-      cache.set(cacheKey, result, ["homepage", context.locale]);
+      await cache.set(cacheKey, result, { tags: ["homepage", context.locale] });
     }
 
     return result;
@@ -297,12 +297,12 @@ export class HomepageRuntime {
     return this.sectionRegistry;
   }
 
-  invalidateCache(locale?: string): void {
+  async invalidateCache(locale?: string): Promise<void> {
     const cache = getHomepageCache();
     if (locale) {
-      cache.invalidateByTag(locale);
+      await cache.invalidateByTag(locale);
     } else {
-      cache.invalidateAll();
+      await cache.invalidateAll();
     }
   }
 

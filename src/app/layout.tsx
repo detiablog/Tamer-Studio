@@ -9,12 +9,16 @@ import { CurrencyProvider } from "@/providers/currency";
 import { HtmlLangUpdater } from "@/components/providers/HtmlLangUpdater";
 import { config } from "@/core/config";
 import { getSEORuntime } from "@/core/seo";
+import { bootstrapNavigation } from "@/core/navigation";
+import { initializeEventHub } from "@/core/events/event-hub";
 import Script from "next/script";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
 const SITE_URL = config.app.url;
 const seoRuntime = getSEORuntime();
+bootstrapNavigation();
+initializeEventHub();
 
 const orgSchema = seoRuntime.getSchemaRuntime().resolveOrganization({
   name: "Tamer Studio",
@@ -78,22 +82,22 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={cn("font-sans", geist.variable)} suppressHydrationWarning>
       <body>
-        <ThemeProvider>
-          <LocalizationProvider>
-            <CurrencyProvider>
-              <HtmlLangUpdater />
-              <Script
-                id="json-ld"
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{
-                  __html: JSON.stringify(orgSchema),
-                }}
-              />
-              {children}
-              <Toaster />
-            </CurrencyProvider>
-          </LocalizationProvider>
-        </ThemeProvider>
+          <ThemeProvider>
+            <LocalizationProvider>
+              <CurrencyProvider>
+                <HtmlLangUpdater />
+                <Script
+                  id="json-ld"
+                  type="application/ld+json"
+                  dangerouslySetInnerHTML={{
+                    __html: JSON.stringify(orgSchema),
+                  }}
+                />
+                {children}
+                <Toaster />
+              </CurrencyProvider>
+            </LocalizationProvider>
+          </ThemeProvider>
       </body>
     </html>
   );

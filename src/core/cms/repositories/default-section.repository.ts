@@ -7,7 +7,7 @@ import type { CMSSection } from "../cms.types";
 
 export class DefaultCMSSectionRepository implements CMSSectionRepository {
   async createSection(section: CMSSection): Promise<CMSSection> {
-    const now = new Date().toISOString();
+    const now = new Date();
     const id = section.id ?? randomUUID();
     const [created] = await db.insert(cmsSection).values({
       id,
@@ -48,7 +48,7 @@ export class DefaultCMSSectionRepository implements CMSSectionRepository {
     if (!existing) return undefined;
 
     const set: Record<string, unknown> = {
-      updatedAt: new Date().toISOString(),
+      updatedAt: new Date(),
     };
 
     if (updates.type !== undefined) set.type = updates.type;
@@ -90,8 +90,8 @@ export class DefaultCMSSectionRepository implements CMSSectionRepository {
       config: row.config ?? {},
       styles: row.styles ?? {},
       media: [],
-      createdAt: row.createdAt.toISOString(),
-      updatedAt: row.updatedAt.toISOString(),
+      createdAt: typeof row.createdAt === 'string' ? row.createdAt : row.createdAt.toISOString(),
+      updatedAt: typeof row.updatedAt === 'string' ? row.updatedAt : row.updatedAt.toISOString(),
     };
   }
 }

@@ -5,19 +5,14 @@ import { usePathname } from "next/navigation";
 import { SidebarItem } from "./SidebarItem";
 import { cn } from "@/lib/utils";
 import {
-  Home,
-  Grid,
-  Folder,
-  ImageIcon,
-  Film,
-  Settings,
-  FileText,
-  Cpu,
   PanelLeftClose,
   PanelLeft,
   ChevronRight,
 } from "lucide-react";
 import { useLocalizationContext } from "@/providers/localization";
+import { getNavigationRuntime, resolveIcon } from "@/core/navigation";
+
+const runtime = getNavigationRuntime();
 
 export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
   const pathname = usePathname();
@@ -29,16 +24,17 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
     return pathname === href || pathname.startsWith(href + "/");
   };
 
-  const navItems = [
-    { icon: Home, labelKey: "dashboard.dashboard", href: "/dashboard", shortcut: "⌘D" },
-    { icon: Grid, labelKey: "dashboard.workspace", href: "/workspace", shortcut: "⌘W" },
-    { icon: Folder, labelKey: "dashboard.projects", href: "/projects", shortcut: "⌘P" },
-    { icon: ImageIcon, labelKey: "dashboard.media", href: "/media", shortcut: "⌘M" },
-    { icon: Film, labelKey: "dashboard.production", href: "/production", shortcut: "⌘R" },
-    { icon: Cpu, labelKey: "dashboard.ai", href: "/ai", shortcut: "⌘A" },
-    { icon: FileText, labelKey: "dashboard.publishing", href: "/publishing", shortcut: "⌘U" },
-    { icon: Settings, labelKey: "dashboard.settings", href: "/settings", shortcut: "⌘S" },
-  ];
+  const navItems = runtime.getItemsByPosition("sidebar");
+
+  const grouped = React.useMemo(() => {
+    const groups: Record<string, typeof navItems> = {};
+    for (const item of navItems) {
+      const group = item.group ?? "default";
+      if (!groups[group]) groups[group] = [];
+      groups[group].push(item);
+    }
+    return groups;
+  }, [navItems]);
 
   return (
     <>
@@ -64,13 +60,13 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary text-sm font-bold">
                 TS
               </div>
-              <span className="font-heading text-sm font-semibold">Tamer Studio</span>
+              <span className="font-heading text-sm font-semibold">{t("brand.name")}</span>
             </div>
           )}
           <button
             onClick={() => setIsCollapsed((v) => !v)}
             className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-muted/40 transition-colors focus-visible:ring-2 focus-visible:ring-ring/50"
-            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            aria-label={isCollapsed ? t("sidebar.expand") : t("sidebar.collapse")}
           >
             {isCollapsed ? <PanelLeft className="size-4" /> : <PanelLeftClose className="size-4" />}
           </button>
@@ -85,34 +81,28 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
             .sidebar-nav:hover::-webkit-scrollbar-thumb { background: #D1D5DB; }
             .dark .sidebar-nav:hover::-webkit-scrollbar-thumb { background: #4B5563; }
           `}</style>
-          <div className="mb-2 px-2 text-[11px] font-medium uppercase tracking-wider text-[#9CA3AF] dark:text-muted-foreground/70">
-            {isCollapsed ? "" : "Main"}
-          </div>
-          <div className="flex flex-col gap-1">
-            {navItems.map((item) => (
-              <SidebarItem
-                key={item.href}
-                icon={item.icon}
-                label={isCollapsed ? "" : t(item.labelKey)}
-                href={item.href}
-                active={isActive(item.href)}
-                shortcut={isCollapsed ? undefined : item.shortcut}
-              />
-            ))}
-          </div>
-
-          <div className="mt-6 mb-2 px-2 text-[11px] font-medium uppercase tracking-wider text-[#9CA3AF] dark:text-muted-foreground/70">
-            {isCollapsed ? "" : "Manage"}
-          </div>
-          <div className="flex flex-col gap-1">
-            <SidebarItem
-              icon={Settings}
-              label={isCollapsed ? "" : t("dashboard.settings")}
-              href="/settings"
-              active={isActive("/settings")}
-              shortcut={isCollapsed ? undefined : "⌘S"}
-            />
-          </div>
+          {Object.entries(grouped).map(([group, items], groupIndex) => (
+            <React.Fragment key={group}>
+              {groupIndex > 0 && <div className="mt-6" />}
+              <div className="mb-2 px-2 text-[11px] font-medium uppercase tracking-wider text-[#9CA3AF] dark:text-muted-foreground/70">
+                {isCollapsed ? "" : t(`sidebar.${group}` as any, group)}
+              </div>
+              <div className="flex flex-col gap-1">
+                {items.map((item) => {
+                  const IconComp = resolveIcon(item.icon);
+                  return (
+                    <SidebarItem
+                      key={item.id}
+                      icon={IconComp}
+                      label={isCollapsed ? "" : t(item.titleKey ?? item.title)}
+                      href={item.route}
+                      active={isActive(item.route)}
+                    />
+                  );
+                })}
+              </div>
+            </React.Fragment>
+          ))}
         </nav>
 
         {/* Collapse toggle for desktop */}
@@ -121,7 +111,7 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
             <button
               onClick={() => setIsCollapsed(false)}
               className="flex w-full items-center justify-center rounded-lg p-2 hover:bg-muted/40 transition-colors focus-visible:ring-2 focus-visible:ring-ring/50"
-              aria-label="Expand sidebar"
+              aria-label={t("sidebar.expand")}
             >
               <ChevronRight className="size-4 rotate-180" />
             </button>

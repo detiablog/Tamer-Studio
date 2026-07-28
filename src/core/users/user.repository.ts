@@ -1,6 +1,7 @@
 import type { UserProfile, UserPreferences, ExternalIdentity, UpdateUserProfileInput } from "./user.types";
 import { db } from "@/lib/db";
-import { user, userProfile, userPreferences, externalIdentity } from "@/lib/db/schema/identity";
+import { user } from "@/lib/db/schema/auth";
+import { userProfile, userPreferences, externalIdentity } from "@/lib/db/schema/identity";
 import { eq, and, desc } from "drizzle-orm";
 import { randomUUID } from "crypto";
 

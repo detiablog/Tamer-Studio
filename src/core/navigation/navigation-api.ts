@@ -29,10 +29,10 @@ class NavigationAPI {
   private localization = getNavigationLocalization();
   private seo = getNavigationSEO();
 
-  registerNavigation(input: RegisterNavigationInput): NavigationAPIResponse<NavigationItem> {
+  async registerNavigation(input: RegisterNavigationInput): Promise<NavigationAPIResponse<NavigationItem>> {
     try {
       const cacheKey = `nav:${input.id}`;
-      this.cache.invalidateKey(cacheKey);
+      await this.cache.invalidateKey(cacheKey);
       const item = this.runtime.registerItem(input);
       this.registry.register({
         id: input.id,
@@ -63,15 +63,15 @@ class NavigationAPI {
     }
   }
 
-  getNavigationItem(id: string): NavigationAPIResponse<NavigationItem | null> {
+  async getNavigationItem(id: string): Promise<NavigationAPIResponse<NavigationItem | null>> {
     const cacheKey = `nav-item:${id}`;
-    const cached = this.cache.getRegistry<NavigationItem>(cacheKey);
+    const cached = await this.cache.getRegistry<NavigationItem>(cacheKey);
     if (cached) {
       return { success: true, data: cached };
     }
     const item = this.runtime.getItem(id);
     if (item) {
-      this.cache.setRegistry(cacheKey, item, [`nav-item-${id}`]);
+      await this.cache.setRegistry(cacheKey, item, [`nav-item-${id}`]);
     }
     return { success: true, data: item ?? null };
   }
@@ -118,15 +118,15 @@ class NavigationAPI {
     };
   }
 
-  getNavigationMenu(id: string): NavigationAPIResponse<NavigationMenu | null> {
+  async getNavigationMenu(id: string): Promise<NavigationAPIResponse<NavigationMenu | null>> {
     const cacheKey = `nav-menu:${id}`;
-    const cached = this.cache.getMenu<NavigationMenu>(cacheKey);
+    const cached = await this.cache.getMenu<NavigationMenu>(cacheKey);
     if (cached) {
       return { success: true, data: cached };
     }
     const menu = this.menuManagement.getMenu(id);
     if (menu) {
-      this.cache.setMenu(cacheKey, menu, [`nav-menu-${id}`]);
+      await this.cache.setMenu(cacheKey, menu, [`nav-menu-${id}`]);
     }
     return { success: true, data: menu ?? null };
   }
@@ -140,17 +140,17 @@ class NavigationAPI {
     return { success: true, data: menus };
   }
 
-  getBreadcrumbs(
+  async getBreadcrumbs(
     route: string,
     locale?: string
-  ): NavigationAPIResponse<BreadcrumbItem[]> {
+  ): Promise<NavigationAPIResponse<BreadcrumbItem[]>> {
     const cacheKey = `breadcrumbs:${route}:${locale ?? "default"}`;
-    const cached = this.cache.getRoute<BreadcrumbItem[]>(cacheKey);
+    const cached = await this.cache.getRoute<BreadcrumbItem[]>(cacheKey);
     if (cached) {
       return { success: true, data: cached };
     }
     const breadcrumbs = this.breadcrumbRuntime.generateBreadcrumbs(route, locale);
-    this.cache.setRoute(cacheKey, breadcrumbs, [`breadcrumb-${route}`]);
+    await this.cache.setRoute(cacheKey, breadcrumbs, [`breadcrumb-${route}`]);
     return { success: true, data: breadcrumbs };
   }
 
@@ -202,12 +202,12 @@ class NavigationAPI {
     return { success: true, data: entry ?? null };
   }
 
-  updateNavigationItem(
+  async updateNavigationItem(
     id: string,
     updates: Partial<NavigationItem>
-  ): NavigationAPIResponse<NavigationItem | null> {
+  ): Promise<NavigationAPIResponse<NavigationItem | null>> {
     const cacheKey = `nav-item:${id}`;
-    this.cache.invalidateKey(cacheKey);
+    await this.cache.invalidateKey(cacheKey);
     const item = this.runtime.updateItem(id, updates);
     if (item) {
       this.cmsIntegration.updateNavigationItem(id, updates);
@@ -216,9 +216,9 @@ class NavigationAPI {
     return { success: true, data: item };
   }
 
-  removeNavigationItem(id: string): NavigationAPIResponse<boolean> {
+  async removeNavigationItem(id: string): Promise<NavigationAPIResponse<boolean>> {
     const cacheKey = `nav-item:${id}`;
-    this.cache.invalidateKey(cacheKey);
+    await this.cache.invalidateKey(cacheKey);
     const removed = this.runtime.removeItem(id);
     if (removed) {
       this.cmsIntegration.deleteNavigationItem(id);
@@ -265,14 +265,24 @@ class NavigationAPI {
     totalSize: number;
     maxSize: number;
   }> {
-    return { success: true, data: this.cache.getStats() };
+    const stats = this.cache.getStats();
+    return {
+      success: true,
+      data: {
+        registrySize: stats.size,
+        menuSize: stats.size,
+        routeSize: stats.size,
+        totalSize: stats.size,
+        maxSize: 0,
+      },
+    };
   }
 
-  invalidateCache(tag?: string): NavigationAPIResponse<{ invalidated: boolean }> {
+  async invalidateCache(tag?: string): Promise<NavigationAPIResponse<{ invalidated: boolean }>> {
     if (tag) {
-      this.cache.invalidateByTag(tag);
+      await this.cache.invalidateByTag(tag);
     } else {
-      this.cache.invalidateAll();
+      await this.cache.invalidateAll();
     }
     return { success: true, data: { invalidated: true } };
   }

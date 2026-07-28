@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { RoleGuard } from "./RoleGuard";
-import { type Permission } from "@/lib/auth/permissions";
+import { type Permission } from "@/core/auth/permissions";
 
 type PermissionGuardProps = {
   permissions: Permission | Permission[];

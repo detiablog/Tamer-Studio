@@ -1,9 +1,9 @@
 import {
-  checkRateLimit,
+  checkInMemoryRateLimit,
   getRateLimitRemaining,
   resetRateLimit,
-  getClientIdentifier,
 } from "@/core/security/rate-limit";
+import { getClientIdentifier } from "@/core/security/ratelimit";
 import type { Middleware, RequestContext, SecurityError } from "./types";
 
 interface RateLimitConfig {
@@ -39,7 +39,7 @@ export function rateLimitMiddleware(config?: Partial<RateLimitConfig>): Middlewa
     const identifier = getClientIdentifier(ctx.request);
     const key = `${limit.keyPrefix}:${identifier}`;
 
-    const allowed = checkRateLimit(key, limit.maxRequests, limit.windowMs);
+    const allowed = checkInMemoryRateLimit(key, limit.maxRequests, limit.windowMs);
     if (!allowed) {
       return {
         status: 429,

@@ -1,5 +1,5 @@
 export type NavigationItemType = "page" | "section" | "external" | "separator" | "group";
-export type NavigationPosition = "header" | "sidebar" | "footer" | "dashboard" | "landing";
+export type NavigationPosition = "header" | "sidebar" | "admin-sidebar" | "footer" | "dashboard" | "landing";
 export type NavigationVisibility = "public" | "authenticated" | "admin";
 export type BreadcrumbType = "static" | "dynamic" | "cms" | "auto";
 

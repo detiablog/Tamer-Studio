@@ -21,11 +21,11 @@ export class MetadataRuntime {
     };
   }
 
-  resolve(input: SEOMetadataInput, baseUrl?: string): SEOMetadataResult {
+  async resolve(input: SEOMetadataInput, baseUrl?: string): Promise<SEOMetadataResult> {
     const cache = getSEOCache();
     const cacheKey = cache.buildKey(["metadata", input.route ?? "root", input.locale ?? "en"]);
 
-    const cached = cache.get<SEOMetadataResult>(cacheKey);
+    const cached = await cache.get<SEOMetadataResult>(cacheKey);
     if (cached) return cached;
 
     const result: SEOMetadataResult = {
@@ -42,11 +42,11 @@ export class MetadataRuntime {
       metadataBase: input.baseUrl || baseUrl || this.defaultConfig.metadataBase,
     };
 
-    cache.set(cacheKey, result, ["metadata", input.locale ?? "en"]);
+    await cache.set(cacheKey, result, { tags: ["metadata", input.locale ?? "en"] });
     return result;
   }
 
-  resolveForPage(input: SEOMetadataInput): SEOMetadataResult {
+  async resolveForPage(input: SEOMetadataInput): Promise<SEOMetadataResult> {
     return this.resolve(input);
   }
 

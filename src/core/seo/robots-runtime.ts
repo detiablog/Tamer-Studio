@@ -15,11 +15,11 @@ export class RobotsRuntime {
     ];
   }
 
-  resolveRobotsTxt(input?: SEORobotsInput): SEORobotsResult {
+  async resolveRobotsTxt(input?: SEORobotsInput): Promise<SEORobotsResult> {
     const cache = getSEOCache();
     const cacheKey = cache.buildKey(["robots", "txt", this.isProduction ? "prod" : "dev"]);
 
-    const cached = cache.get<SEORobotsResult>(cacheKey);
+    const cached = await cache.get<SEORobotsResult>(cacheKey);
     if (cached) return cached;
 
     const isProduction = input?.isProduction ?? this.isProduction;
@@ -49,24 +49,24 @@ export class RobotsRuntime {
       };
     }
 
-    cache.set(cacheKey, result, ["robots", "txt"]);
+    await cache.set(cacheKey, result, { tags: ["robots", "txt"] });
     return result;
   }
 
-  resolveRobotsMeta(directive: RobotsDirective): SEORobotsMetaResult {
+  async resolveRobotsMeta(directive: RobotsDirective): Promise<SEORobotsMetaResult> {
     const cache = getSEOCache();
     const cacheKey = cache.buildKey(["robots", "meta", directive]);
 
-    const cached = cache.get<SEORobotsMetaResult>(cacheKey);
+    const cached = await cache.get<SEORobotsMetaResult>(cacheKey);
     if (cached) return cached;
 
     const result = this.parseDirective(directive);
 
-    cache.set(cacheKey, result, ["robots", "meta"]);
+    await cache.set(cacheKey, result, { tags: ["robots", "meta"] });
     return result;
   }
 
-  resolveRobotsForPage(input?: SEORobotsInput): SEORobotsMetaResult {
+  async resolveRobotsForPage(input?: SEORobotsInput): Promise<SEORobotsMetaResult> {
     if (input?.directive) {
       return this.resolveRobotsMeta(input.directive);
     }
@@ -82,8 +82,8 @@ export class RobotsRuntime {
     return this.resolveRobotsMeta("index");
   }
 
-  generateRobotsTxtString(input?: SEORobotsInput): string {
-    const robots = this.resolveRobotsTxt(input);
+  async generateRobotsTxtString(input?: SEORobotsInput): Promise<string> {
+    const robots = await this.resolveRobotsTxt(input);
     const lines: string[] = [];
 
     for (const rule of robots.rules) {

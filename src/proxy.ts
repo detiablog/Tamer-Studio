@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { db } from "@/lib/db";
-import { admin } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { adminRepository } from "@/core/admin/admin.repository";
 import { getSecurityHeaders } from "@/core/security/headers";
 import { metrics } from "@/core/observability/metrics";
 import { getAdminSessionFromToken } from "@/core/admin/session";
@@ -103,12 +101,8 @@ export async function proxy(request: NextRequest) {
       try {
         const session = await getAdminSessionFromToken(sessionToken, ipAddress, userAgent);
         if (session) {
-          const adminRecord = await db
-            .select()
-            .from(admin)
-            .where(eq(admin.id, session.adminId))
-            .limit(1);
-          if (adminRecord.length > 0 && adminRecord[0].isActive) {
+          const adminRecord = await adminRepository.findById(session.adminId);
+          if (adminRecord && adminRecord.isActive) {
             const response = withSecurityHeaders(NextResponse.redirect(new URL("/admin", request.url)));
             metrics.increment("api.request", { method, route: pathname, status: "redirect" });
             return response;
@@ -188,8 +182,8 @@ export async function proxy(request: NextRequest) {
         return response;
       }
 
-      const adminRecord = await db.select().from(admin).where(eq(admin.id, session.adminId)).limit(1);
-      if (adminRecord.length === 0 || !adminRecord[0].isActive) {
+      const adminRecord = await adminRepository.findById(session.adminId);
+      if (!adminRecord || !adminRecord.isActive) {
         const response = withSecurityHeaders(NextResponse.redirect(new URL("/admin/login", request.url)));
         metrics.increment("api.request", { method, route: pathname, status: "redirect" });
         return response;

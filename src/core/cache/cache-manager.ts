@@ -1,34 +1,21 @@
 import { logger } from "@/core/logger/logger";
-import type { Cache, CacheTTL } from "./cache.types";
-import { InMemoryCache } from "./memory-cache";
-import type { RedisCache } from "./redis-cache";
-
-export type CacheProvider = "memory" | "redis";
-
-export interface CacheManagerConfig {
-  provider: CacheProvider;
-  redisClient?: RedisCache;
-}
+import type { SharedCache } from "./cache.interface";
+import { getSharedCache } from "./shared-cache";
 
 export class CacheManager {
-  private cache: Cache;
+  private cache: SharedCache;
 
-  constructor(config: CacheManagerConfig) {
-    if (config.provider === "redis" && config.redisClient) {
-      this.cache = config.redisClient;
-      logger.info("Cache manager initialized with redis provider");
-    } else {
-      this.cache = new InMemoryCache();
-      logger.info("Cache manager initialized with memory provider");
-    }
+  constructor(sharedCache?: SharedCache) {
+    this.cache = sharedCache ?? getSharedCache();
+    logger.info("Cache manager initialized");
   }
 
   async get<T>(key: string): Promise<T | undefined> {
     return this.cache.get<T>(key);
   }
 
-  async set<T>(key: string, value: T, ttlMs?: CacheTTL): Promise<void> {
-    await this.cache.set(key, value, ttlMs);
+  async set<T>(key: string, value: T, options?: { ttl?: number; tags?: string[] }): Promise<void> {
+    await this.cache.set(key, value, options);
   }
 
   async delete(key: string): Promise<void> {
@@ -47,10 +34,7 @@ export class CacheManager {
     return this.cache.has(key);
   }
 
-  getMemoryStats(): { size: number; hits: number; misses: number } | undefined {
-    if (this.cache instanceof InMemoryCache) {
-      return this.cache.getStats();
-    }
-    return undefined;
+  getStats() {
+    return this.cache.getStats();
   }
 }

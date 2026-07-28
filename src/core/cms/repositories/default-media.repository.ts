@@ -7,7 +7,7 @@ import type { CMSMedia } from "../cms.types";
 
 export class DefaultCMSMediaRepository implements CMSMediaRepository {
   async createMedia(media: CMSMedia): Promise<CMSMedia> {
-    const now = new Date().toISOString();
+    const now = new Date();
     const id = media.id ?? randomUUID();
     const [created] = await db.insert(cmsMedia).values({
       id,
@@ -52,7 +52,7 @@ export class DefaultCMSMediaRepository implements CMSMediaRepository {
     if (!existing) return undefined;
 
     const set: Record<string, unknown> = {
-      updatedAt: new Date().toISOString(),
+      updatedAt: new Date(),
     };
 
     if (updates.filename !== undefined) set.filename = updates.filename;
@@ -81,8 +81,8 @@ export class DefaultCMSMediaRepository implements CMSMediaRepository {
       size: row.size,
       folder: row.folder ?? undefined,
       metadata: row.metadata ?? {},
-      createdAt: row.createdAt.toISOString(),
-      updatedAt: row.updatedAt.toISOString(),
+      createdAt: typeof row.createdAt === 'string' ? row.createdAt : row.createdAt.toISOString(),
+      updatedAt: typeof row.updatedAt === 'string' ? row.updatedAt : row.updatedAt.toISOString(),
     };
   }
 }

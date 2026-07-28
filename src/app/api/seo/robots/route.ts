@@ -4,7 +4,7 @@ import { getSEORuntime } from "@/core/seo";
 export async function GET() {
   try {
     const seoRuntime = getSEORuntime();
-    const robotsTxt = seoRuntime.resolveRobotsTxt();
+    const robotsTxt = await seoRuntime.resolveRobotsTxt();
 
     return new NextResponse(robotsTxt, {
       headers: {

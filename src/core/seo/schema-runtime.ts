@@ -10,11 +10,11 @@ export class SchemaRuntime {
     this.siteName = siteName || "Tamer Studio";
   }
 
-  resolve(input: SEOSchemaInput): SEOSchemaResult {
+  async resolve(input: SEOSchemaInput): Promise<SEOSchemaResult> {
     const cache = getSEOCache();
     const cacheKey = cache.buildKey(["schema", input.type, input.locale ?? "en"]);
 
-    const cached = cache.get<SEOSchemaResult>(cacheKey);
+    const cached = await cache.get<SEOSchemaResult>(cacheKey);
     if (cached) return cached;
 
     let result: SEOSchemaResult;
@@ -54,23 +54,23 @@ export class SchemaRuntime {
         result = { "@context": "https://schema.org", "@type": input.type, ...input.data };
     }
 
-    cache.set(cacheKey, result, ["schema", input.type]);
+    await cache.set(cacheKey, result, { tags: ["schema", input.type] });
     return result;
   }
 
-  resolveForPage(schemas: SEOSchemaInput[]): SEOSchemaResult[] {
-    return schemas.map((s) => this.resolve(s));
+  async resolveForPage(schemas: SEOSchemaInput[]): Promise<SEOSchemaResult[]> {
+    return Promise.all(schemas.map((s) => this.resolve(s)));
   }
 
-  resolveOrganization(data?: Record<string, unknown>): SEOSchemaResult {
+  async resolveOrganization(data?: Record<string, unknown>): Promise<SEOSchemaResult> {
     return this.resolve({ type: "Organization", data: data || {} });
   }
 
-  resolveWebsite(data?: Record<string, unknown>): SEOSchemaResult {
+  async resolveWebsite(data?: Record<string, unknown>): Promise<SEOSchemaResult> {
     return this.resolve({ type: "Website", data: data || {} });
   }
 
-  resolveBreadcrumbs(items: Array<{ label: string; href: string }>): SEOSchemaResult {
+  async resolveBreadcrumbs(items: Array<{ label: string; href: string }>): Promise<SEOSchemaResult> {
     return this.resolve({
       type: "BreadcrumbList",
       data: {
@@ -84,7 +84,7 @@ export class SchemaRuntime {
     });
   }
 
-  resolveFAQ(questions: Array<{ question: string; answer: string }>): SEOSchemaResult {
+  async resolveFAQ(questions: Array<{ question: string; answer: string }>): Promise<SEOSchemaResult> {
     return this.resolve({
       type: "FAQPage",
       data: {
@@ -100,7 +100,7 @@ export class SchemaRuntime {
     });
   }
 
-  resolveArticle(data: {
+  async resolveArticle(data: {
     title: string;
     description: string;
     author?: string;
@@ -108,40 +108,40 @@ export class SchemaRuntime {
     modifiedTime?: string;
     image?: string;
     url?: string;
-  }): SEOSchemaResult {
+  }): Promise<SEOSchemaResult> {
     return this.resolve({
       type: "Article",
       data,
     });
   }
 
-  generateSchemasForPage(options: {
+  async generateSchemasForPage(options: {
     includeOrganization?: boolean;
     includeWebsite?: boolean;
     breadcrumbs?: Array<{ label: string; href: string }>;
     faq?: Array<{ question: string; answer: string }>;
     article?: { title: string; description: string; author?: string; publishedTime?: string; modifiedTime?: string; image?: string; url?: string };
-  }): SEOSchemaResult[] {
+  }): Promise<SEOSchemaResult[]> {
     const schemas: SEOSchemaResult[] = [];
 
     if (options.includeOrganization) {
-      schemas.push(this.resolveOrganization());
+      schemas.push(await this.resolveOrganization());
     }
 
     if (options.includeWebsite) {
-      schemas.push(this.resolveWebsite());
+      schemas.push(await this.resolveWebsite());
     }
 
     if (options.breadcrumbs?.length) {
-      schemas.push(this.resolveBreadcrumbs(options.breadcrumbs));
+      schemas.push(await this.resolveBreadcrumbs(options.breadcrumbs));
     }
 
     if (options.faq?.length) {
-      schemas.push(this.resolveFAQ(options.faq));
+      schemas.push(await this.resolveFAQ(options.faq));
     }
 
     if (options.article) {
-      schemas.push(this.resolveArticle(options.article));
+      schemas.push(await this.resolveArticle(options.article));
     }
 
     return schemas;

@@ -222,7 +222,7 @@ describe("security: rate limit", () => {
   });
 
   it("getClientIdentifier uses x-cf-connecting-ip when present", async () => {
-    const { getClientIdentifier } = await import("@/core/security/rate-limit");
+    const { getClientIdentifier } = await import("@/core/security/ratelimit");
     const request = new NextRequest("http://localhost/api/test", {
       method: "GET",
       headers: new Headers({ "cf-connecting-ip": "203.0.113.1" }),
@@ -231,7 +231,7 @@ describe("security: rate limit", () => {
   });
 
   it("getClientIdentifier uses x-vercel-forwarded-for", async () => {
-    const { getClientIdentifier } = await import("@/core/security/rate-limit");
+    const { getClientIdentifier } = await import("@/core/security/ratelimit");
     const request = new NextRequest("http://localhost/api/test", {
       method: "GET",
       headers: new Headers({ "x-vercel-forwarded-for": "198.51.100.1" }),
@@ -240,7 +240,7 @@ describe("security: rate limit", () => {
   });
 
   it("getClientIdentifier uses x-real-ip", async () => {
-    const { getClientIdentifier } = await import("@/core/security/rate-limit");
+    const { getClientIdentifier } = await import("@/core/security/ratelimit");
     const request = new NextRequest("http://localhost/api/test", {
       method: "GET",
       headers: new Headers({ "x-real-ip": "192.168.1.1" }),
@@ -249,7 +249,7 @@ describe("security: rate limit", () => {
   });
 
   it("getClientIdentifier falls back to x-forwarded-for", async () => {
-    const { getClientIdentifier } = await import("@/core/security/rate-limit");
+    const { getClientIdentifier } = await import("@/core/security/ratelimit");
     const request = new NextRequest("http://localhost/api/test", {
       method: "GET",
       headers: new Headers({ "x-forwarded-for": "203.0.113.5, 70.41.3.18" }),
@@ -258,7 +258,7 @@ describe("security: rate limit", () => {
   });
 
   it("getClientIdentifier returns unknown when no headers", async () => {
-    const { getClientIdentifier } = await import("@/core/security/rate-limit");
+    const { getClientIdentifier } = await import("@/core/security/ratelimit");
     const request = new NextRequest("http://localhost/api/test", {
       method: "GET",
     });

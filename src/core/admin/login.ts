@@ -1,11 +1,9 @@
 import { hashPassword, verifyPassword } from "@/core/security/hash";
 import { verifyMasterKey } from "./verify";
-import { db } from "@/lib/db";
-import { admin, adminSession } from "@/lib/db/schema";
+import { adminRepository, adminSessionRepository } from "./admin.repository";
 import { logger } from "@/core/logger";
-import { recordFailedLogin } from "@/lib/auth/events";
+import { recordFailedLogin } from "@/core/auth/events";
 import { randomUUID } from "crypto";
-import { eq } from "drizzle-orm";
 
 export async function loginAdmin(credentials: {
   email: string;
@@ -14,7 +12,6 @@ export async function loginAdmin(credentials: {
   ipAddress?: string;
   userAgent?: string;
 }) {
-  // Step 1: Verify master key
   const isValidMasterKey = await verifyMasterKey(credentials.adminKey);
   if (!isValidMasterKey) {
     logger.security("Admin login attempt with invalid master key", {
@@ -30,7 +27,6 @@ export async function loginAdmin(credentials: {
     return { success: false, reason: "invalid_master_key" as const };
   }
 
-  // Step 2: Validate password length
   if (credentials.password.length < 12) {
     logger.security("Admin login attempt with weak password", {
       email: credentials.email,
@@ -45,7 +41,6 @@ export async function loginAdmin(credentials: {
     return { success: false, reason: "invalid_credentials" as const };
   }
 
-  // Step 3: In development, allow env-based credentials
   if (process.env.NODE_ENV === "development") {
     const envEmail = process.env.ADMIN_EMAIL;
     const envPassword = process.env.ADMIN_PASSWORD;
@@ -77,15 +72,10 @@ export async function loginAdmin(credentials: {
     }
   }
 
-  // Step 4: Try database lookup (production or if env creds don't match)
   try {
-    const existingAdmin = await db
-      .select()
-      .from(admin)
-      .where(eq(admin.email, credentials.email))
-      .limit(1);
+    const adminRecord = await adminRepository.findByEmail(credentials.email);
 
-    if (existingAdmin.length === 0) {
+    if (!adminRecord) {
       logger.security("Admin login attempt with non-existent email", {
         email: credentials.email,
       });
@@ -98,8 +88,6 @@ export async function loginAdmin(credentials: {
       });
       return { success: false, reason: "invalid_credentials" as const };
     }
-
-    const adminRecord = existingAdmin[0];
 
     if (!adminRecord.isActive) {
       logger.security("Admin login attempt for inactive account", {
@@ -137,19 +125,14 @@ export async function loginAdmin(credentials: {
     const token = randomUUID();
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-    await db.delete(adminSession).where(eq(adminSession.adminId, adminRecord.id));
-
-    await db.insert(adminSession).values({
+    await adminSessionRepository.deleteByAdminId(adminRecord.id);
+    await adminSessionRepository.create({
       id: randomUUID(),
       token,
       adminId: adminRecord.id,
       expiresAt,
     });
-
-    await db
-      .update(admin)
-      .set({ lastLoginAt: new Date() })
-      .where(eq(admin.id, adminRecord.id));
+    await adminRepository.updateLastLogin(adminRecord.id);
 
     logger.audit("Admin logged in", {
       adminId: adminRecord.id,
@@ -168,7 +151,6 @@ export async function loginAdmin(credentials: {
       },
     };
   } catch (err) {
-    // Database error - log it but allow env-based login to work in dev
     logger.error("Database error during admin login", err instanceof Error ? err : new Error(String(err)));
 
     if (process.env.NODE_ENV === "development") {

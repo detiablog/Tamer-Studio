@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { executeProductionWithMetrics, calculateProductionCost } from "@/core/production/execution";
-import { recordUserActivity } from "@/core/analytics/aggregation";
+import { requireUser } from "@/core/auth/session";
+import { executeAIRequest, type AIExecutionResult } from "@/core/ai/ai-runtime";
+import { executeProductionWithMetrics } from "@/core/production/execution";
 import { apiLimiter, checkRateLimit } from "@/core/security/ratelimit";
 
 export async function POST(request: NextRequest) {
   try {
-    // Rate limit: 20 productions per hour per workspace
+    const session = await requireUser();
+
     const workspaceId = request.headers.get("x-workspace-id");
     if (!workspaceId) {
       return NextResponse.json(
@@ -28,59 +30,63 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const {
       productionId,
-      workspaceId: bodyWorkspaceId,
-      userId,
-      aiModel = "gpt-4",
-      workflowType = "Custom Workflow",
+      provider = "openai",
+      model = "gpt-4o",
       prompt,
-      parameters,
+      systemPrompt,
+      maxTokens,
+      temperature,
+      workflowType = "Custom Workflow",
     } = body;
 
-    // Validate required fields
-    if (!productionId || !userId) {
+    if (!productionId) {
       return NextResponse.json(
-        { error: "productionId and userId are required" },
+        { error: "productionId is required" },
         { status: 400 }
       );
     }
 
-    // Verify workspace ID matches
-    if (bodyWorkspaceId !== workspaceId) {
+    if (!prompt || typeof prompt !== "string" || prompt.trim().length === 0) {
       return NextResponse.json(
-        { error: "Workspace ID mismatch" },
-        { status: 403 }
+        { error: "prompt is required and must be a non-empty string" },
+        { status: 400 }
       );
     }
 
-    // Simulate production execution
-    // In production, this would call actual AI APIs (OpenAI, Claude, etc.)
     const result = await executeProductionWithMetrics(
       {
         productionId,
         workspaceId,
-        userId,
-        aiModel,
+        userId: session.user.id,
+        aiModel: model,
         workflowType,
       },
       async () => {
-        // Simulate API call delay
-        await new Promise((resolve) => setTimeout(resolve, Math.random() * 2000 + 1000));
-
-        // Simulate token usage and cost
-        const inputTokens = Math.floor(prompt?.length / 4) || 100;
-        const outputTokens = Math.floor(Math.random() * 500) + 100;
-        const costUsd = calculateProductionCost(inputTokens, outputTokens, aiModel);
+        const aiResult: AIExecutionResult = await executeAIRequest({
+          provider,
+          model,
+          prompt: prompt.trim(),
+          workspaceId,
+          userId: session.user.id,
+          options: {
+            maxTokens,
+            temperature,
+            systemPrompt,
+          },
+        });
 
         return {
           success: true,
-          executionTimeMs: Math.random() * 2000 + 1000,
-          inputTokens,
-          outputTokens,
-          costUsd,
+          executionTimeMs: aiResult.duration,
+          inputTokens: aiResult.usage.promptTokens,
+          outputTokens: aiResult.usage.completionTokens,
+          costUsd: aiResult.cost.toFixed(6),
           metadata: {
-            aiModel,
-            workflowType,
-            parametersUsed: parameters ? Object.keys(parameters).length : 0,
+            executionId: aiResult.id,
+            provider: aiResult.provider,
+            model: aiResult.model,
+            content: aiResult.content,
+            totalTokens: aiResult.usage.totalTokens,
           },
         };
       }
@@ -88,7 +94,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       {
-        success: true,
+        success: result.success,
         result,
         message: result.success
           ? "Production executed successfully"
@@ -104,9 +110,14 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error("Production execution error:", error);
-    return NextResponse.json(
-      { error: "Production execution failed" },
-      { status: 500 }
-    );
+
+    const message =
+      error instanceof Error ? error.message : "Production execution failed";
+
+    if (message.includes("Insufficient credits")) {
+      return NextResponse.json({ error: message }, { status: 402 });
+    }
+
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

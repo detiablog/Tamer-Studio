@@ -1,4 +1,5 @@
 export { SEORuntime, getSEORuntime, resetSEORuntime } from "./seo-runtime";
+export { generatePageMetadata } from "./page-metadata";
 export { MetadataRuntime, getMetadataRuntime, resetMetadataRuntime } from "./metadata-runtime";
 export { CanonicalRuntime, getCanonicalRuntime, resetCanonicalRuntime } from "./canonical-runtime";
 export { OpenGraphRuntime, getOpenGraphRuntime, resetOpenGraphRuntime } from "./opengraph-runtime";

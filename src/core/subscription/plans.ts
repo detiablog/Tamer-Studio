@@ -1,4 +1,4 @@
-import type { Plan } from "@/lib/ai/types/billing";
+import type { Plan } from "@/core/types/billing";
 export const defaultPlans: Plan[] = [
   {
     id: "free",

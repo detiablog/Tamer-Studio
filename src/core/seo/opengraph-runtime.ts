@@ -10,11 +10,11 @@ export class OpenGraphRuntime {
     this.defaultImage = defaultImage || "https://tamer.studio/og-image.svg";
   }
 
-  resolve(input: SEOOpenGraphInput): SEOOpenGraphResult {
+  async resolve(input: SEOOpenGraphInput): Promise<SEOOpenGraphResult> {
     const cache = getSEOCache();
     const cacheKey = cache.buildKey(["og", input.url ?? "root", input.locale ?? "en"]);
 
-    const cached = cache.get<SEOOpenGraphResult>(cacheKey);
+    const cached = await cache.get<SEOOpenGraphResult>(cacheKey);
     if (cached) return cached;
 
     const image = input.image || this.defaultImage;
@@ -41,19 +41,19 @@ export class OpenGraphRuntime {
       modifiedTime: input.modifiedTime,
     };
 
-    cache.set(cacheKey, result, ["og", input.locale ?? "en"]);
+    await cache.set(cacheKey, result, { tags: ["og", input.locale ?? "en"] });
     return result;
   }
 
-  resolveForPage(input: SEOOpenGraphInput): SEOOpenGraphResult {
+  async resolveForPage(input: SEOOpenGraphInput): Promise<SEOOpenGraphResult> {
     return this.resolve(input);
   }
 
-  resolveForArticle(input: SEOOpenGraphInput): SEOOpenGraphResult {
+  async resolveForArticle(input: SEOOpenGraphInput): Promise<SEOOpenGraphResult> {
     return this.resolve({ ...input, type: "article" });
   }
 
-  resolveForProduct(input: SEOOpenGraphInput): SEOOpenGraphResult {
+  async resolveForProduct(input: SEOOpenGraphInput): Promise<SEOOpenGraphResult> {
     return this.resolve({ ...input, type: "website" });
   }
 

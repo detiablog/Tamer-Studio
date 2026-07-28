@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { authClient } from "@/lib/auth/auth-client";
-import { type UserRole, type Permission, getEffectivePermissions } from "@/lib/auth/permissions";
+import { authClient } from "@/core/auth/client";
+import { type UserRole, type Permission, getEffectivePermissions } from "@/core/auth/permissions";
 
 export function usePermissions() {
   const { data: session } = authClient.useSession();

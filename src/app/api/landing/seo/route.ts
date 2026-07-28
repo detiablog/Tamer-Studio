@@ -13,19 +13,17 @@ export async function GET(request: NextRequest) {
 
     const seoRuntime = getSEORuntime();
 
-    const metadataResult = seoRuntime.resolveMetadata({
-      route: '/',
-      locale,
-    });
-
-    const resolved = await seoRuntime.resolvePage({
-      route: '/',
-      locale,
-      title: metadataResult.title,
-      description: metadataResult.description,
-      type: 'website',
-      author: 'Tamer Studio',
-    });
+    const resolved = await Promise.race([
+      seoRuntime.resolvePage({
+        route: '/',
+        locale,
+        title: "Tamer Studio",
+        description: "Build, deploy, and scale AI-powered applications with Tamer Studio.",
+        type: 'website',
+        author: 'Tamer Studio',
+      }),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("SEO resolution timeout")), 5000)),
+    ]);
 
     return NextResponse.json({
       success: true,

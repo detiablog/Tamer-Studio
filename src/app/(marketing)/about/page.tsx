@@ -1,23 +1,17 @@
-"use client";
+import type { Metadata } from "next";
+import { generatePageMetadata } from "@/core/seo";
+import { AboutContent } from "./AboutContent";
 
-import { useLocalizationContext } from "@/providers/localization";
+export async function generateMetadata(): Promise<Metadata> {
+  return generatePageMetadata({
+    route: "/about",
+    title: "About — Tamer Studio",
+    description: "Learn about Tamer Studio, the AI-first production operating system for creators, agencies, and businesses.",
+    keywords: ["Tamer Studio", "about Tamer Studio", "AI production platform", "company"],
+    type: "website",
+  });
+}
 
 export default function AboutPage() {
-  const { t } = useLocalizationContext();
-
-  return (
-    <div className="w-full">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-16 sm:py-20">
-        <div className="mx-auto max-w-2xl">
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{t("marketing.aboutTitle")}</h1>
-          <p className="mt-4 text-lg text-muted-foreground leading-7">
-            {t("marketing.aboutContent1")}
-          </p>
-          <p className="mt-4 text-lg text-muted-foreground leading-7">
-            {t("marketing.aboutContent2")}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
+  return <AboutContent />;
 }

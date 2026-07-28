@@ -1,10 +1,7 @@
 import type { SystemConfig, RuntimeInfo } from "./system.types";
 import { MaintenanceService } from "../maintenance";
 import { SettingsService } from "../settings";
-import { db } from "@/lib/db";
-import { sql } from "drizzle-orm";
-import { user, organization, workspace, aiProvider, job, queue, coupon, subscription } from "@/lib/db/schema";
-import { eq, ilike, or, desc, and, gte, lt, count, sum, avg } from "drizzle-orm";
+import { systemRepository } from "./system.repository";
 import os from "os";
 
 export class SystemService {
@@ -12,13 +9,7 @@ export class SystemService {
   private settingsService = new SettingsService();
 
   async checkDatabaseHealth(): Promise<{ status: string; latencyMs?: number }> {
-    const start = Date.now();
-    try {
-      await db.execute(sql`SELECT 1`);
-      return { status: "healthy", latencyMs: Date.now() - start };
-    } catch {
-      return { status: "unhealthy" };
-    }
+    return systemRepository.checkDatabaseHealth();
   }
 
   async search(query: string): Promise<Array<{ type: string; id: string; label: string; description?: string; href: string }>> {
@@ -26,14 +17,14 @@ export class SystemService {
     const results: Array<{ type: string; id: string; label: string; description?: string; href: string }> = [];
 
     const [users, orgs, workspaces, providers, jobs, queues, coupons, subscriptionsRows] = await Promise.all([
-      db.select({ id: user.id, label: user.name, description: user.email }).from(user).where(or(ilike(user.name, pattern), ilike(user.email, pattern))).limit(5),
-      db.select({ id: organization.id, label: organization.name }).from(organization).where(ilike(organization.name, pattern)).limit(5),
-      db.select({ id: workspace.id, label: workspace.name, description: workspace.slug }).from(workspace).where(ilike(workspace.name, pattern)).limit(5),
-      db.select({ id: aiProvider.id, label: aiProvider.name, description: aiProvider.providerType }).from(aiProvider).where(ilike(aiProvider.name, pattern)).limit(5),
-      db.select({ id: job.id, label: job.type, description: job.status }).from(job).where(ilike(job.type, pattern)).limit(5),
-      db.select({ id: queue.id, label: queue.name }).from(queue).where(ilike(queue.name, pattern)).limit(5),
-      db.select({ id: coupon.id, label: coupon.code, description: coupon.type }).from(coupon).where(ilike(coupon.code, pattern)).limit(5),
-      db.select({ id: subscription.id, label: subscription.planId, description: subscription.status }).from(subscription).where(ilike(subscription.planId, pattern)).limit(5),
+      systemRepository.searchUsers(pattern),
+      systemRepository.searchOrganizations(pattern),
+      systemRepository.searchWorkspaces(pattern),
+      systemRepository.searchProviders(pattern),
+      systemRepository.searchJobs(pattern),
+      systemRepository.searchQueues(pattern),
+      systemRepository.searchCoupons(pattern),
+      systemRepository.searchSubscriptions(pattern),
     ]);
 
     for (const u of users) results.push({ type: "users", id: u.id, label: u.label, description: u.description, href: `/admin/users` });

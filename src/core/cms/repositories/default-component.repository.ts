@@ -7,7 +7,7 @@ import type { CMSComponent, CMSPermission } from "../cms.types";
 
 export class DefaultCMSComponentRepository implements CMSComponentRepository {
   async createComponent(component: CMSComponent): Promise<CMSComponent> {
-    const now = new Date().toISOString();
+    const now = new Date();
     const id = component.id ?? randomUUID();
     const [created] = await db.insert(cmsComponent).values({
       id,
@@ -44,7 +44,7 @@ export class DefaultCMSComponentRepository implements CMSComponentRepository {
     if (!existing) return undefined;
 
     const set: Record<string, unknown> = {
-      updatedAt: new Date().toISOString(),
+      updatedAt: new Date(),
     };
 
     if (updates.name !== undefined) set.name = updates.name;
@@ -71,8 +71,8 @@ export class DefaultCMSComponentRepository implements CMSComponentRepository {
       preview: row.preview ?? undefined,
       localization: row.localization,
       permissions: (row.permissions ?? []) as CMSPermission[],
-      createdAt: row.createdAt.toISOString(),
-      updatedAt: row.updatedAt.toISOString(),
+      createdAt: typeof row.createdAt === 'string' ? row.createdAt : row.createdAt.toISOString(),
+      updatedAt: typeof row.updatedAt === 'string' ? row.updatedAt : row.updatedAt.toISOString(),
     };
   }
 }

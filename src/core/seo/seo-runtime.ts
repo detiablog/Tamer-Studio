@@ -69,7 +69,7 @@ export class SEORuntime {
     const cache = getSEOCache();
     if (this.config.cacheEnabled) {
       const cacheKey = cache.buildKey(["page", input.route, input.locale ?? "en"]);
-      const cached = cache.get<SEOResolvedPage>(cacheKey);
+      const cached = await cache.get<SEOResolvedPage>(cacheKey);
       if (cached) return cached;
     }
 
@@ -79,7 +79,7 @@ export class SEORuntime {
     const image = input.image || this.config.defaultImage;
     const url = this.getUrlForRoute(input.route, locale);
 
-    const metadata = this.metadata.resolve({
+    const metadata = await this.metadata.resolve({
       title,
       description,
       keywords: input.keywords,
@@ -89,14 +89,14 @@ export class SEORuntime {
       baseUrl: this.config.baseUrl,
     });
 
-    const canonicalResult = this.canonical.resolveWithAlternates(
+    const canonicalResult = await this.canonical.resolveWithAlternates(
       { route: input.route, locale, baseUrl: this.config.baseUrl },
       this.config.supportedLocales,
       this.config.defaultLocale
     );
 
     const ogImage = input.image || this.config.defaultImage;
-    const openGraph = this.openGraph.resolve({
+    const openGraph = await this.openGraph.resolve({
       title,
       description,
       url,
@@ -110,14 +110,14 @@ export class SEORuntime {
       modifiedTime: input.modifiedTime,
     });
 
-    const twitterResult = this.twitter.resolve({
+    const twitterResult = await this.twitter.resolve({
       title,
       description,
       image: ogImage,
       imageAlt: input.imageAlt || title,
     });
 
-    const schemaResults = this.buildSchemas(input);
+    const schemaResults = await this.buildSchemas(input);
 
     const robotsResult: SEORobotsMetaResult = {
       index: !input.noindex,
@@ -126,7 +126,7 @@ export class SEORuntime {
       snippet: true,
     };
 
-    const hreflangResults = this.hreflang.resolve({
+    const hreflangResults = await this.hreflang.resolve({
       route: input.route,
       locales: this.config.supportedLocales,
       baseUrl: this.config.baseUrl,
@@ -142,7 +142,7 @@ export class SEORuntime {
         }
       : null;
 
-    const aiSearchResult = this.aiSearch.resolve({
+    const aiSearchResult = await this.aiSearch.resolve({
       title,
       description,
       author: input.author,
@@ -153,7 +153,7 @@ export class SEORuntime {
       baseUrl: this.config.baseUrl,
     });
 
-    const validationResult = this.validation.validate({
+    const validationResult = await this.validation.validate({
       route: input.route,
       metadata,
       canonical: canonicalResult,
@@ -180,13 +180,13 @@ export class SEORuntime {
 
     if (this.config.cacheEnabled) {
       const cacheKey = cache.buildKey(["page", input.route, input.locale ?? "en"]);
-      cache.set(cacheKey, result, ["page", locale]);
+      await cache.set(cacheKey, result, { tags: ["page", locale] });
     }
 
     return result;
   }
 
-  resolveMetadata(input: SEOPageInput): SEOMetadataResult {
+  async resolveMetadata(input: SEOPageInput): Promise<SEOMetadataResult> {
     return this.metadata.resolve({
       title: input.title || this.config.siteName,
       description: input.description || "",
@@ -198,7 +198,7 @@ export class SEORuntime {
     });
   }
 
-  resolveCanonical(input: SEOPageInput): SEOCanonicalResult {
+  async resolveCanonical(input: SEOPageInput): Promise<SEOCanonicalResult> {
     return this.canonical.resolveWithAlternates(
       { route: input.route, locale: input.locale, baseUrl: this.config.baseUrl },
       this.config.supportedLocales,
@@ -206,7 +206,7 @@ export class SEORuntime {
     );
   }
 
-  resolveOpenGraph(input: SEOPageInput): SEOOpenGraphResult {
+  async resolveOpenGraph(input: SEOPageInput): Promise<SEOOpenGraphResult> {
     const url = this.getUrlForRoute(input.route, input.locale || this.config.defaultLocale);
     return this.openGraph.resolve({
       title: input.title || this.config.siteName,
@@ -223,7 +223,7 @@ export class SEORuntime {
     });
   }
 
-  resolveTwitter(input: SEOPageInput): SEOTwitterResult {
+  async resolveTwitter(input: SEOPageInput): Promise<SEOTwitterResult> {
     return this.twitter.resolve({
       title: input.title || this.config.siteName,
       description: input.description || "",
@@ -232,18 +232,18 @@ export class SEORuntime {
     });
   }
 
-  resolveSchemas(input: SEOPageInput): SEOSchemaResult[] {
+  async resolveSchemas(input: SEOPageInput): Promise<SEOSchemaResult[]> {
     return this.buildSchemas(input);
   }
 
-  resolveRobots(input?: { route?: string; noindex?: boolean }): SEORobotsMetaResult {
+  async resolveRobots(input?: { route?: string; noindex?: boolean }): Promise<SEORobotsMetaResult> {
     if (input?.noindex) {
       return { index: false, follow: true, archive: false, snippet: true };
     }
     return this.robots.resolveRobotsForPage(input?.route ? { route: input.route } : undefined);
   }
 
-  resolveHreflang(input: SEOPageInput): SEOHreflangResult[] {
+  async resolveHreflang(input: SEOPageInput): Promise<SEOHreflangResult[]> {
     return this.hreflang.resolve({
       route: input.route,
       locales: this.config.supportedLocales,
@@ -252,7 +252,7 @@ export class SEORuntime {
     });
   }
 
-  resolveAISearch(input: SEOPageInput): SEOAISearchResult {
+  async resolveAISearch(input: SEOPageInput): Promise<SEOAISearchResult> {
     return this.aiSearch.resolve({
       title: input.title || this.config.siteName,
       description: input.description || "",
@@ -265,11 +265,7 @@ export class SEORuntime {
     });
   }
 
-  resolveValidation(input: SEOPageInput): Promise<SEOValidationResult> {
-    return this.resolvePage(input).then((result) => result.validation);
-  }
-
-  resolveSitemap(routes?: Array<{ path: string; priority?: number; changeFrequency?: string }>): SEOSitemapResult[] {
+  async resolveSitemap(routes?: Array<{ path: string; priority?: number; changeFrequency?: string }>): Promise<SEOSitemapResult[]> {
     const sitemapRoutes = routes?.map((r) => ({
       path: r.path,
       priority: r.priority,
@@ -282,7 +278,7 @@ export class SEORuntime {
     });
   }
 
-  resolveRobotsTxt(): string {
+  async resolveRobotsTxt(): Promise<string> {
     return this.robots.generateRobotsTxtString({
       isProduction: process.env.NODE_ENV === "production",
     });
@@ -330,12 +326,12 @@ export class SEORuntime {
     this.config = { ...this.config, ...config };
   }
 
-  invalidateCache(locale?: string): void {
+  async invalidateCache(locale?: string): Promise<void> {
     const cache = getSEOCache();
     if (locale) {
-      cache.invalidateByTag(locale);
+      await cache.invalidateByTag(locale);
     } else {
-      cache.invalidateAll();
+      await cache.invalidateAll();
     }
   }
 
@@ -379,19 +375,19 @@ export class SEORuntime {
     return this.validation;
   }
 
-  private buildSchemas(input: SEOPageInput): SEOSchemaResult[] {
+  private async buildSchemas(input: SEOPageInput): Promise<SEOSchemaResult[]> {
     const schemas: SEOSchemaResult[] = [];
 
-    schemas.push(this.schema.resolveOrganization());
-    schemas.push(this.schema.resolveWebsite());
+    schemas.push(await this.schema.resolveOrganization());
+    schemas.push(await this.schema.resolveWebsite());
 
     if (input.breadcrumbs?.length) {
-      schemas.push(this.schema.resolveBreadcrumbs(input.breadcrumbs));
+      schemas.push(await this.schema.resolveBreadcrumbs(input.breadcrumbs));
     }
 
     if (input.schema?.length) {
       for (const s of input.schema) {
-        schemas.push(this.schema.resolve({
+        schemas.push(await this.schema.resolve({
           type: s.type,
           data: s.data,
           locale: input.locale,
@@ -401,7 +397,7 @@ export class SEORuntime {
     }
 
     if (input.type === "article") {
-      schemas.push(this.schema.resolveArticle({
+      schemas.push(await this.schema.resolveArticle({
         title: input.title || this.config.siteName,
         description: input.description || "",
         author: input.author,

@@ -2,11 +2,11 @@ import { MetadataRoute } from "next";
 import { config } from "@/core/config";
 import { getSEORuntime } from "@/core/seo";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const seoRuntime = getSEORuntime();
   const baseUrl = config.app.url;
 
-  const sitemapResults = seoRuntime.resolveSitemap();
+  const sitemapResults = await seoRuntime.resolveSitemap();
 
   return sitemapResults.map((entry) => ({
     url: entry.url,

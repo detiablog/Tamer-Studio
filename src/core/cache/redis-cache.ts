@@ -1,71 +1,171 @@
-import { logger as _logger } from "@/core/logger/logger";
-import type { CacheTTL } from "./cache.types";
+import { Redis } from "@upstash/redis";
+import type { SharedCache, CacheStats } from "./cache.interface";
+import { MemoryCache } from "./memory-cache";
 
-interface RedisLike {
-  connect(): Promise<void>;
-  get(key: string): Promise<string | null>;
-  set(key: string, value: string, options?: { EX?: number }): Promise<string | null>;
-  del(...keys: string[]): Promise<number>;
-  keys(pattern: string): Promise<string[]>;
-  exists(key: string): Promise<number>;
-  disconnect(): Promise<void>;
+const TAG_PREFIX = "cache:tag:";
+const VALUE_PREFIX = "cache:value:";
+const META_PREFIX = "cache:meta:";
+
+interface CacheMetadata {
+  tags: string[];
+  createdAt: number;
 }
 
-export class RedisCache {
-  private client: RedisLike;
+export class RedisCache implements SharedCache {
+  private client: Redis;
+  private fallback: MemoryCache;
+  private hits = 0;
+  private misses = 0;
+  private evictions = 0;
   private connected = false;
+  private readonly defaultTtl: number;
 
-  constructor(client: RedisLike) {
-    this.client = client;
-  }
+  constructor(options?: {
+    url?: string;
+    token?: string;
+    defaultTtl?: number;
+    fallbackMaxSize?: number;
+  }) {
+    this.defaultTtl = options?.defaultTtl ?? 60_000;
 
-  async connect(): Promise<void> {
-    await this.client.connect();
-    this.connected = true;
-  }
+    this.client = new Redis({
+      url: options?.url ?? process.env.UPSTASH_REDIS_REST_URL ?? "",
+      token: options?.token ?? process.env.UPSTASH_REDIS_REST_TOKEN ?? "",
+    });
 
-  async disconnect(): Promise<void> {
-    if (this.connected) {
-      await this.client.disconnect();
-      this.connected = false;
-    }
+    this.fallback = new MemoryCache({
+      maxSize: options?.fallbackMaxSize ?? 1000,
+      defaultTtl: this.defaultTtl,
+    });
   }
 
   async get<T>(key: string): Promise<T | undefined> {
-    const value = await this.client.get(key);
-    if (value === null) return undefined;
     try {
-      return JSON.parse(value) as T;
+      const raw = await this.client.get<string>(`${VALUE_PREFIX}${key}`);
+      if (raw === null || raw === undefined) {
+        this.misses++;
+        return undefined;
+      }
+      this.hits++;
+      return typeof raw === "string" ? (JSON.parse(raw) as T) : (raw as T);
     } catch {
-      return undefined;
+      return this.fallback.get<T>(key);
     }
   }
 
-  async set<T>(key: string, value: T, ttlMs?: CacheTTL): Promise<void> {
-    const serialized = JSON.stringify(value);
-    const options = ttlMs ? { EX: Math.floor(ttlMs / 1000) } : undefined;
-    await this.client.set(key, serialized, options);
+  async set<T>(key: string, value: T, options?: { ttl?: number; tags?: string[] }): Promise<void> {
+    const ttl = options?.ttl ?? this.defaultTtl;
+    const tags = options?.tags ?? [];
+    const ttlSeconds = Math.ceil(ttl / 1000);
+
+    try {
+      const serialized = JSON.stringify(value);
+
+      await this.client.set(`${VALUE_PREFIX}${key}`, serialized, { ex: ttlSeconds });
+
+      const meta: CacheMetadata = { tags, createdAt: Date.now() };
+      await this.client.set(`${META_PREFIX}${key}`, JSON.stringify(meta), { ex: ttlSeconds });
+
+      if (tags.length > 0) {
+        const pipeline = this.client.pipeline();
+        for (const tag of tags) {
+          pipeline.sadd(`${TAG_PREFIX}${tag}`, key);
+          pipeline.expire(`${TAG_PREFIX}${tag}`, ttlSeconds);
+        }
+        await pipeline.exec();
+      }
+    } catch {
+      await this.fallback.set(key, value, { ttl, tags });
+    }
   }
 
   async delete(key: string): Promise<void> {
-    await this.client.del(key);
-  }
+    try {
+      const metaRaw = await this.client.get<string>(`${META_PREFIX}${key}`);
+      if (metaRaw) {
+        const meta: CacheMetadata = typeof metaRaw === "string" ? JSON.parse(metaRaw) : metaRaw;
+        for (const tag of meta.tags) {
+          await this.client.srem(`${TAG_PREFIX}${tag}`, key);
+        }
+      }
 
-  async clear(): Promise<void> {
-    const keys = await this.client.keys("*");
-    if (keys.length > 0) {
-      await this.client.del(...keys);
+      await this.client.del(`${VALUE_PREFIX}${key}`, `${META_PREFIX}${key}`);
+    } catch {
+      await this.fallback.delete(key);
     }
   }
 
   async invalidateByTag(tag: string): Promise<void> {
-    const keys = await this.client.keys(`tag:${tag}:*`);
-    if (keys.length > 0) {
-      await this.client.del(...keys);
+    try {
+      const keys = await this.client.smembers(`${TAG_PREFIX}${tag}`);
+      if (keys && keys.length > 0) {
+        const pipeline = this.client.pipeline();
+        for (const key of keys) {
+          pipeline.del(`${VALUE_PREFIX}${key}`, `${META_PREFIX}${key}`);
+        }
+        pipeline.del(`${TAG_PREFIX}${tag}`);
+        await pipeline.exec();
+      }
+    } catch {
+      await this.fallback.invalidateByTag(tag);
+    }
+  }
+
+  async invalidateAll(): Promise<void> {
+    try {
+      const valueKeys = await this.client.keys(`${VALUE_PREFIX}*`);
+      const metaKeys = await this.client.keys(`${META_PREFIX}*`);
+      const tagKeys = await this.client.keys(`${TAG_PREFIX}*`);
+
+      const allKeys = [...valueKeys, ...metaKeys, ...tagKeys];
+      if (allKeys.length > 0) {
+        const pipeline = this.client.pipeline();
+        for (const key of allKeys) {
+          pipeline.del(key);
+        }
+        await pipeline.exec();
+      }
+    } catch {
+      await this.fallback.invalidateAll();
     }
   }
 
   async has(key: string): Promise<boolean> {
-    return (await this.client.exists(key)) === 1;
+    try {
+      const exists = await this.client.exists(`${VALUE_PREFIX}${key}`);
+      if (exists === 1) {
+        this.hits++;
+        return true;
+      }
+      this.misses++;
+      return false;
+    } catch {
+      return this.fallback.has(key);
+    }
+  }
+
+  async clear(): Promise<void> {
+    try {
+      await this.invalidateAll();
+    } catch {
+      await this.fallback.clear();
+    }
+    this.hits = 0;
+    this.misses = 0;
+    this.evictions = 0;
+  }
+
+  getStats(): CacheStats {
+    return {
+      size: 0,
+      hits: this.hits,
+      misses: this.misses,
+      evictions: this.evictions,
+      tags: 0,
+    };
+  }
+
+  getFallbackStats(): CacheStats {
+    return this.fallback.getStats();
   }
 }

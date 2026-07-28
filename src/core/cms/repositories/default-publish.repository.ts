@@ -7,7 +7,7 @@ import type { CMSPublishPipeline, CMSPublishStep, CMSContentType } from "../cms.
 
 export class DefaultCMSPublishRepository implements CMSPublishRepository {
   async createPipeline(pipeline: CMSPublishPipeline): Promise<CMSPublishPipeline> {
-    const now = new Date().toISOString();
+    const now = new Date();
     const id = pipeline.id ?? randomUUID();
     const [created] = await db.insert(cmsPublishPipeline).values({
       id,
@@ -40,7 +40,7 @@ export class DefaultCMSPublishRepository implements CMSPublishRepository {
     if (!existing) return undefined;
 
     const set: Record<string, unknown> = {
-      updatedAt: new Date().toISOString(),
+      updatedAt: new Date(),
     };
 
     if (updates.status !== undefined) set.status = updates.status;
@@ -89,8 +89,8 @@ export class DefaultCMSPublishRepository implements CMSPublishRepository {
     return steps.map((s) => ({
       name: s.name,
       status: s.status as CMSPublishStep["status"],
-      startedAt: s.startedAt ? s.startedAt.toISOString() : undefined,
-      completedAt: s.completedAt ? s.completedAt.toISOString() : undefined,
+      startedAt: s.startedAt ? (typeof s.startedAt === 'string' ? s.startedAt : s.startedAt.toISOString()) : undefined,
+      completedAt: s.completedAt ? (typeof s.completedAt === 'string' ? s.completedAt : s.completedAt.toISOString()) : undefined,
       error: s.error ?? undefined,
     }));
   }
@@ -102,8 +102,8 @@ export class DefaultCMSPublishRepository implements CMSPublishRepository {
       contentType: row.contentType as CMSContentType,
       status: row.status as CMSPublishPipeline["status"],
       steps: [],
-      createdAt: row.createdAt.toISOString(),
-      updatedAt: row.updatedAt.toISOString(),
+      createdAt: typeof row.createdAt === 'string' ? row.createdAt : row.createdAt.toISOString(),
+      updatedAt: typeof row.updatedAt === 'string' ? row.updatedAt : row.updatedAt.toISOString(),
     };
   }
 
@@ -111,8 +111,8 @@ export class DefaultCMSPublishRepository implements CMSPublishRepository {
     return {
       name: row.name,
       status: row.status as CMSPublishStep["status"],
-      startedAt: row.startedAt ? row.startedAt.toISOString() : undefined,
-      completedAt: row.completedAt ? row.completedAt.toISOString() : undefined,
+      startedAt: row.startedAt ? (typeof row.startedAt === 'string' ? row.startedAt : row.startedAt.toISOString()) : undefined,
+      completedAt: row.completedAt ? (typeof row.completedAt === 'string' ? row.completedAt : row.completedAt.toISOString()) : undefined,
       error: row.error ?? undefined,
     };
   }

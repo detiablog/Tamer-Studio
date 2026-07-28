@@ -12,7 +12,7 @@ export default function WorkspaceEditPage({ params }: { params: Promise<{ id: st
   const { t } = useLocalizationContext();
   React.useEffect(() => {
     const ws = workspaceStore.get(id);
-    document.title = ws ? `Edit ${ws.name} - Tamer Studio` : t("workspace.editTitle", "Edit Workspace") + " - Tamer Studio";
+    document.title = ws ? `${t("common.edit")} ${ws.name} - ${t("brand.name")}` : `${t("workspace.editTitle", "Edit Workspace")} - ${t("brand.name")}`;
   }, [id, t]);
 
   return (
@@ -20,9 +20,9 @@ export default function WorkspaceEditPage({ params }: { params: Promise<{ id: st
       <PageLayout
         title={t("workspace.editTitle", "Edit Workspace")}
         breadcrumb={[
-          { label: "Workspace", href: "/workspace" },
+          { label: t("dashboard.workspace"), href: "/workspace" },
           { label: id, href: `/workspace/${id}` },
-          { label: "Edit" },
+          { label: t("common.edit") },
         ]}
       >
         <WorkspaceEditForm id={id} />

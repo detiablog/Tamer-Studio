@@ -101,7 +101,10 @@
     "permissionDenied": "Permission denied",
     "maintenance": "Under maintenance",
     "rateLimited": "Too many requests. Please try again later.",
-    "tooManyRequests": "Too many requests"
+    "tooManyRequests": "Too many requests",
+    "never": "Never",
+    "redirecting": "Redirecting...",
+    "notApplicable": "N/A"
   },
   "auth": {
     "signInTitle": "Sign in to Tamer Studio",
@@ -248,7 +251,10 @@
         "resetFailed": "Failed to reset password",
         "resetFailedLater": "Failed to reset password. Please try again later."
       }
-    }
+    },
+    "signedOutSuccess": "Signed out successfully",
+    "signOutFailed": "Failed to sign out",
+    "signOut": "Sign out"
   },
   "marketing": {
     "tagline": "From intent to production.",
@@ -584,7 +590,11 @@
     "save": "Save",
     "cancel": "Cancel",
     "pageTitle": "Workspace",
-    "editTitle": "Edit Workspace"
+    "editTitle": "Edit Workspace",
+    "metadataTitle": "Workspace",
+    "metadataDescription": "Workspace details for {id} on Tamer Studio.",
+    "detailComingSoon": "Workspace detail coming soon.",
+    "noMembers": "No workspace members yet."
   },
   "settings": {
     "title": "Settings",
@@ -635,7 +645,24 @@
     "system": "System",
     "english": "English",
     "thai": "Thai",
-    "japanese": "Japanese"
+    "japanese": "Japanese",
+    "workspaceAndAccountConfig": "Workspace and account configuration.",
+    "generalLabel": "General",
+    "generalSectionDesc": "Workspace name, description, and visibility",
+    "appearanceLabel": "Appearance",
+    "appearanceSectionDesc": "Customize your interface",
+    "notificationsLabel": "Notifications",
+    "notificationsSectionDesc": "Email, push, and in-app notification settings",
+    "securityLabel": "Security",
+    "securitySectionDesc": "Password, 2FA, and session management",
+    "integrationsLabel": "Integrations",
+    "integrationsSectionDesc": "Connected apps and API configurations",
+    "dataStorageLabel": "Data & Storage",
+    "dataStorageSectionDesc": "Export, backup, and storage settings",
+    "languageEnglish": "English",
+    "languageIndonesian": "Bahasa Indonesia",
+    "countryUS": "United States",
+    "countryID": "Indonesia"
   },
   "billing": {
     "title": "Billing",
@@ -653,7 +680,21 @@
     "addPaymentMethod": "Add Payment Method",
     "default": "Default",
     "paymentMethodCard": "Visa ending in 4242",
-    "paymentExpiry": "Expires 12/2027"
+    "paymentExpiry": "Expires 12/2027",
+    "freePlan": "Free",
+    "paymentSuccess": "Payment successful! Your account has been updated.",
+    "checkoutCancelled": "Checkout was cancelled. No charges were made.",
+    "availablePlans": "Available Plans",
+    "upgradeDescription": "Upgrade your plan to get more credits and features",
+    "current": "Current",
+    "perMonth": "/mo",
+    "creditsPerMonth": "credits/month",
+    "upgrade": "Upgrade",
+    "noInvoices": "No invoices yet",
+    "purchaseCredits": "Purchase Credits",
+    "numberOfCredits": "Number of credits",
+    "creditsPlaceholder": "e.g. 1000",
+    "estimatedCost": "Estimated cost: "
   },
   "profile": {
     "title": "Profile",
@@ -883,13 +924,37 @@
     "cancelled": "Cancelled",
     "success": "Success",
     "warning": "Warning",
-    "error": "Error",
+    "error": {
+      "missingFields": "Please fill in all fields.",
+      "invalidEmail": "Please enter a valid email address.",
+      "unexpectedError": "An unexpected error occurred. Please try again.",
+      "missing_fields": "Please fill in all fields.",
+      "invalid_master_key": "Invalid admin key. Access denied.",
+      "invalid_credentials": "Invalid email or password.",
+      "account_inactive": "Your admin account is inactive.",
+      "unexpected_error": "An unexpected error occurred. Please try again."
+    },
     "info": "Info",
     "errors": "Errors",
     "performance": "Performance",
     "newUser": "New user registration",
     "workspaceCreated": "Workspace created",
     "jobFailed": "Job failed - retry queued",
+    "jobHeroVideoRender": "Hero Video Render",
+    "jobProductImageBatch": "Product Image Batch",
+    "jobVoiceoverGeneration": "Voiceover Generation",
+    "sendgridApiKey": "SendGrid API Key",
+    "resendApiKey": "Resend API Key",
+    "mailgunApiKey": "Mailgun API Key",
+    "mailgunDomain": "Mailgun Domain",
+    "postmarkServerToken": "Postmark Server Token",
+    "brevoApiKey": "Brevo API Key",
+    "sparkpostApiKey": "SparkPost API Key",
+    "failedToLoadProviders": "Failed to load providers",
+    "failedToUpdateProvider": "Failed to update provider",
+    "failedToCreateProvider": "Failed to create provider",
+    "failedToDeleteProvider": "Failed to delete provider",
+    "testFailed": "Connection failed",
     "dashboardDescription": "Email service overview and recent activity",
     "dashboardRefreshed": "Dashboard refreshed",
     "autoOn": "Auto ON",
@@ -1161,7 +1226,6 @@
     "lastTestError": "Last Test Error",
     "neverTested": "Never tested",
     "testSuccess": "Connection successful",
-    "testFailed": "Connection failed",
     "validationSuccess": "Configuration is valid",
     "validationFailed": "Configuration is invalid",
     "saveSuccess": "Provider saved successfully",
@@ -1552,6 +1616,43 @@
       "revokeConfirm": "Revoke \"{0}\"?",
       "revoked": "API key revoked",
       "searchKeys": "Search keys..."
+    },
+    "login": {
+      "backToHomeAria": "Back to home",
+      "backToHome": "Back to Home",
+      "restrictedAccess": "This is a restricted access area. Unauthorized access attempts are logged.",
+      "title": "Admin Login",
+      "subtitle": "Enter your credentials to access the admin portal",
+      "masterKeyLabel": "Admin Key",
+      "masterKeyPlaceholder": "Enter admin key",
+      "submit": "Sign In",
+      "errors": {
+        "missing_fields": "Please fill in all fields.",
+        "invalid_master_key": "Invalid admin key. Access denied.",
+        "invalid_credentials": "Invalid email or password.",
+        "account_inactive": "Your admin account is inactive.",
+        "unexpected_error": "An unexpected error occurred. Please try again."
+      }
+    },
+    "loginForm": {
+      "badge": "Admin Access Only",
+      "title": "Admin Portal",
+      "description": "Sign in to access the admin dashboard and manage your platform.",
+      "emailLabel": "Email Address",
+      "emailPlaceholder": "admin@example.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "hidePassword": "Hide password",
+      "showPassword": "Show password",
+      "masterKeyLabel": "Admin Key",
+      "masterKeyPlaceholder": "Enter admin key",
+      "hideKey": "Hide key",
+      "showKey": "Show key",
+      "securelyStored": "Your credentials are encrypted and securely stored.",
+      "authenticating": "Authenticating...",
+      "submitButton": "Sign In",
+      "restrictedAccess": "Restricted access — authorized personnel only",
+      "toastSuccess": "Admin portal accessed successfully"
     }
   },
   "misc": {
@@ -1605,6 +1706,8 @@
   "projects": {
     "pageTitle": "Projects",
     "description": "Organize and manage your production projects.",
+    "metadataTitle": "Projects — Tamer Studio",
+    "metadataDescription": "Create and manage production projects, assets, and schedules.",
     "newProject": "New Project",
     "totalProjects": "Total Projects",
     "inProduction": "In Production",
@@ -1613,9 +1716,18 @@
     "allProjects": "All Projects",
     "allProjectsDesc": "Manage and organize your projects",
     "popularTags": "Popular Tags",
+    "recentActivity": "Recent Activity",
     "activeNow": "Active now",
     "last30Days": "Last 30 days",
-    "vsLastMonth": "vs last month"
+    "plus2ThisMonth": "+2 this month",
+    "plus5VsLastMonth": "+5% vs last month",
+    "activityQ4CampaignUpdated": "Q4 Campaign updated",
+    "activity2HoursAgo": "2 hours ago",
+    "activityNewProjectCreated": "New project created",
+    "activity1DayAgo": "1 day ago",
+    "activityProjectArchived": "Project archived",
+    "activity3DaysAgo": "3 days ago",
+    "detailComingSoon": "Project detail coming soon."
   },
   "media": {
     "totalAssets": "Total Assets",
@@ -1656,7 +1768,15 @@
       "executing": "Executing...",
       "duplicate": "Duplicate",
       "copyToClipboard": "Copy to Clipboard"
-    }
+    },
+    "documentTitle": "{name} - Production - Tamer Studio",
+    "workflow": "Workflow",
+    "project": "Project",
+    "priority": "Priority",
+    "activeCount": "{count} active",
+    "queuedCount": "{count} queued",
+    "retryAvailable": "Retry available",
+    "empty": "No production jobs yet. Create one to get started."
   },
   "publishing": {
     "totalPublications": "Total Publications",
@@ -1664,7 +1784,11 @@
     "scheduled": "Scheduled",
     "totalViews": "Total Views",
     "manageScheduled": "Manage your scheduled and published content",
-    "notYetPublished": "Not yet published"
+    "notYetPublished": "Not yet published",
+    "successRate": "{rate}% success",
+    "nextSchedule": "Next: {time}",
+    "views": "views",
+    "empty": "No publications yet. Create one to get started."
   },
   "notifications": {
     "pageTitle": "Notifications",
@@ -1686,8 +1810,20 @@
     "lastUsedAgo": "Last used {0}",
     "securityBestPractices": "Security Best Practices",
     "rotateKeys": "Rotate Keys Regularly",
+    "rotateKeysDesc": "Rotate your API keys every 90 days for optimal security.",
     "useEnvVars": "Use Environment Variables",
-    "monitorUsage": "Monitor Usage"
+    "useEnvVarsDesc": "Never hardcode keys. Use env vars or secret managers.",
+    "monitorUsage": "Monitor Usage",
+    "monitorUsageDesc": "Set up alerts for unusual API activity.",
+    "delta1Inactive": "1 inactive",
+    "deltaPlus120Today": "+120 today",
+    "delta30DaysAgo": "30 days ago",
+    "deltaRecommended90Days": "Recommended: 90 days",
+    "scoreGood": "Good",
+    "scoreNoExposedKeys": "No exposed keys",
+    "statusActive": "Active",
+    "statusInactive": "Inactive",
+    "empty": "No API keys yet. Create one to get started."
   },
   "templates": {
     "pageTitle": "Templates",
@@ -1698,7 +1834,10 @@
     "searchPlaceholder": "Search templates...",
     "filter": "Filter",
     "uses": "{0} uses",
-    "use": "Use"
+    "use": "Use",
+    "searchAria": "Search templates",
+    "noResults": "No templates match your search.",
+    "empty": "No templates yet. Create one to get started."
   },
   "ai": {
     "pageTitle": "AI Platform",
@@ -1721,7 +1860,11 @@
     "generateAudio": "Generate Audio",
     "provider": {
       "pageTitle": "AI Provider"
-    }
+    },
+    "providerMetadataTitle": "AI Provider",
+    "providerMetadataDescription": "AI provider configuration for {id} on Tamer Studio.",
+    "providerTitle": "AI Provider",
+    "providerComingSoon": "Provider detail coming soon."
   },
   "adminLogin": {
     "pageTitle": "Admin Login",
@@ -1874,7 +2017,11 @@
   },
   "sidebar": {
     "expand": "Expand sidebar",
-    "collapse": "Collapse sidebar"
+    "collapse": "Collapse sidebar",
+    "main": "Main",
+    "manage": "Manage",
+    "expandAria": "Expand sidebar",
+    "collapseAria": "Collapse sidebar"
   },
   "email": {
     "dashboard": "Dashboard",
@@ -2095,14 +2242,14 @@
     "postmark": "Postmark",
     "brevo": "Brevo",
     "sparkpost": "SparkPost",
-    "smtpDescription": "Custom SMTP server (Gmail, Outlook, cPanel, etc.)",
-    "sendgridDescription": "Twilio SendGrid email delivery",
-    "resendDescription": "Resend email API",
-    "amazonSesDescription": "Amazon Simple Email Service",
-    "mailgunDescription": "Mailgun email service",
-    "postmarkDescription": "Postmark transactional email",
-    "brevoDescription": "Brevo (formerly Sendinblue)",
-    "sparkpostDescription": "SparkPost email delivery",
+    "smtpDescription": "Standard SMTP relay for transactional email delivery.",
+    "sendgridDescription": "Cloud-based email delivery platform with detailed analytics.",
+    "resendDescription": "Modern email API for developers with real-time event tracking.",
+    "amazonSesDescription": "Amazon Simple Email Service for scalable email delivery.",
+    "mailgunDescription": "Email delivery and analytics platform for web applications.",
+    "postmarkDescription": "Reliable transactional email delivery with delivery analytics.",
+    "brevoDescription": "All-in-one marketing and transactional email platform.",
+    "sparkpostDescription": "High-performance email delivery platform with analytics.",
     "configureProvider": "Configure Provider",
     "providerSettings": "Provider Settings",
     "connectionSettings": "Connection Settings",
@@ -2384,7 +2531,11 @@
     "sentOverTime": "Sent Over Time",
     "testingConnection": "Testing connection...",
     "toggleFailed": "Failed to toggle template",
-    "viewDetails": "View Details"
+    "viewDetails": "View Details",
+    "fromAddress": "From Address",
+    "slowResponse": "Slow response time",
+    "connectionRefused": "Connection refused",
+    "rateLimitApproaching": "Rate limit approaching"
   },
   "planEnterprise": "Enterprise",
   "planPro": "Pro",
@@ -2392,6 +2543,153 @@
   "canvas": "Canvas",
   "limit": "Limit",
   "page": "Page",
-  "status": "Status",
-  "to": "To"
+  "status": {
+    "active": "Active"
+  },
+  "to": "To",
+  "time": {
+    "justNow": "just now",
+    "minutesAgo": "m ago",
+    "hoursAgo": "h ago",
+    "daysAgo": "d ago"
+  },
+  "roles": {
+    "viewer": "Viewer",
+    "workspaceAdmin": "Workspace Admin",
+    "orgAdmin": "Org Admin",
+    "systemAdmin": "System Admin",
+    "superAdmin": "Super Admin",
+    "admin": "Admin",
+    "user": "User"
+  },
+  "dropdown": {
+    "accountMenu": "Account menu",
+    "account": "Account",
+    "placeholderEmail": "user@example.com"
+  },
+  "nav": {
+    "profile": "Profile",
+    "settings": "Settings",
+    "billing": "Billing",
+    "apiKeys": "API Keys"
+  },
+  "commandPalette": {
+    "goToDashboard": "Go to Dashboard",
+    "openWorkspace": "Open Workspace",
+    "openProjects": "Open Projects",
+    "openMediaLibrary": "Open Media Library",
+    "openProduction": "Open Production",
+    "openAIPlatform": "Open AI Platform",
+    "openPublishing": "Open Publishing",
+    "openSettings": "Open Settings",
+    "navigation": "Navigation",
+    "other": "Other",
+    "ariaLabel": "Command palette",
+    "placeholder": "Type a command or search...",
+    "searchAria": "Search commands",
+    "noResults": "No results found for \"{query}\"",
+    "navigate": "Navigate",
+    "select": "Select",
+    "close": "Close"
+  },
+  "brand": {
+    "name": "Tamer Studio"
+  },
+  "currency": {
+    "usd": "USD ($)",
+    "idr": "IDR (Rp)"
+  },
+  "timezone": {
+    "asiaJakarta": "Asia/Jakarta"
+  },
+  "commerce": {
+    "plans": "Plans",
+    "plan": "Plan",
+    "lite": "Lite",
+    "creator": "Creator",
+    "pro": "Pro",
+    "billingOptions": "Billing Options",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "oneTime": "One-Time",
+    "pricing": "Pricing",
+    "price": "Price",
+    "perMonth": "/month",
+    "perYear": "/year",
+    "creditsIncluded": "Credits Included",
+    "storage": "Storage",
+    "projects": "Projects",
+    "workspaces": "Workspaces",
+    "features": "Features",
+    "currentPlan": "Current Plan",
+    "upgradePlan": "Upgrade Plan",
+    "downgradePlan": "Downgrade Plan",
+    "subscribe": "Subscribe",
+    "purchaseCredits": "Purchase Credits",
+    "orders": "Orders",
+    "orderHistory": "Order History",
+    "wallet": "Wallet",
+    "walletBalance": "Wallet Balance",
+    "credits": "Credits",
+    "creditBalance": "Credit Balance",
+    "invoices": "Invoices",
+    "noOrders": "No orders yet",
+    "noInvoices": "No invoices yet",
+    "orderStatus": {
+      "pending": "Pending",
+      "paid": "Paid",
+      "failed": "Failed",
+      "refunded": "Refunded",
+      "cancelled": "Cancelled"
+    },
+    "popular": "Popular",
+    "bestValue": "Best Value",
+    "choosePlan": "Choose your plan",
+    "chooseBillingOption": "Select billing option",
+    "totalAmount": "Total amount",
+    "checkout": "Checkout",
+    "paymentSuccessful": "Payment successful",
+    "paymentFailed": "Payment failed",
+    "subscriptionActivated": "Subscription activated",
+    "subscriptionCancelled": "Subscription cancelled",
+    "subscriptionRenewed": "Subscription renewed",
+    "creditsGranted": "Credits granted to your wallet",
+    "insufficientCredits": "Insufficient credits",
+    "admin": {
+      "managePlans": "Manage Plans",
+      "manageBillingOptions": "Manage Billing Options",
+      "managePricing": "Manage Pricing",
+      "manageOrders": "Manage Orders",
+      "manageWallets": "Manage Wallets",
+      "planName": "Plan Name",
+      "planSlug": "Plan Slug",
+      "planTier": "Plan Tier",
+      "planDescription": "Plan Description",
+      "storageLimitMb": "Storage Limit (MB)",
+      "projectLimit": "Project Limit",
+      "workspaceLimit": "Workspace Limit",
+      "billingFrequency": "Billing Frequency",
+      "renewalBehavior": "Renewal Behavior",
+      "autoRenew": "Auto Renew",
+      "manualRenew": "Manual Renew",
+      "noRenew": "No Renewal",
+      "creditsIncludedAmount": "Credits Included",
+      "orderDate": "Order Date",
+      "orderAmount": "Order Amount",
+      "orderStatus": "Order Status",
+      "workspaceId": "Workspace ID",
+      "userId": "User ID",
+      "allOrders": "All Orders",
+      "allWallets": "All Wallets",
+      "totalBalance": "Total Balance",
+      "activePlans": "Active Plans",
+      "totalRevenue": "Total Revenue",
+      "addPlan": "Add Plan",
+      "editPlan": "Edit Plan",
+      "addBillingOption": "Add Billing Option",
+      "editBillingOption": "Edit Billing Option",
+      "addPricing": "Add Pricing",
+      "editPricing": "Edit Pricing"
+    }
+  }
 }

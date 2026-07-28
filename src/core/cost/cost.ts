@@ -1,4 +1,4 @@
-import type { UsageRecord, CostRecord, CostEstimate, CostEstimateBreakdown, EstimationInput, EstimationEngine, ProviderPricing } from "@/lib/ai/types/billing";
+import type { UsageRecord, CostRecord, CostEstimate, CostEstimateBreakdown, EstimationInput, EstimationEngine, ProviderPricing } from "@/core/types/billing";
 import { DefaultPricingEngine, defaultPricingRules } from "../pricing";
 
 export interface CostCalculationResult {

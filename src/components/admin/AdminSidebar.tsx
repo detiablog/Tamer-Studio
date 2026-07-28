@@ -5,31 +5,27 @@ import { SidebarItem } from "@/components/ui/SidebarItem"
 import { useAdminPermissions } from "@/components/auth/use-admin-permissions"
 import { cn } from "@/lib/utils"
 import {
-  LayoutDashboard,
-  Users,
-  Building2,
-  Workflow,
-  Cpu,
-  LayoutTemplate,
-  Rocket,
-  BarChart3,
-  CreditCard,
-  Ticket,
-  LineChart,
-  ScrollText,
-  Flag,
-  Settings,
-  RefreshCw,
   PanelLeftClose,
   PanelLeft,
-  Mail,
+  RefreshCw,
 } from "lucide-react"
 import { useLocalizationContext } from "@/providers/localization"
+import { getNavigationRuntime, resolveIcon } from "@/core/navigation"
+import type { NavigationItem } from "@/core/navigation"
+
+const runtime = getNavigationRuntime()
 
 type AdminSidebarProps = {
   pathname?: string;
   collapsed: boolean;
   onToggle: () => void;
+};
+
+const adminGroupLabels: Record<string, string> = {
+  dashboard: "admin.dashboard",
+  management: "admin.dashboard",
+  analytics: "admin.analytics.label",
+  settings: "admin.settings",
 };
 
 function SidebarTooltip({ label, children }: { label: string; children: React.ReactNode }) {
@@ -43,9 +39,27 @@ function SidebarTooltip({ label, children }: { label: string; children: React.Re
   )
 }
 
+function renderItem(item: NavigationItem, collapsed: boolean, isActive: (href: string) => boolean, t: (key: string) => string) {
+  const IconComp = resolveIcon(item.icon);
+  const label = t(item.titleKey ?? item.title);
+  const active = isActive(item.route);
+
+  if (collapsed) {
+    return (
+      <SidebarTooltip key={item.id} label={label}>
+        <SidebarItem icon={IconComp} label="" href={item.route} active={active} />
+      </SidebarTooltip>
+    );
+  }
+
+  return (
+    <SidebarItem key={item.id} icon={IconComp} label={label} href={item.route} active={active} />
+  );
+}
+
 export function AdminSidebar({ pathname, collapsed, onToggle }: AdminSidebarProps) {
   const currentPath = pathname ?? (typeof window !== "undefined" ? window.location.pathname : "");
-  const { hasPermission, mounted, isAdmin } = useAdminPermissions();
+  const { hasPermission, mounted, isAdmin, permissions: userPermissions } = useAdminPermissions();
   const [forceRefresh, setForceRefresh] = React.useState(0);
   const { t } = useLocalizationContext();
 
@@ -58,6 +72,25 @@ export function AdminSidebar({ pathname, collapsed, onToggle }: AdminSidebarProp
   const isActive = (href: string) => {
     return currentPath === href || currentPath.startsWith(href + "/");
   };
+
+  const allItems = runtime.getItemsByPosition("admin-sidebar");
+
+  const visibleItems = React.useMemo(() => {
+    if (!mounted) return [];
+    return runtime.filterByPermissions(allItems, [...userPermissions]);
+  }, [allItems, userPermissions, mounted]);
+
+  const grouped = React.useMemo(() => {
+    const groups: Record<string, NavigationItem[]> = {};
+    for (const item of visibleItems) {
+      const group = item.group ?? "default";
+      if (!groups[group]) groups[group] = [];
+      groups[group].push(item);
+    }
+    return groups;
+  }, [visibleItems]);
+
+  const groupOrder = ["dashboard", "management", "analytics", "settings"];
 
   return (
     <aside className={cn("w-full shrink-0 py-4 transition-all duration-300 ease-in-out", collapsed ? "px-2" : "px-3")}>
@@ -82,133 +115,25 @@ export function AdminSidebar({ pathname, collapsed, onToggle }: AdminSidebarProp
           )}
         </button>
 
-        {!collapsed && (
-          <div className="mb-2 px-2 text-[11px] font-medium uppercase tracking-wider text-[#9CA3AF] dark:text-muted-foreground/70">{t("admin.dashboard")}</div>
-        )}
-
-        {collapsed ? (
-          <SidebarTooltip label={t("admin.dashboard")}>
-            <SidebarItem icon={LayoutDashboard} label="" href="/admin" active={isActive("/admin")} />
-          </SidebarTooltip>
-        ) : (
-          <SidebarItem icon={LayoutDashboard} label={t("admin.dashboard")} href="/admin" active={isActive("/admin")} />
-        )}
-
         {mounted ? (
           <>
-            {hasPermission("admin:users") && (collapsed ? (
-              <SidebarTooltip label={t("admin.users")}>
-                <SidebarItem icon={Users} label="" href="/admin/users" active={isActive("/admin/users")} />
-              </SidebarTooltip>
-            ) : (
-              <SidebarItem icon={Users} label={t("admin.users")} href="/admin/users" active={isActive("/admin/users")} />
-            ))}
-            {hasPermission("admin:organizations") && (collapsed ? (
-              <SidebarTooltip label={t("admin.organizations")}>
-                <SidebarItem icon={Building2} label="" href="/admin/organizations" active={isActive("/admin/organizations")} />
-              </SidebarTooltip>
-            ) : (
-              <SidebarItem icon={Building2} label={t("admin.organizations")} href="/admin/organizations" active={isActive("/admin/organizations")} />
-            ))}
-            {hasPermission("admin:workspaces") && (collapsed ? (
-              <SidebarTooltip label={t("admin.workspaces")}>
-                <SidebarItem icon={Workflow} label="" href="/admin/workspaces" active={isActive("/admin/workspaces")} />
-              </SidebarTooltip>
-            ) : (
-              <SidebarItem icon={Workflow} label={t("admin.workspaces")} href="/admin/workspaces" active={isActive("/admin/workspaces")} />
-            ))}
-            {hasPermission("admin:ai_providers") && (collapsed ? (
-              <SidebarTooltip label={t("admin.aiProviders")}>
-                <SidebarItem icon={Cpu} label="" href="/admin/ai-providers" active={isActive("/admin/ai-providers")} />
-              </SidebarTooltip>
-            ) : (
-              <SidebarItem icon={Cpu} label={t("admin.aiProviders")} href="/admin/ai-providers" active={isActive("/admin/ai-providers")} />
-            ))}
-            {hasPermission("admin:landing_builder") && (collapsed ? (
-              <SidebarTooltip label={t("admin.landingBuilder")}>
-                <SidebarItem icon={LayoutTemplate} label="" href="/admin/landing-builder" active={isActive("/admin/landing-builder")} />
-              </SidebarTooltip>
-            ) : (
-              <SidebarItem icon={LayoutTemplate} label={t("admin.landingBuilder")} href="/admin/landing-builder" active={isActive("/admin/landing-builder")} />
-            ))}
-            {hasPermission("admin:jobs") && (collapsed ? (
-              <SidebarTooltip label={t("admin.jobs")}>
-                <SidebarItem icon={Rocket} label="" href="/admin/jobs" active={isActive("/admin/jobs")} />
-              </SidebarTooltip>
-            ) : (
-              <SidebarItem icon={Rocket} label={t("admin.jobs")} href="/admin/jobs" active={isActive("/admin/jobs")} />
-            ))}
-            {hasPermission("admin:queues") && (collapsed ? (
-              <SidebarTooltip label={t("admin.queues")}>
-                <SidebarItem icon={BarChart3} label="" href="/admin/queues" active={isActive("/admin/queues")} />
-              </SidebarTooltip>
-            ) : (
-              <SidebarItem icon={BarChart3} label={t("admin.queues")} href="/admin/queues" active={isActive("/admin/queues")} />
-            ))}
-            {hasPermission("admin:billing") && (collapsed ? (
-              <SidebarTooltip label={t("admin.billing.label")}>
-                <SidebarItem icon={CreditCard} label="" href="/admin/billing" active={isActive("/admin/billing")} />
-              </SidebarTooltip>
-            ) : (
-              <SidebarItem icon={CreditCard} label={t("admin.billing.label")} href="/admin/billing" active={isActive("/admin/billing")} />
-            ))}
-            {hasPermission("admin:subscriptions") && (collapsed ? (
-              <SidebarTooltip label={t("admin.subscriptions.label")}>
-                <SidebarItem icon={Ticket} label="" href="/admin/subscriptions" active={isActive("/admin/subscriptions")} />
-              </SidebarTooltip>
-            ) : (
-              <SidebarItem icon={Ticket} label={t("admin.subscriptions.label")} href="/admin/subscriptions" active={isActive("/admin/subscriptions")} />
-            ))}
-            {hasPermission("admin:coupons") && (collapsed ? (
-              <SidebarTooltip label={t("admin.coupons.label")}>
-                <SidebarItem icon={Ticket} label="" href="/admin/coupons" active={isActive("/admin/coupons")} />
-              </SidebarTooltip>
-            ) : (
-              <SidebarItem icon={Ticket} label={t("admin.coupons.label")} href="/admin/coupons" active={isActive("/admin/coupons")} />
-            ))}
-
-            {!collapsed && (
-              <div className="mt-6 mb-2 px-2 text-[11px] font-medium uppercase tracking-wider text-[#9CA3AF] dark:text-muted-foreground/70">{t("admin.analytics.label")}</div>
-            )}
-            {hasPermission("admin:analytics") && (collapsed ? (
-              <SidebarTooltip label={t("admin.analytics.label")}>
-                <SidebarItem icon={LineChart} label="" href="/admin/analytics" active={isActive("/admin/analytics")} />
-              </SidebarTooltip>
-            ) : (
-              <SidebarItem icon={LineChart} label={t("admin.analytics.label")} href="/admin/analytics" active={isActive("/admin/analytics")} />
-            ))}
-            {hasPermission("admin:audit_logs") && (collapsed ? (
-              <SidebarTooltip label={t("admin.auditLogs.label")}>
-                <SidebarItem icon={ScrollText} label="" href="/admin/audit-logs" active={isActive("/admin/audit-logs")} />
-              </SidebarTooltip>
-            ) : (
-              <SidebarItem icon={ScrollText} label={t("admin.auditLogs.label")} href="/admin/audit-logs" active={isActive("/admin/audit-logs")} />
-            ))}
-            {hasPermission("admin:feature_flags") && (collapsed ? (
-              <SidebarTooltip label={t("admin.featureFlags.label")}>
-                <SidebarItem icon={Flag} label="" href="/admin/feature-flags" active={isActive("/admin/feature-flags")} />
-              </SidebarTooltip>
-            ) : (
-              <SidebarItem icon={Flag} label={t("admin.featureFlags.label")} href="/admin/feature-flags" active={isActive("/admin/feature-flags")} />
-            ))}
-
-            {!collapsed && (
-              <div className="mt-6 mb-2 px-2 text-[11px] font-medium uppercase tracking-wider text-[#9CA3AF] dark:text-muted-foreground/70">{t("admin.settings")}</div>
-            )}
-            {hasPermission("admin:system") && (collapsed ? (
-              <SidebarTooltip label={t("admin.settings")}>
-                <SidebarItem icon={Settings} label="" href="/admin/settings" active={isActive("/admin/settings")} />
-              </SidebarTooltip>
-            ) : (
-              <SidebarItem icon={Settings} label={t("admin.settings")} href="/admin/settings" active={isActive("/admin/settings")} />
-            ))}
-            {hasPermission("admin:email") && (collapsed ? (
-              <SidebarTooltip label={t("admin.email")}>
-                <SidebarItem icon={Mail} label="" href="/admin/email" active={isActive("/admin/email")} />
-              </SidebarTooltip>
-            ) : (
-              <SidebarItem icon={Mail} label={t("admin.email")} href="/admin/email" active={isActive("/admin/email")} />
-            ))}
+            {groupOrder.map((groupKey) => {
+              const items = grouped[groupKey];
+              if (!items || items.length === 0) return null;
+              return (
+                <React.Fragment key={groupKey}>
+                  {!collapsed && adminGroupLabels[groupKey] && (
+                    <div className={cn(
+                      "mb-2 px-2 text-[11px] font-medium uppercase tracking-wider text-[#9CA3AF] dark:text-muted-foreground/70",
+                      groupKey !== "dashboard" && "mt-6"
+                    )}>
+                      {t(adminGroupLabels[groupKey])}
+                    </div>
+                  )}
+                  {items.map((item) => renderItem(item, collapsed, isActive, (key) => t(key)))}
+                </React.Fragment>
+              );
+            })}
           </>
         ) : (
           <div className={cn("flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground", collapsed && "justify-center")}>

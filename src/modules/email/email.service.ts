@@ -5,9 +5,7 @@ import { defaultEmailWorker } from "./email.worker";
 import { emailTemplateEngine } from "./email.template";
 import { emailLogger } from "./email.logger";
 import { hashToken, generateSecureToken, generateId } from "./email.encryption";
-import { db } from "@/lib/db";
-import { emailToken } from "@/lib/db/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { emailTokenRepository } from "./email-token.repository";
 
 export class DefaultEmailService implements EmailService {
   async send(message: EmailMessage, type: EmailType, options?: { priority?: number; scheduledAt?: Date }): Promise<string> {
@@ -99,7 +97,7 @@ export class DefaultEmailService implements EmailService {
     const tokenId = generateId("token");
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
     emailLogger.info("Verification token created", { tokenId, email, userId, expiresAt });
-    await db.insert(emailToken).values({
+    await emailTokenRepository.createToken({
       id: tokenId,
       type: "verification",
       token: hashToken(plainToken),
@@ -116,7 +114,7 @@ export class DefaultEmailService implements EmailService {
     const tokenId = generateId("token");
     const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
     emailLogger.info("Reset password token created", { tokenId, email, userId, expiresAt });
-    await db.insert(emailToken).values({
+    await emailTokenRepository.createToken({
       id: tokenId,
       type: "reset_password",
       token: hashToken(plainToken),
@@ -132,29 +130,13 @@ export class DefaultEmailService implements EmailService {
   async verifyToken(token: string, type: TokenType): Promise<EmailToken | null> {
     emailLogger.debug("Token verification attempted", { type });
     const hashed = hashToken(token);
-    const result = await db
-      .select()
-      .from(emailToken)
-      .where(and(
-        eq(emailToken.token, hashed),
-        eq(emailToken.type, type),
-        sql`${emailToken.expiresAt} > NOW()`
-      ))
-      .limit(1);
-
-    if (result.length === 0) {
-      return null;
-    }
-    return result[0] as EmailToken;
+    return emailTokenRepository.findValidToken(hashed, type);
   }
 
   async invalidateToken(token: string): Promise<void> {
     emailLogger.info("Token invalidated", { token: token.substring(0, 8) + "..." });
     const hashed = hashToken(token);
-    await db
-      .update(emailToken)
-      .set({ usedAt: new Date() })
-      .where(eq(emailToken.token, hashed));
+    await emailTokenRepository.invalidateToken(hashed);
   }
 
   getRouter(): typeof defaultEmailRouter {

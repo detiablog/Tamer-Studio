@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { Eye, EyeOff, CheckCircle2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-import { authClient } from "@/lib/auth/auth-client";
+import { authClient } from "@/core/auth/client";
 import { registerSchema, type RegisterSchema } from "@/features/auth/schemas/register.schema";
 import { hasAuthError } from "@/features/auth/types";
 import { logger } from "@/core/logger";

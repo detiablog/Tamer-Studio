@@ -43,7 +43,18 @@ export type DomainEventType =
   | "feedback.created"
   | "sla.violated"
   | "support.internal_note.created"
-  | "support.attachment.added";
+  | "support.attachment.added"
+  | "cms.page.created"
+  | "cms.page.updated"
+  | "cms.page.deleted"
+  | "cms.section.created"
+  | "cms.section.updated"
+  | "cms.section.deleted"
+  | "cms.block.created"
+  | "cms.block.updated"
+  | "cms.block.deleted"
+  | "homepage.updated"
+  | "navigation.updated";
 
 export type ApplicationEventType =
   | "notification.created"
@@ -77,7 +88,7 @@ export interface Event {
 
 export interface DomainEvent extends Event {
   type: DomainEventType;
-  source: "identity" | "workspace" | "commerce" | "billing" | "ai" | "workflow" | "system" | "support";
+  source: "identity" | "workspace" | "commerce" | "billing" | "ai" | "workflow" | "system" | "support" | "cms";
   actorId?: string;
   resourceId?: string;
   resourceType?: string;

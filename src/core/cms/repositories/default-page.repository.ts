@@ -7,7 +7,7 @@ import type { CMSPageRepository, CMSPage, CMSCreatePageInput, CMSUpdatePageInput
 export class DefaultCMSPageRepository implements CMSPageRepository {
   async createPage(input: CMSCreatePageInput): Promise<CMSPage> {
     const id = randomUUID();
-    const now = new Date().toISOString();
+    const now = new Date();
     const [page] = await db.insert(cmsPage).values({
       id,
       title: input.title,
@@ -49,7 +49,7 @@ export class DefaultCMSPageRepository implements CMSPageRepository {
     if (!existing) return undefined;
 
     const updates: Record<string, unknown> = {
-      updatedAt: new Date().toISOString(),
+      updatedAt: new Date(),
     };
 
     if (input.title !== undefined) updates.title = input.title;
@@ -80,11 +80,11 @@ export class DefaultCMSPageRepository implements CMSPageRepository {
   }
 
   async deletePage(id: string): Promise<void> {
-    await db.update(cmsPage).set({ deletedAt: new Date().toISOString() }).where(eq(cmsPage.id, id));
+    await db.update(cmsPage).set({ deletedAt: new Date() }).where(eq(cmsPage.id, id));
   }
 
   async restorePage(id: string): Promise<CMSPage | undefined> {
-    const [restored] = await db.update(cmsPage).set({ deletedAt: null, updatedAt: new Date().toISOString() }).where(eq(cmsPage.id, id)).returning();
+    const [restored] = await db.update(cmsPage).set({ deletedAt: null, updatedAt: new Date() }).where(eq(cmsPage.id, id)).returning();
     return restored ? this.mapRow(restored) : undefined;
   }
 
@@ -129,10 +129,10 @@ export class DefaultCMSPageRepository implements CMSPageRepository {
       },
       version: row.version,
       publishedVersion: row.publishedVersion ?? undefined,
-      scheduledAt: row.scheduledAt ? row.scheduledAt.toISOString() : undefined,
+      scheduledAt: row.scheduledAt ? (typeof row.scheduledAt === 'string' ? row.scheduledAt : row.scheduledAt.toISOString()) : undefined,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
-      publishedAt: row.publishedAt ? row.publishedAt.toISOString() : undefined,
+      publishedAt: row.publishedAt ? (typeof row.publishedAt === 'string' ? row.publishedAt : row.publishedAt.toISOString()) : undefined,
       authorId: row.authorId,
     };
   }

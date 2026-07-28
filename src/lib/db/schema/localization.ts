@@ -100,7 +100,7 @@ export const pricingRule = pgTable(
     billingCycle: text("billing_cycle").notNull().default("monthly"),
     isVisible: boolean("is_visible").default(true).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("created_at")
+    updatedAt: timestamp("updated_at")
       .defaultNow()
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
@@ -126,7 +126,7 @@ export const paymentProfile = pgTable(
     isEnabled: boolean("is_enabled").default(true).notNull(),
     config: jsonb("config").$type<Record<string, unknown>>().default({}),
     createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("created_at")
+    updatedAt: timestamp("updated_at")
       .defaultNow()
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
@@ -150,7 +150,7 @@ export const paymentMethod = pgTable(
     priority: integer("priority").default(0).notNull(),
     config: jsonb("config").$type<Record<string, unknown>>().default({}),
     createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("created_at")
+    updatedAt: timestamp("updated_at")
       .defaultNow()
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
@@ -177,7 +177,7 @@ export const currencyProfile = pgTable(
     exchangeRateToUsd: text("exchange_rate_to_usd").default("1").notNull(),
     isEnabled: boolean("is_enabled").default(true).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("created_at")
+    updatedAt: timestamp("updated_at")
       .defaultNow()
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),

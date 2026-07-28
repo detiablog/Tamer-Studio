@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+import { auth } from "@/core/auth";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);

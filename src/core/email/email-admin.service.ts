@@ -1,8 +1,8 @@
-import { db } from "@/lib/db";
-import { emailProvider, emailProviderHealth, emailQueue, emailTemplate, emailStatistics, emailLog } from "@/lib/db/schema/email";
-import { eq, desc, and, sql, count, sum, gte, lt, inArray } from "drizzle-orm";
+import { emailAdminRepository } from "./email-admin.repository";
 import { encrypt, decrypt, maskSensitive, generateId } from "@/modules/email";
 import type { ProviderType } from "@/modules/email";
+import { emailStatistics } from "@/lib/db/schema/email";
+import { eq, gte, lt } from "drizzle-orm";
 
 export interface EmailProviderInput {
   type: ProviderType;
@@ -25,44 +25,20 @@ export interface EmailProviderInput {
 
 export class EmailAdminService {
   async getProviders() {
-    const providers = await db.select({
-      id: emailProvider.id,
-      name: emailProvider.name,
-      type: emailProvider.type,
-      description: emailProvider.description,
-      isActive: emailProvider.isActive,
-      priority: emailProvider.priority,
-      routingMode: emailProvider.routingMode,
-      senderName: emailProvider.senderName,
-      senderEmail: emailProvider.senderEmail,
-      replyTo: emailProvider.replyTo,
-      dailyLimit: emailProvider.dailyLimit,
-      monthlyLimit: emailProvider.monthlyLimit,
-      timeout: emailProvider.timeout,
-      retryCount: emailProvider.retryCount,
-      webhookSecret: sql<string>`null`,
-      domain: emailProvider.domain,
-      lastTestedAt: emailProvider.lastTestedAt,
-      lastTestStatus: emailProvider.lastTestStatus,
-      lastTestError: emailProvider.lastTestError,
-      createdAt: emailProvider.createdAt,
-      updatedAt: emailProvider.updatedAt,
-      healthCount: sql<number>`(select count(*) from email_provider_health eph where eph.provider_id = email_provider.id and eph.status != 'disabled')`,
-    }).from(emailProvider).orderBy(desc(emailProvider.priority), emailProvider.name);
-
+    const providers = await emailAdminRepository.findProviders();
     return providers.map((p) => ({
       ...p,
-      webhookSecret: p.webhookSecret ? `${p.webhookSecret.slice(0, 4)}****` : null,
+      webhookSecret: p.webhookSecret ? `${String(p.webhookSecret).slice(0, 4)}****` : null,
     }));
   }
 
   async getProvider(id: string) {
-    const [provider] = await db.select().from(emailProvider).where(eq(emailProvider.id, id)).limit(1);
+    const provider = await emailAdminRepository.findProviderById(id);
     if (!provider) return undefined;
 
     const [health, queueCount] = await Promise.all([
-      db.select().from(emailProviderHealth).where(eq(emailProviderHealth.providerId, id)).limit(1),
-      db.select({ count: sql<number>`count(*)` }).from(emailQueue).where(eq(emailQueue.providerId, id)).then((r) => r[0]?.count ?? 0).catch(() => 0) as Promise<number>,
+      emailAdminRepository.findProviderHealthSingle(id),
+      emailAdminRepository.countQueueByProvider(id),
     ]);
 
     let credentials: Record<string, unknown> | null = null;
@@ -87,7 +63,7 @@ export class EmailAdminService {
     const id = generateId("provider");
     const encryptedCredentials = input.credentials ? encrypt(JSON.stringify(input.credentials)) : null;
 
-    const [provider] = await db.insert(emailProvider).values({
+    const provider = await emailAdminRepository.createProvider({
       id,
       type: input.type,
       name: input.name,
@@ -106,35 +82,13 @@ export class EmailAdminService {
       priority: input.priority ?? 0,
       routingMode: input.routingMode || "priority",
       config: {},
-    }).returning({
-      id: emailProvider.id,
-      name: emailProvider.name,
-      type: emailProvider.type,
-      description: emailProvider.description,
-      isActive: emailProvider.isActive,
-      priority: emailProvider.priority,
-      routingMode: emailProvider.routingMode,
-      senderName: emailProvider.senderName,
-      senderEmail: emailProvider.senderEmail,
-      replyTo: emailProvider.replyTo,
-      dailyLimit: emailProvider.dailyLimit,
-      monthlyLimit: emailProvider.monthlyLimit,
-      timeout: emailProvider.timeout,
-      retryCount: emailProvider.retryCount,
-      webhookSecret: emailProvider.webhookSecret,
-      domain: emailProvider.domain,
-      createdAt: emailProvider.createdAt,
-      updatedAt: emailProvider.updatedAt,
-      lastTestedAt: emailProvider.lastTestedAt,
-      lastTestStatus: emailProvider.lastTestStatus,
-      lastTestError: emailProvider.lastTestError,
     });
 
     return provider;
   }
 
   async updateProvider(id: string, input: Partial<EmailProviderInput>) {
-    const [existing] = await db.select().from(emailProvider).where(eq(emailProvider.id, id)).limit(1);
+    const existing = await emailAdminRepository.findProviderById(id);
     if (!existing) return undefined;
 
     const updateData: Record<string, unknown> = {};
@@ -161,50 +115,16 @@ export class EmailAdminService {
 
     if (Object.keys(updateData).length === 0) return existing;
 
-    const [updated] = await db.update(emailProvider).set(updateData).where(eq(emailProvider.id, id)).returning({
-      id: emailProvider.id,
-      name: emailProvider.name,
-      type: emailProvider.type,
-      description: emailProvider.description,
-      isActive: emailProvider.isActive,
-      priority: emailProvider.priority,
-      routingMode: emailProvider.routingMode,
-      senderName: emailProvider.senderName,
-      senderEmail: emailProvider.senderEmail,
-      replyTo: emailProvider.replyTo,
-      dailyLimit: emailProvider.dailyLimit,
-      monthlyLimit: emailProvider.monthlyLimit,
-      timeout: emailProvider.timeout,
-      retryCount: emailProvider.retryCount,
-      webhookSecret: emailProvider.webhookSecret,
-      domain: emailProvider.domain,
-      createdAt: emailProvider.createdAt,
-      updatedAt: emailProvider.updatedAt,
-      lastTestedAt: emailProvider.lastTestedAt,
-      lastTestStatus: emailProvider.lastTestStatus,
-      lastTestError: emailProvider.lastTestError,
-    });
-
+    const updated = await emailAdminRepository.updateProvider(id, updateData);
     return updated;
   }
 
   async deleteProvider(id: string) {
-    const [deleted] = await db.delete(emailProvider).where(eq(emailProvider.id, id)).returning({ id: emailProvider.id });
-    return !!deleted;
+    return emailAdminRepository.deleteProvider(id);
   }
 
   async getTemplates(filters?: { type?: string; isActive?: boolean }) {
-    let query = db.select().from(emailTemplate);
-    const conditions = [];
-
-    if (filters?.type) conditions.push(eq(emailTemplate.type, filters.type));
-    if (filters?.isActive !== undefined) conditions.push(eq(emailTemplate.isActive, filters.isActive));
-
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions)) as typeof query;
-    }
-
-    const templates = await query.orderBy(emailTemplate.type, desc(emailTemplate.createdAt));
+    const templates = await emailAdminRepository.findTemplates(filters);
     return templates.map((t) => ({
       id: t.id,
       key: t.key,
@@ -223,7 +143,7 @@ export class EmailAdminService {
   }
 
   async getTemplate(id: string) {
-    const [template] = await db.select().from(emailTemplate).where(eq(emailTemplate.id, id)).limit(1);
+    const template = await emailAdminRepository.findTemplateById(id);
     if (!template) return undefined;
     return {
       id: template.id,
@@ -254,7 +174,7 @@ export class EmailAdminService {
     createdBy?: string;
   }) {
     const id = generateId("tmpl");
-    const [template] = await db.insert(emailTemplate).values({
+    const template = await emailAdminRepository.createTemplate({
       id,
       key: data.key,
       name: data.name,
@@ -266,32 +186,6 @@ export class EmailAdminService {
       isActive: data.isActive ?? true,
       createdBy: data.createdBy || "system",
       updatedBy: data.createdBy || "system",
-    }).onConflictDoUpdate({
-      target: emailTemplate.key,
-      set: {
-        name: data.name,
-        type: data.type,
-        subject: data.subject,
-        html: data.html,
-        text: data.text || null,
-        variables: data.variables || [],
-        isActive: data.isActive ?? true,
-        updatedBy: data.createdBy || "system",
-      },
-    }).returning({
-      id: emailTemplate.id,
-      key: emailTemplate.key,
-      name: emailTemplate.name,
-      type: emailTemplate.type,
-      subject: emailTemplate.subject,
-      html: emailTemplate.html,
-      text: emailTemplate.text,
-      variables: emailTemplate.variables,
-      isActive: emailTemplate.isActive,
-      createdBy: emailTemplate.createdBy,
-      updatedBy: emailTemplate.updatedBy,
-      createdAt: emailTemplate.createdAt,
-      updatedAt: emailTemplate.updatedAt,
     });
 
     return template;
@@ -307,7 +201,7 @@ export class EmailAdminService {
     variables: string[];
     isActive: boolean;
   }>) {
-    const [existing] = await db.select().from(emailTemplate).where(eq(emailTemplate.id, id)).limit(1);
+    const existing = await emailAdminRepository.findTemplateById(id);
     if (!existing) return undefined;
 
     const updateData: Record<string, unknown> = {};
@@ -322,57 +216,30 @@ export class EmailAdminService {
 
     if (Object.keys(updateData).length === 0) return existing;
 
-    const [updated] = await db.update(emailTemplate).set(updateData).where(eq(emailTemplate.id, id)).returning({
-      id: emailTemplate.id,
-      key: emailTemplate.key,
-      name: emailTemplate.name,
-      type: emailTemplate.type,
-      subject: emailTemplate.subject,
-      html: emailTemplate.html,
-      text: emailTemplate.text,
-      variables: emailTemplate.variables,
-      isActive: emailTemplate.isActive,
-      createdBy: emailTemplate.createdBy,
-      updatedBy: emailTemplate.updatedBy,
-      createdAt: emailTemplate.createdAt,
-      updatedAt: emailTemplate.updatedAt,
-    });
-
+    const updated = await emailAdminRepository.updateTemplate(id, updateData);
     return updated;
   }
 
   async deleteTemplate(id: string) {
-    const [deleted] = await db.update(emailTemplate).set({ isActive: false }).where(eq(emailTemplate.id, id)).returning({ id: emailTemplate.id });
-    return !!deleted;
+    return emailAdminRepository.deactivateTemplate(id);
   }
 
   async getLogs(filters?: { page?: number; limit?: number; status?: string; type?: string; providerId?: string; to?: string; dateFrom?: Date; dateTo?: Date; search?: string }) {
     const page = filters?.page || 1;
     const limit = Math.min(filters?.limit || 20, 100);
     const offset = (page - 1) * limit;
-    const conditions = [];
 
-    if (filters?.status) conditions.push(eq(emailLog.status, filters.status));
-    if (filters?.type) conditions.push(eq(emailLog.type, filters.type));
-    if (filters?.providerId) conditions.push(eq(emailLog.providerId, filters.providerId));
-    if (filters?.to) conditions.push(eq(emailLog.to, filters.to));
-    if (filters?.dateFrom) conditions.push(gte(emailLog.createdAt, filters.dateFrom));
-    if (filters?.dateTo) conditions.push(lt(emailLog.createdAt, filters.dateTo));
-
-    let dataQuery = db.select().from(emailLog);
-    if (conditions.length > 0) {
-      dataQuery = dataQuery.where(and(...conditions)) as typeof dataQuery;
-    }
+    const conditions = await emailAdminRepository.findLogs(filters);
 
     const [data, countRow] = await Promise.all([
-      dataQuery.orderBy(desc(emailLog.createdAt)).limit(limit).offset(offset),
-      db.select({ count: sql<number>`count(*)` }).from(emailLog).where(and(...conditions)),
+      emailAdminRepository.queryLogs(conditions, limit, offset),
+      emailAdminRepository.countLogs(conditions),
     ]);
 
     const providerIds = Array.from(new Set(data.map((l) => l.providerId).filter(Boolean)));
     let providerMap: Record<string, string> = {};
     if (providerIds.length > 0) {
-      const providers = await db.select({ id: emailProvider.id, name: emailProvider.name }).from(emailProvider).where(inArray(emailProvider.id, providerIds as string[]));
+      const providers = await emailAdminRepository.findProvidersByIds(providerIds as string[]);
       providerMap = providers.reduce((acc, p) => { acc[p.id] = p.name; return acc; }, {} as Record<string, string>);
     }
 
@@ -394,22 +261,12 @@ export class EmailAdminService {
     const page = filters?.page || 1;
     const limit = Math.min(filters?.limit || 20, 100);
     const offset = (page - 1) * limit;
-    const conditions = [];
 
-    if (filters?.status) conditions.push(eq(emailQueue.status, filters.status));
-    if (filters?.type) conditions.push(eq(emailQueue.type, filters.type));
-    if (filters?.providerId) conditions.push(eq(emailQueue.providerId, filters.providerId));
-    if (filters?.dateFrom) conditions.push(gte(emailQueue.createdAt, filters.dateFrom));
-    if (filters?.dateTo) conditions.push(lt(emailQueue.createdAt, filters.dateTo));
-
-    let dataQuery = db.select().from(emailQueue);
-    if (conditions.length > 0) {
-      dataQuery = dataQuery.where(and(...conditions)) as typeof dataQuery;
-    }
+    const conditions = await emailAdminRepository.findQueueItems(filters);
 
     const [data, countRow] = await Promise.all([
-      dataQuery.orderBy(desc(emailQueue.createdAt)).limit(limit).offset(offset),
-      db.select({ count: sql<number>`count(*)` }).from(emailQueue).where(and(...conditions)),
+      emailAdminRepository.queryQueue(conditions, limit, offset),
+      emailAdminRepository.countQueue(conditions),
     ]);
 
     const items = data.filter((item) => {
@@ -428,23 +285,7 @@ export class EmailAdminService {
   }
 
   async retryQueue(ids: string[]) {
-    const [updated] = await db.update(emailQueue).set({
-      status: "queued",
-      attempts: 0,
-      failedAt: null,
-      error: null,
-      updatedAt: new Date(),
-    }).where(and(eq(emailQueue.status, "failed"), ...ids.map((id) => eq(emailQueue.id, id)))).returning({
-      id: emailQueue.id,
-      status: emailQueue.status,
-      type: emailQueue.type,
-      to: emailQueue.to,
-      subject: emailQueue.subject,
-      attempts: emailQueue.attempts,
-      createdAt: emailQueue.createdAt,
-      updatedAt: emailQueue.updatedAt,
-    });
-
+    const [updated] = await emailAdminRepository.retryQueueItems(ids);
     return updated;
   }
 
@@ -458,12 +299,12 @@ export class EmailAdminService {
     conditions.push(gte(emailStatistics.date, fromDate));
     conditions.push(lt(emailStatistics.date, toDate));
 
-    const stats = await db.select().from(emailStatistics).where(and(...conditions)).orderBy(desc(emailStatistics.date));
+    const stats = await emailAdminRepository.findStatistics(conditions);
 
     const providerIds = Array.from(new Set(stats.map((s) => s.providerId).filter(Boolean)));
     let providerMap: Record<string, string> = {};
     if (providerIds.length > 0) {
-      const providers = await db.select({ id: emailProvider.id, name: emailProvider.name }).from(emailProvider).where(inArray(emailProvider.id, providerIds as string[]));
+      const providers = await emailAdminRepository.findProvidersByIds(providerIds as string[]);
       providerMap = providers.reduce((acc, p) => { acc[p.id] = p.name; return acc; }, {} as Record<string, string>);
     }
 
@@ -505,19 +346,12 @@ export class EmailAdminService {
   }
 
   async getHealth(filters?: { providerId?: string }) {
-    let rows;
-    if (filters?.providerId) {
-      [rows] = await Promise.all([
-        db.select().from(emailProviderHealth).where(eq(emailProviderHealth.providerId, filters.providerId)).orderBy(desc(emailProviderHealth.checkedAt)),
-      ]);
-    } else {
-      rows = await db.select().from(emailProviderHealth).orderBy(desc(emailProviderHealth.checkedAt));
-    }
+    const rows = await emailAdminRepository.findHealthData(filters?.providerId);
 
     const providerIds = Array.from(new Set(rows.map((r) => r.providerId)));
     let providerMap: Record<string, string> = {};
     if (providerIds.length > 0) {
-      const providers = await db.select({ id: emailProvider.id, name: emailProvider.name }).from(emailProvider).where(and(...providerIds.map((pid) => eq(emailProvider.id, pid))));
+      const providers = await emailAdminRepository.findProvidersByIds(providerIds);
       providerMap = providers.reduce((acc, p) => { acc[p.id] = p.name; return acc; }, {} as Record<string, string>);
     }
 
@@ -542,8 +376,7 @@ export class EmailAdminService {
   }
 
   async getOverview() {
-    const now = new Date();
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const results = await emailAdminRepository.getOverviewCounts();
 
     const [
       totalProvidersResult,
@@ -559,27 +392,7 @@ export class EmailAdminService {
       activeTemplatesResult,
       totalLogsResult,
       todayStatsResult,
-    ] = await Promise.all([
-      db.select({ value: count() }).from(emailProvider),
-      db.select({ value: count() }).from(emailProvider).where(eq(emailProvider.isActive, true)),
-      db.select({ value: count() }).from(emailProviderHealth).where(eq(emailProviderHealth.status, "healthy")),
-      db.select({ value: count() }).from(emailProviderHealth).where(eq(emailProviderHealth.status, "warning")),
-      db.select({ value: count() }).from(emailProviderHealth).where(eq(emailProviderHealth.status, "offline")),
-      db.select({ value: count() }).from(emailQueue),
-      db.select({ value: count() }).from(emailQueue).where(eq(emailQueue.status, "queued")),
-      db.select({ value: count() }).from(emailQueue).where(eq(emailQueue.status, "processing")),
-      db.select({ value: count() }).from(emailQueue).where(eq(emailQueue.status, "failed")),
-      db.select({ value: count() }).from(emailTemplate),
-      db.select({ value: count() }).from(emailTemplate).where(eq(emailTemplate.isActive, true)),
-      db.select({ value: count() }).from(emailLog),
-      db.select({
-        sent: sql<number>`coalesce(${sum(emailStatistics.sent)}, 0)`,
-        delivered: sql<number>`coalesce(${sum(emailStatistics.delivered)}, 0)`,
-        failed: sql<number>`coalesce(${sum(emailStatistics.failed)}, 0)`,
-        retry: sql<number>`coalesce(${sum(emailStatistics.retry)}, 0)`,
-        bounce: sql<number>`coalesce(${sum(emailStatistics.bounce)}, 0)`,
-      }).from(emailStatistics).where(gte(emailStatistics.date, todayStart)),
-    ]);
+    ] = results;
 
     return {
       providers: {
@@ -616,7 +429,7 @@ export class EmailAdminService {
   }
 
   async validateProvider(id: string) {
-    const [provider] = await db.select().from(emailProvider).where(eq(emailProvider.id, id)).limit(1);
+    const provider = await emailAdminRepository.findProviderById(id);
     if (!provider) {
       return { valid: false, errors: ["Provider not found"], warnings: [] };
     }
@@ -671,7 +484,7 @@ export class EmailAdminService {
   }
 
   async testProvider(id: string) {
-    const [provider] = await db.select().from(emailProvider).where(eq(emailProvider.id, id)).limit(1);
+    const provider = await emailAdminRepository.findProviderById(id);
     if (!provider) {
       return { success: false, error: "Provider not found" };
     }
@@ -804,30 +617,26 @@ export class EmailAdminService {
 
     const latencyMs = Date.now() - start;
 
-    const [currentHealth] = await db.select().from(emailProviderHealth).where(eq(emailProviderHealth.providerId, id)).limit(1);
-    const lastSuccess = success ? new Date() : currentHealth?.lastSuccessAt || null;
-    const lastFailure = success ? currentHealth?.lastFailureAt || null : new Date();
+    const currentHealth = await emailAdminRepository.findProviderHealthSingle(id);
+    const lastSuccess = success ? new Date() : currentHealth[0]?.lastSuccessAt || null;
+    const lastFailure = success ? currentHealth[0]?.lastFailureAt || null : new Date();
 
-    await db.update(emailProvider)
-      .set({
-        lastTestedAt: new Date(),
-        lastTestStatus: success ? "success" : "error",
-        lastTestError: error || null,
-        updatedAt: new Date(),
-      })
-      .where(eq(emailProvider.id, id));
+    await emailAdminRepository.updateProviderTestResult(id, {
+      lastTestedAt: new Date(),
+      lastTestStatus: success ? "success" : "error",
+      lastTestError: error || null,
+      updatedAt: new Date(),
+    });
 
-    await db.update(emailProviderHealth)
-      .set({
-        status: success ? "healthy" : "offline",
-        latencyMs,
-        lastSuccessAt: lastSuccess,
-        lastFailureAt: lastFailure,
-        checkedAt: new Date(),
-        errorMessage: error || null,
-        errorCode: success ? null : "test_connection_failed",
-      })
-      .where(eq(emailProviderHealth.providerId, id));
+    await emailAdminRepository.upsertProviderHealth(id, {
+      status: success ? "healthy" : "offline",
+      latencyMs,
+      lastSuccessAt: lastSuccess,
+      lastFailureAt: lastFailure,
+      checkedAt: new Date(),
+      errorMessage: error || null,
+      errorCode: success ? null : "test_connection_failed",
+    });
 
     return {
       success,

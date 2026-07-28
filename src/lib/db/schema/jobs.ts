@@ -1,6 +1,4 @@
 import { pgTable, text, timestamp, jsonb, index, unique, boolean, integer } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
-import { user } from "./auth";
 
 export const job = pgTable(
   "job",
@@ -53,10 +51,3 @@ export const queue = pgTable(
     index("queue_name_idx").on(table.name),
   ]
 );
-
-export const jobRelations = relations(job, ({ one }) => ({
-  user: one(user, {
-    fields: [job.id],
-    references: [user.id],
-  }),
-}));

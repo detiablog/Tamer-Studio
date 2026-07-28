@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import useSWR from "swr";
 import { cn } from "@/lib/utils";
 import { PageContainer } from "@/components/ui/PageContainer";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -12,6 +13,17 @@ import { Save, RefreshCw, User, Mail, Shield, Database, Sparkles, CreditCard, Ke
 import { toast } from "sonner";
 import { Breadcrumbs } from "@/components/admin/Breadcrumbs";
 import { useLocalizationContext } from "@/providers/localization";
+
+const fetcher = (url: string) =>
+  fetch(url)
+    .then((r) => {
+      if (!r.ok) throw new Error(`API error: ${r.status}`);
+      return r.json();
+    })
+    .catch((error) => {
+      console.error(`[Fetcher] Failed to fetch ${url}:`, error);
+      throw error;
+    });
 
 type TabId = "general" | "security" | "email" | "storage" | "ai" | "billing" | "api" | "advanced" | "localization";
 
@@ -68,6 +80,12 @@ export function SettingsPage({ adminToken }: SettingsPageProps) {
   const { t } = useLocalizationContext();
   const [activeTab, setActiveTab] = React.useState<TabId>("general");
   const [saving, setSaving] = React.useState(false);
+
+  const { data: settingsData, error: settingsError, isLoading: settingsLoading, mutate: mutateSettings } = useSWR("/api/admin/settings", fetcher, {
+    revalidateOnFocus: false,
+    shouldRetryOnError: false,
+  });
+
   const [formData, setFormData] = React.useState({
     siteName: "Tamer Studio",
     timezone: "UTC",
@@ -80,6 +98,25 @@ export function SettingsPage({ adminToken }: SettingsPageProps) {
     apiRateLimit: "1000",
     debugMode: false,
   });
+
+  React.useEffect(() => {
+    if (settingsData?.success && settingsData.data) {
+      const d = settingsData.data;
+      setFormData((prev) => ({
+        ...prev,
+        siteName: d.siteName || prev.siteName,
+        timezone: d.timezone || prev.timezone,
+        language: d.language || prev.language,
+        twoFactor: d.twoFactor ?? prev.twoFactor,
+        sessionTimeout: d.sessionTimeout || prev.sessionTimeout,
+        emailNotifications: d.emailNotifications ?? prev.emailNotifications,
+        storageLimit: d.storageLimit || prev.storageLimit,
+        aiProvider: d.aiProvider || prev.aiProvider,
+        apiRateLimit: d.apiRateLimit || prev.apiRateLimit,
+        debugMode: d.debugMode ?? prev.debugMode,
+      }));
+    }
+  }, [settingsData]);
 
   const [providers, setProviders] = React.useState<Array<{
     id: string;
@@ -152,7 +189,7 @@ export function SettingsPage({ adminToken }: SettingsPageProps) {
     } finally {
       setLoadingProviders(false);
     }
-  }, [authHeaders]);
+  }, [adminToken]);
 
   React.useEffect(() => {
     fetchProviders();
@@ -161,6 +198,12 @@ export function SettingsPage({ adminToken }: SettingsPageProps) {
   const handleSave = async () => {
     setSaving(true);
     try {
+      await fetch("/api/admin/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      }).catch(() => {});
+
       await Promise.all(
         providers.map((p) => {
           const form = providerForms[p.id] || {};
@@ -196,6 +239,7 @@ export function SettingsPage({ adminToken }: SettingsPageProps) {
       );
       toast.success(t("settings.saved"));
       await fetchProviders();
+      mutateSettings();
     } catch {
       toast.error(t("settings.saveFailed", "Failed to save settings"));
     } finally {
@@ -346,52 +390,50 @@ export function SettingsPage({ adminToken }: SettingsPageProps) {
         </>
       ),
       sendgrid: (
-        <FieldWrap label="SendGrid API Key">
+        <FieldWrap label={t("admin.sendgridApiKey", "SendGrid API Key")}>
           <Input type="password" value={form.apiKey ?? (creds.apiKey as string) ?? ""} onChange={(e) => updateFormField(provider.id, "apiKey", e.target.value)} />
         </FieldWrap>
       ),
       resend: (
-        <FieldWrap label="Resend API Key">
+        <FieldWrap label={t("admin.resendApiKey", "Resend API Key")}>
           <Input type="password" value={form.apiKey ?? (creds.apiKey as string) ?? ""} onChange={(e) => updateFormField(provider.id, "apiKey", e.target.value)} />
         </FieldWrap>
       ),
       amazon: (
-        <>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <FieldWrap label={t("email.region")}>
-              <Input value={form.region ?? (creds.region as string) ?? "us-east-1"} onChange={(e) => updateFormField(provider.id, "region", e.target.value)} />
-            </FieldWrap>
-            <FieldWrap label={t("email.accessKey")}>
-              <Input value={form.accessKey ?? (creds.accessKey as string) ?? ""} onChange={(e) => updateFormField(provider.id, "accessKey", e.target.value)} />
-            </FieldWrap>
-            <FieldWrap label={t("email.secret")}>
-              <Input type="password" value={form.secret ?? (creds.secret as string) ?? ""} onChange={(e) => updateFormField(provider.id, "secret", e.target.value)} />
-            </FieldWrap>
-          </div>
-        </>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <FieldWrap label={t("email.region")}>
+            <Input value={form.region ?? (creds.region as string) ?? "us-east-1"} onChange={(e) => updateFormField(provider.id, "region", e.target.value)} />
+          </FieldWrap>
+          <FieldWrap label={t("email.accessKey")}>
+            <Input value={form.accessKey ?? (creds.accessKey as string) ?? ""} onChange={(e) => updateFormField(provider.id, "accessKey", e.target.value)} />
+          </FieldWrap>
+          <FieldWrap label={t("email.secret")}>
+            <Input type="password" value={form.secret ?? (creds.secret as string) ?? ""} onChange={(e) => updateFormField(provider.id, "secret", e.target.value)} />
+          </FieldWrap>
+        </div>
       ),
       mailgun: (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FieldWrap label="Mailgun API Key">
+          <FieldWrap label={t("admin.mailgunApiKey", "Mailgun API Key")}>
             <Input type="password" value={form.apiKey ?? (creds.apiKey as string) ?? ""} onChange={(e) => updateFormField(provider.id, "apiKey", e.target.value)} />
           </FieldWrap>
-          <FieldWrap label="Mailgun Domain">
+          <FieldWrap label={t("admin.mailgunDomain", "Mailgun Domain")}>
             <Input value={form.domain ?? (creds.domain as string) ?? ""} onChange={(e) => updateFormField(provider.id, "domain", e.target.value)} />
           </FieldWrap>
         </div>
       ),
       postmark: (
-        <FieldWrap label="Postmark Server Token">
+        <FieldWrap label={t("admin.postmarkServerToken", "Postmark Server Token")}>
           <Input type="password" value={form.serverToken ?? (creds.serverToken as string) ?? ""} onChange={(e) => updateFormField(provider.id, "serverToken", e.target.value)} />
         </FieldWrap>
       ),
       brevo: (
-        <FieldWrap label="Brevo API Key">
+        <FieldWrap label={t("admin.brevoApiKey", "Brevo API Key")}>
           <Input type="password" value={form.apiKey ?? (creds.apiKey as string) ?? ""} onChange={(e) => updateFormField(provider.id, "apiKey", e.target.value)} />
         </FieldWrap>
       ),
       sparkpost: (
-        <FieldWrap label="SparkPost API Key">
+        <FieldWrap label={t("admin.sparkpostApiKey", "SparkPost API Key")}>
           <Input type="password" value={form.apiKey ?? (creds.apiKey as string) ?? ""} onChange={(e) => updateFormField(provider.id, "apiKey", e.target.value)} />
         </FieldWrap>
       ),
@@ -478,7 +520,7 @@ export function SettingsPage({ adminToken }: SettingsPageProps) {
                 <div>
                   <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t("admin.language")}</Label>
                   <select value={formData.language} onChange={(e) => setFormData({ ...formData, language: e.target.value })} className="mt-1.5 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm">
-                    <option value="en">{t("admin.language", "English")}</option>
+                    <option value="en">{t("settings.languageEnglish", "English")}</option>
                   </select>
                 </div>
               </div>
@@ -637,10 +679,10 @@ export function SettingsPage({ adminToken }: SettingsPageProps) {
               <div className="space-y-2">
                 <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t("admin.defaultAIProvider")}</Label>
                 <select value={formData.aiProvider} onChange={(e) => setFormData({ ...formData, aiProvider: e.target.value })} className="max-w-xs rounded-lg border border-border bg-background px-3 py-2 text-sm">
-                  <option value="openai">OpenAI</option>
-                  <option value="anthropic">Anthropic</option>
-                  <option value="google">Google</option>
-                  <option value="cohere">Cohere</option>
+                  <option value="openai">{t("marketing.providerOpenAI")}</option>
+                  <option value="anthropic">{t("marketing.providerClaude")}</option>
+                  <option value="google">{t("marketing.providerGemini")}</option>
+                  <option value="cohere">{t("marketing.providerCohere", "Cohere")}</option>
                 </select>
               </div>
             </DashboardCard>
@@ -684,15 +726,15 @@ export function SettingsPage({ adminToken }: SettingsPageProps) {
                   <div>
                     <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t("admin.language")}</Label>
                     <select value={formData.language} onChange={(e) => setFormData({ ...formData, language: e.target.value })} className="mt-1.5 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm">
-                      <option value="en">English</option>
-                      <option value="id">Bahasa Indonesia</option>
+                      <option value="en">{t("settings.languageEnglish", "English")}</option>
+                      <option value="id">{t("settings.languageIndonesian", "Bahasa Indonesia")}</option>
                     </select>
                   </div>
                   <div>
                     <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t("settings.currency", "Currency")}</Label>
                     <select value={formData.language} onChange={(e) => setFormData({ ...formData, language: e.target.value })} className="mt-1.5 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm">
-                      <option value="USD">USD ($)</option>
-                      <option value="IDR">IDR (Rp)</option>
+                      <option value="USD">{t("currency.usd")}</option>
+                      <option value="IDR">{t("currency.idr")}</option>
                     </select>
                   </div>
                 </div>
@@ -700,15 +742,15 @@ export function SettingsPage({ adminToken }: SettingsPageProps) {
                   <div>
                     <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t("settings.country", "Country")}</Label>
                     <select className="mt-1.5 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm">
-                      <option value="US">United States</option>
-                      <option value="ID">Indonesia</option>
+                      <option value="US">{t("settings.countryUS", "United States")}</option>
+                      <option value="ID">{t("settings.countryID", "Indonesia")}</option>
                     </select>
                   </div>
                   <div>
                     <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t("settings.timezone", "Timezone")}</Label>
                     <select className="mt-1.5 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm">
                       <option value="UTC">UTC</option>
-                      <option value="Asia/Jakarta">Asia/Jakarta</option>
+                      <option value="Asia/Jakarta">{t("timezone.asiaJakarta")}</option>
                     </select>
                   </div>
                 </div>

@@ -8,11 +8,11 @@ export class AISearchRuntime {
     this.baseUrl = baseUrl || "https://tamer.studio";
   }
 
-  resolve(input: SEOAISearchInput): SEOAISearchResult {
+  async resolve(input: SEOAISearchInput): Promise<SEOAISearchResult> {
     const cache = getSEOCache();
     const cacheKey = cache.buildKey(["ai-search", input.route ?? "root"]);
 
-    const cached = cache.get<SEOAISearchResult>(cacheKey);
+    const cached = await cache.get<SEOAISearchResult>(cacheKey);
     if (cached) return cached;
 
     const result: SEOAISearchResult = {
@@ -41,16 +41,16 @@ export class AISearchRuntime {
       },
     };
 
-    cache.set(cacheKey, result, ["ai-search"]);
+    await cache.set(cacheKey, result, { tags: ["ai-search"] });
     return result;
   }
 
-  resolveForPage(input: SEOAISearchInput): SEOAISearchResult {
+  async resolveForPage(input: SEOAISearchInput): Promise<SEOAISearchResult> {
     return this.resolve(input);
   }
 
-  generateLLMMetadata(input: SEOAISearchInput): string {
-    const result = this.resolve(input);
+  async generateLLMMetadata(input: SEOAISearchInput): Promise<string> {
+    const result = await this.resolve(input);
     return JSON.stringify({
       "@context": "https://schema.org",
       "@type": "WebPage",
@@ -71,7 +71,7 @@ export class AISearchRuntime {
     });
   }
 
-  generateAISummary(input: SEOAISearchInput): string {
+  async generateAISummary(input: SEOAISearchInput): Promise<string> {
     const entities = this.extractEntities(input.title, input.description, input.content);
     const topics = this.extractTopics(input.title, input.description, input.content);
 
@@ -85,23 +85,23 @@ export class AISearchRuntime {
     return parts.join(". ");
   }
 
-  resolveForChatGPT(input: SEOAISearchInput): SEOAISearchResult {
+  async resolveForChatGPT(input: SEOAISearchInput): Promise<SEOAISearchResult> {
     return this.resolve({ ...input });
   }
 
-  resolveForGemini(input: SEOAISearchInput): SEOAISearchResult {
+  async resolveForGemini(input: SEOAISearchInput): Promise<SEOAISearchResult> {
     return this.resolve({ ...input });
   }
 
-  resolveForClaude(input: SEOAISearchInput): SEOAISearchResult {
+  async resolveForClaude(input: SEOAISearchInput): Promise<SEOAISearchResult> {
     return this.resolve({ ...input });
   }
 
-  resolveForPerplexity(input: SEOAISearchInput): SEOAISearchResult {
+  async resolveForPerplexity(input: SEOAISearchInput): Promise<SEOAISearchResult> {
     return this.resolve({ ...input });
   }
 
-  resolveForCopilot(input: SEOAISearchInput): SEOAISearchResult {
+  async resolveForCopilot(input: SEOAISearchInput): Promise<SEOAISearchResult> {
     return this.resolve({ ...input });
   }
 

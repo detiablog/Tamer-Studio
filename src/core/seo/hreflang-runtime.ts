@@ -12,11 +12,11 @@ export class HreflangRuntime {
     this.supportedLocales = supportedLocales || ["en", "id"];
   }
 
-  resolve(input: SEOHreflangInput): SEOHreflangResult[] {
+  async resolve(input: SEOHreflangInput): Promise<SEOHreflangResult[]> {
     const cache = getSEOCache();
     const cacheKey = cache.buildKey(["hreflang", input.route, input.locales.join(",")]);
 
-    const cached = cache.get<SEOHreflangResult[]>(cacheKey);
+    const cached = await cache.get<SEOHreflangResult[]>(cacheKey);
     if (cached) return cached;
 
     const base = input.baseUrl || this.baseUrl;
@@ -41,11 +41,11 @@ export class HreflangRuntime {
       rel: "alternate",
     });
 
-    cache.set(cacheKey, results, ["hreflang"]);
+    await cache.set(cacheKey, results, { tags: ["hreflang"] });
     return results;
   }
 
-  resolveForPage(route: string, baseUrl?: string): SEOHreflangResult[] {
+  async resolveForPage(route: string, baseUrl?: string): Promise<SEOHreflangResult[]> {
     return this.resolve({
       route,
       locales: this.supportedLocales,
@@ -54,8 +54,8 @@ export class HreflangRuntime {
     });
   }
 
-  resolveHreflangMap(route: string, baseUrl?: string): Record<string, string> {
-    const results = this.resolveForPage(route, baseUrl);
+  async resolveHreflangMap(route: string, baseUrl?: string): Promise<Record<string, string>> {
+    const results = await this.resolveForPage(route, baseUrl);
     const map: Record<string, string> = {};
     for (const r of results) {
       map[r.hreflang] = r.href;

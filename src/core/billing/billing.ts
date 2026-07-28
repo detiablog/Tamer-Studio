@@ -1,1 +1,1 @@
-export type { BillingEngine } from "@/lib/ai/types/billing";
+export type { BillingEngine } from "@/core/types/billing";
