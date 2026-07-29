@@ -53,8 +53,6 @@ export function AdminLoginForm({ error, csrfToken }: AdminLoginFormProps) {
     const password = String(formData.get("password") || "");
     const adminKey = String(formData.get("adminKey") || "");
 
-    console.log("[AdminLoginForm] Submitting with:", { email, passwordLength: password.length, adminKeyLength: adminKey.length });
-
     if (!email || !password || !adminKey) {
       setFormError(t("admin.error.missingFields", ERROR_MESSAGES.missing_fields));
       setSubmitting(false);
@@ -68,7 +66,6 @@ export function AdminLoginForm({ error, csrfToken }: AdminLoginFormProps) {
     }
 
     try {
-      console.log("[AdminLoginForm] Calling /api/admin/auth/login...");
       const response = await fetch("/api/admin/auth/login", {
         method: "POST",
         headers: {
@@ -79,9 +76,7 @@ export function AdminLoginForm({ error, csrfToken }: AdminLoginFormProps) {
         body: JSON.stringify({ email, password, adminKey }),
       });
 
-      console.log("[AdminLoginForm] Response status:", response.status);
       const result = (await response.json()) as AdminLoginApiResponse;
-      console.log("[AdminLoginForm] Response body:", result);
 
       if (!result.success) {
         const reason = result.reason ?? "unexpected_error";
@@ -93,32 +88,17 @@ export function AdminLoginForm({ error, csrfToken }: AdminLoginFormProps) {
         return;
       }
 
-      console.log("[AdminLoginForm] Login successful!");
-      
-      if (result.session?.token) {
-        try {
-          localStorage.setItem("admin_session_token", result.session.token);
-          console.log("[AdminLoginForm] Stored admin_session_token in localStorage");
-          
-          document.cookie = `admin_session=${result.session.token}; path=/; max-age=${60*60*24}`;
-          console.log("[AdminLoginForm] Manually set admin_session cookie via document.cookie");
-        } catch (storageErr) {
-          console.error("[AdminLoginForm] Failed to store:", storageErr);
-        }
-      }
       
       toast.success(t("admin.loginForm.toastSuccess", "Admin portal accessed successfully"));
       
       await new Promise(resolve => setTimeout(resolve, 300));
       
-      console.log("[AdminLoginForm] About to redirect to /admin");
       router.replace("/admin");
       
       await new Promise(resolve => setTimeout(resolve, 500));
       router.refresh();
       
     } catch (err) {
-      console.error("[AdminLoginForm] Catch error:", err);
       if (err instanceof Error) {
         logger.error("Admin login error", err);
         setFormError(err.message || t("admin.error.unexpectedError", ERROR_MESSAGES.unexpected_error));

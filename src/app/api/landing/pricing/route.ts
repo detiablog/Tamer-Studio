@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { regionService } from "@/core/localization/region.service";
 import { pricingRuleService } from "@/core/localization/pricing-rule.service";
 import { cookies } from "next/headers";
+import { logger } from "@/core/logger";
 
 export async function GET(request: NextRequest) {
   try {
@@ -76,7 +77,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("[GET /api/landing/pricing] Error:", error);
+    logger.error("[GET /api/landing/pricing] Error:", error instanceof Error ? error : undefined);
     return NextResponse.json(
       {
         success: true,

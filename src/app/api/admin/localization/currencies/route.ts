@@ -6,6 +6,7 @@ import type { RequestContext } from "@/core/middleware/types";
 import { runMiddleware } from "@/core/middleware/compose";
 import { adminAuthentication } from "@/core/middleware";
 import { logAdminAction } from "@/core/admin/audit";
+import { logger } from "@/core/logger";
 
 const CreateCurrencySchema = z.object({
   code: z.string().min(1).max(20),
@@ -38,7 +39,7 @@ export async function GET(request: NextRequest) {
       count: currencies.length,
     });
   } catch (error) {
-    console.error("[API /admin/localization/currencies] Error:", error);
+    logger.error("[API /admin/localization/currencies] Error:", error instanceof Error ? error : undefined);
     return NextResponse.json(
       { success: false, error: "Failed to fetch currencies", details: String(error) },
       { status: 500 }

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getSEORuntime } from "@/core/seo";
+import { logger } from "@/core/logger";
 
 export async function GET(request: NextRequest) {
   try {
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
       data: validation,
     });
   } catch (error) {
-    console.error("[GET /api/seo/validate] Error:", error);
+    logger.error("[GET /api/seo/validate] Error:", error instanceof Error ? error : undefined);
     return NextResponse.json(
       { success: false, error: "Failed to validate SEO" },
       { status: 500 }

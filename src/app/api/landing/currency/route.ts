@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { regionService } from "@/core/localization/region.service";
 import { currencyService } from "@/lib/currency/service";
 import { cookies } from "next/headers";
+import { logger } from "@/core/logger";
 
 export async function GET(request: NextRequest) {
   try {
@@ -59,7 +60,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("[GET /api/landing/currency] Error:", error);
+    logger.error("[GET /api/landing/currency] Error:", error instanceof Error ? error : undefined);
     return NextResponse.json(
       {
         success: true,

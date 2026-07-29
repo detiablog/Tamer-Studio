@@ -9,13 +9,10 @@ import { successResponse, paginatedResponse } from "@/app/api/mappers/response";
 
 const cmsService = new CMSService();
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ contentId: string }> }
-) {
+export async function GET(request: NextRequest) {
   const ctx: RequestContext = {
     request,
-    params: await params,
+    params: {},
     state: {
       rateLimit: undefined,
       origin: undefined,
@@ -36,8 +33,8 @@ export async function GET(
   if (middlewareError) return middlewareError;
 
   try {
-    const { contentId } = await params;
-    const versions = await cmsService.getVersions(contentId);
+    const contentId = request.nextUrl.searchParams.get("contentId");
+    const versions = contentId ? await cmsService.getVersions(contentId) : [];
     const page = parseInt(request.nextUrl.searchParams.get("page") || "1");
     const limit = parseInt(request.nextUrl.searchParams.get("limit") || "20");
     const start = (page - 1) * limit;
@@ -48,13 +45,10 @@ export async function GET(
   }
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ contentId: string }> }
-) {
+export async function POST(request: NextRequest) {
   const ctx: RequestContext = {
     request,
-    params: await params,
+    params: {},
     state: {
       rateLimit: undefined,
       origin: undefined,
@@ -75,14 +69,13 @@ export async function POST(
   if (middlewareError) return middlewareError;
 
   try {
-    const { contentId } = await params;
     const body = await request.json();
     const session = ctx.state.adminSession;
     if (!session?.adminId) {
       return NextResponse.json({ success: false, error: { code: "AUTHENTICATION_ERROR", message: "Unauthorized" } }, { status: 401 });
     }
 
-    const version = await cmsService.createVersion(contentId, body.contentType, body.data, session.adminId, body.message);
+    const version = await cmsService.createVersion(body.contentId, body.contentType, body.data, session.adminId, body.message);
     return NextResponse.json(successResponse(version, "Version created successfully"), { status: 201 });
   } catch (error) {
     return mapErrorToResponse(error);

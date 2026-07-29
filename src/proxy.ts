@@ -15,9 +15,6 @@ function withSecurityHeaders(response: NextResponse): NextResponse {
   return response;
 }
 
-/**
- * Security: Prevent credentials from appearing in URL
- */
 function stripCredentialsFromUrl(request: NextRequest): NextRequest | null {
   const { pathname, searchParams } = request.nextUrl;
   const suspiciousParams = ["email", "password", "adminKey", "token", "secret"];
@@ -26,7 +23,7 @@ function stripCredentialsFromUrl(request: NextRequest): NextRequest | null {
   );
 
   if (hasCredentialsInUrl && (pathname.includes("/login") || pathname.includes("/admin/login"))) {
-    console.warn(`[SECURITY] Credentials detected in URL at ${pathname}. Redirecting to clean URL.`);
+    logger.warn(`Credentials detected in URL at ${pathname}. Redirecting to clean URL.`);
     return null;
   }
   return request;
@@ -56,7 +53,6 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const method = request.method;
 
-  // Security: Strip credentials from URL
   const strippedRequest = stripCredentialsFromUrl(request);
   if (strippedRequest === null) {
     const cleanUrl = request.nextUrl.clone();
@@ -88,13 +84,6 @@ export async function proxy(request: NextRequest) {
   if (pathname === ADMIN_LOGIN_ROUTE) {
     const sessionToken = request.cookies.get("admin_session")?.value;
     if (sessionToken) {
-      if (process.env.NODE_ENV === "development") {
-        logger.info("[DEV] Admin session found, redirecting to /admin");
-        const response = withSecurityHeaders(NextResponse.redirect(new URL("/admin", request.url)));
-        metrics.increment("api.request", { method, route: pathname, status: "redirect" });
-        return response;
-      }
-
       const ipAddress =
         request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0].trim() || undefined;
       const userAgent = request.headers.get("user-agent") ?? undefined;
@@ -132,50 +121,24 @@ export async function proxy(request: NextRequest) {
   );
   
   if (isAdminRoute) {
-    // Check multiple sources: cookie, Authorization header, or just allow in dev (client has localStorage)
     const cookieToken = request.cookies.get("admin_session")?.value;
     const authHeader = request.headers.get("authorization");
     const bearerToken = authHeader?.startsWith("Bearer ") ? authHeader.substring(7) : null;
     
-    const hasValidToken = !!cookieToken || !!bearerToken;
+    const tokenToValidate = cookieToken || bearerToken;
     
-    console.log("[PROXY] Admin route check:", { 
-      pathname, 
-      hasCookieToken: !!cookieToken, 
-      hasBearerToken: !!bearerToken,
-      hasValidToken,
-      allCookies: request.cookies.getAll().map(c => c.name) 
-    });
-    
-    if (!hasValidToken) {
-      // In development, allow access anyway (client might have localStorage token)
-      if (process.env.NODE_ENV === "development") {
-        console.log("[PROXY] DEV mode - allowing without server-side token (client has localStorage)");
-        metrics.increment("api.request", { method, route: pathname, status: "allowed" });
-        return withSecurityHeaders(NextResponse.next());
-      }
-      
-      console.log("[PROXY] Redirecting to /admin/login - no token found");
+    if (!tokenToValidate) {
       const response = withSecurityHeaders(NextResponse.redirect(new URL("/admin/login", request.url)));
       metrics.increment("api.request", { method, route: pathname, status: "redirect" });
       return response;
     }
 
-    // In development, just check if token exists
-    if (process.env.NODE_ENV === "development") {
-      logger.info("[DEV] Admin authenticated, allowing access to", { pathname });
-      metrics.increment("api.request", { method, route: pathname, status: "allowed" });
-      return withSecurityHeaders(NextResponse.next());
-    }
-
-    // In production, validate via database
-    const tokenToValidate = cookieToken || bearerToken;
     const ipAddress =
       request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0].trim() || undefined;
     const userAgent = request.headers.get("user-agent") ?? undefined;
 
     try {
-      const session = await getAdminSessionFromToken(tokenToValidate!, ipAddress, userAgent);
+      const session = await getAdminSessionFromToken(tokenToValidate, ipAddress, userAgent);
       if (!session) {
         const response = withSecurityHeaders(NextResponse.redirect(new URL("/admin/login", request.url)));
         metrics.increment("api.request", { method, route: pathname, status: "redirect" });

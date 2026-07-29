@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
         path: "/",
         maxAge: 60 * 60 * 24,
       });
-      console.log("[ADMIN LOGIN] Set admin_session cookie with token:", result.session.token.substring(0, 20) + "...");
+      logger.info("Admin session cookie set", { adminId: result.session.adminId });
     }
 
     if (result.session?.adminId) {
@@ -83,7 +83,6 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err);
     logger.error("Admin login API error", new Error(errorMessage));
-    console.error("[ADMIN LOGIN ERROR]", err);
     return NextResponse.json({ success: false, reason: "unexpected_error", error: errorMessage }, { status: 500 });
   }
 }

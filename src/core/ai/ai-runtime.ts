@@ -3,8 +3,7 @@ import { logger } from "@/core/logger";
 import { getProviderAdapter, getAvailableProviders, getAllModels, type AIProviderInfo } from "./provider-registry";
 import { WalletService } from "@/core/wallet/service";
 import { DefaultCreditEngine } from "@/core/credits/credits";
-import { db } from "@/lib/db";
-import { auditLog } from "@/lib/db/schema";
+import { DefaultAuditRepository } from "@/core/audit/audit.repository";
 
 export interface AIExecutionRequest {
   provider: string;
@@ -47,6 +46,7 @@ export interface AIModel {
 
 const walletService = new WalletService();
 const creditEngine = new DefaultCreditEngine();
+const auditRepo = new DefaultAuditRepository();
 
 function convertCostToCredits(costUsd: number): number {
   return creditEngine.convertCostToCredits(costUsd, "USD");
@@ -135,7 +135,7 @@ export async function executeAIRequest(request: AIExecutionRequest): Promise<AIE
       duration: result.duration,
     };
 
-    await logAudit({
+    await auditRepo.createAuditEntry({
       action: "ai.execution.completed",
       actorId: request.userId,
       actorType: "user",
@@ -172,7 +172,7 @@ export async function executeAIRequest(request: AIExecutionRequest): Promise<AIE
       { executionId }
     );
 
-    await logAudit({
+    await auditRepo.createAuditEntry({
       action: "ai.execution.failed",
       actorId: request.userId,
       actorType: "user",
@@ -193,29 +193,6 @@ export async function executeAIRequest(request: AIExecutionRequest): Promise<AIE
     });
 
     throw error;
-  }
-}
-
-async function logAudit(entry: {
-  action: string;
-  actorId: string;
-  actorType: string;
-  resourceType: string;
-  resourceId: string;
-  metadata: Record<string, unknown>;
-}) {
-  try {
-    await db.insert(auditLog).values({
-      id: randomUUID(),
-      action: entry.action,
-      actorId: entry.actorId,
-      actorType: entry.actorType,
-      resourceType: entry.resourceType,
-      resourceId: entry.resourceId,
-      metadata: entry.metadata,
-    });
-  } catch (err) {
-    logger.error("Failed to write audit log", err as Error);
   }
 }
 

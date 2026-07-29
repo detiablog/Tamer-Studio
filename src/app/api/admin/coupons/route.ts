@@ -5,12 +5,10 @@ import { runMiddleware } from "@/core/middleware/compose";
 import { adminAuthentication, requireAdminPermission } from "@/core/middleware";
 import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
 import { successResponse, paginatedResponse } from "@/app/api/mappers/response";
+import { DefaultCouponRepository } from "@/core/commerce/coupon";
+import type { Coupon } from "@/core/commerce/types";
 
-const MOCK_COUPONS = [
-  { id: "1", code: "LAUNCH2026", type: "Percentage", value: "20%", uses: 145, limit: 500, expires: "Dec 31, 2026", status: "Active" },
-  { id: "2", code: "WELCOME50", type: "Fixed", value: "$50", uses: 89, limit: 200, expires: "Nov 30, 2026", status: "Active" },
-  { id: "3", code: "BLACKFRIDAY", type: "Percentage", value: "30%", uses: 0, limit: 1000, expires: "Nov 28, 2026", status: "Scheduled" },
-];
+const couponRepo = new DefaultCouponRepository();
 
 export async function GET(request: NextRequest) {
   const ctx: RequestContext = {
@@ -36,7 +34,8 @@ export async function GET(request: NextRequest) {
   if (errorResponse) return errorResponse;
 
   try {
-    return NextResponse.json(paginatedResponse(MOCK_COUPONS, MOCK_COUPONS.length, 1, MOCK_COUPONS.length));
+    const coupons = await couponRepo.listCoupons();
+    return NextResponse.json(paginatedResponse(coupons, coupons.length, 1, coupons.length));
   } catch (error) {
     return mapErrorToResponse(error);
   }
@@ -66,7 +65,31 @@ export async function POST(request: NextRequest) {
   if (errorResponse) return errorResponse;
 
   try {
-    return NextResponse.json(successResponse({ message: "Coupon created successfully" }));
+    const body = await request.json();
+
+    if (!body.code || !body.type || body.value === undefined || !body.currency || !body.expiresAt || body.usageLimit === undefined) {
+      return NextResponse.json(
+        { success: false, error: "Missing required fields: code, type, value, currency, expiresAt, usageLimit" },
+        { status: 400 }
+      );
+    }
+
+    const coupon = await couponRepo.createCoupon({
+      code: body.code,
+      type: body.type as Coupon["type"],
+      value: Number(body.value),
+      currency: body.currency,
+      minPurchase: body.minPurchase ? Number(body.minPurchase) : undefined,
+      maxDiscount: body.maxDiscount ? Number(body.maxDiscount) : undefined,
+      expiresAt: body.expiresAt,
+      usageLimit: Number(body.usageLimit),
+      isActive: body.isActive !== undefined ? Boolean(body.isActive) : true,
+      applicableProducts: body.applicableProducts,
+      applicablePlans: body.applicablePlans,
+      metadata: body.metadata,
+    });
+
+    return NextResponse.json(successResponse(coupon), { status: 201 });
   } catch (error) {
     return mapErrorToResponse(error);
   }

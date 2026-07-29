@@ -97,16 +97,10 @@ export function AdminAvatarDropdown() {
       setLogoutDialog(false)
       setOpen(false)
 
-      localStorage.removeItem("admin_session_token");
-
       const response = await fetch("/api/admin/auth/logout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       })
-
-      if (!response.ok) {
-        document.cookie = "admin_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
-      }
 
       toast.success(t("common.signOut", "Signed out successfully"))
 

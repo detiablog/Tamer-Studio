@@ -6,6 +6,7 @@ import type { RequestContext } from "@/core/middleware/types";
 import { runMiddleware } from "@/core/middleware/compose";
 import { adminAuthentication } from "@/core/middleware";
 import { logAdminAction } from "@/core/admin/audit";
+import { logger } from "@/core/logger";
 
 const CreateProfileSchema = z.object({
   code: z.string().min(1).max(50),
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest) {
       count: profiles.length,
     });
   } catch (error) {
-    console.error("[API /admin/localization/pricing-profiles] Error:", error);
+    logger.error("[API /admin/localization/pricing-profiles] Error:", error instanceof Error ? error : undefined);
     return NextResponse.json(
       { success: false, error: "Failed to fetch pricing profiles", details: String(error) },
       { status: 500 }

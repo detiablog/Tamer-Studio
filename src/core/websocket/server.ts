@@ -2,6 +2,7 @@ import { Server as HTTPServer } from "http";
 import { Server as IOServer, Socket } from "socket.io";
 import { createAdapter } from "@socket.io/redis-adapter";
 import { createClient } from "redis";
+import { logger } from "@/core/logger";
 
 let io: IOServer | null = null;
 
@@ -50,7 +51,7 @@ interface AuthenticatedSocket extends Socket {
 }
 
 function handleConnection(socket: AuthenticatedSocket) {
-  console.log(`User connected: ${socket.userId}`);
+  logger.info(`User connected: ${socket.userId}`);
 
   // Join workspace room
   socket.on("join-workspace", (workspaceId: string) => {
@@ -124,7 +125,7 @@ function handleConnection(socket: AuthenticatedSocket) {
   });
 
   socket.on("disconnect", () => {
-    console.log(`User disconnected: ${socket.userId}`);
+    logger.info(`User disconnected: ${socket.userId}`);
     // Broadcast user left to all rooms
     socket.broadcast.emit("user-left", {
       userId: socket.userId,

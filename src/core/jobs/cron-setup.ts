@@ -1,5 +1,6 @@
 import cron from "node-cron";
 import { aggregateDailyMetrics } from "@/core/analytics/aggregation-cron";
+import { logger } from "@/core/logger";
 
 let isScheduled = false;
 
@@ -10,7 +11,7 @@ let isScheduled = false;
  */
 export function setupMetricsCronJobs() {
   if (isScheduled) {
-    console.log("Cron jobs already scheduled");
+    logger.info("Cron jobs already scheduled");
     return;
   }
 
@@ -18,28 +19,28 @@ export function setupMetricsCronJobs() {
   // Cron format: minute hour day month day-of-week
   // 0 1 * * * = 1:00 AM UTC every day
   const aggregationJob = cron.schedule("0 1 * * *", async () => {
-    console.log("[Cron] Running daily metrics aggregation...");
+    logger.info("[Cron] Running daily metrics aggregation...");
 
     try {
       const result = await aggregateDailyMetrics();
-      console.log("[Cron] Daily metrics aggregation completed", {
+      logger.info("[Cron] Daily metrics aggregation completed", {
         workspacesProcessed: result.workspacesProcessed,
       });
     } catch (error) {
-      console.error("[Cron] Daily metrics aggregation failed", error);
+      logger.error("[Cron] Daily metrics aggregation failed", error instanceof Error ? error : undefined);
     }
   });
 
   // Optional: Hourly health check (verify cron is running)
   const healthCheckJob = cron.schedule("0 * * * *", () => {
-    console.log("[Cron] Health check: Cron jobs are running");
+    logger.info("[Cron] Health check: Cron jobs are running");
   });
 
   isScheduled = true;
 
-  console.log("✅ Cron jobs scheduled:");
-  console.log("  - Daily metrics aggregation: 1 AM UTC");
-  console.log("  - Hourly health check: Every hour");
+  logger.info("✅ Cron jobs scheduled:");
+  logger.info("  - Daily metrics aggregation: 1 AM UTC");
+  logger.info("  - Hourly health check: Every hour");
 
   return {
     aggregationJob,
@@ -48,7 +49,7 @@ export function setupMetricsCronJobs() {
       aggregationJob.stop();
       healthCheckJob.stop();
       isScheduled = false;
-      console.log("⏹️  Cron jobs stopped");
+      logger.info("⏹️  Cron jobs stopped");
     },
   };
 }
@@ -91,14 +92,14 @@ function getNextRunTime(): Date {
  * Useful for testing or immediate aggregation
  */
 export async function manuallyTriggerAggregation() {
-  console.log("[Manual] Triggering metrics aggregation...");
+  logger.info("[Manual] Triggering metrics aggregation...");
 
   try {
     const result = await aggregateDailyMetrics();
-    console.log("[Manual] Metrics aggregation completed", result);
+    logger.info("[Manual] Metrics aggregation completed", result as unknown as Record<string, unknown>);
     return result;
   } catch (error) {
-    console.error("[Manual] Metrics aggregation failed", error);
+    logger.error("[Manual] Metrics aggregation failed", error instanceof Error ? error : undefined);
     throw error;
   }
 }

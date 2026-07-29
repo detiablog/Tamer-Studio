@@ -1,4 +1,5 @@
 import { verifySecret } from "@/core/security/crypto";
+import { logger } from "@/core/logger";
 import crypto from "crypto";
 
 /**
@@ -9,7 +10,7 @@ export async function verifyMasterKey(masterKey: string): Promise<boolean> {
   // Try plain text first (development)
   const plainKey = process.env.ADMIN_MASTER_KEY;
   if (plainKey && masterKey === plainKey) {
-    console.log("[DEV] Admin key verified via plain text match");
+    logger.debug("Admin key verified via plain text match");
     return true;
   }
 

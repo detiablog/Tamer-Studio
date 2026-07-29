@@ -2,10 +2,8 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { StripeGateway } from "@/core/payment/stripe-gateway";
 import { handlePaymentCompleted } from "@/core/commerce/commerce-runtime";
+import { findOrdersByWorkspace } from "@/core/commerce/commerce.repository";
 import { logger } from "@/core/logger";
-import { db } from "@/lib/db";
-import { commerceOrder } from "@/lib/db/schema/commerce-plans";
-import { eq } from "drizzle-orm";
 
 const gateway = new StripeGateway();
 
@@ -28,17 +26,10 @@ export async function POST(request: NextRequest) {
 
       let orderId = metadata.orderId as string | undefined;
 
-      if (!orderId) {
-        const [existingOrder] = await db
-          .select({ id: commerceOrder.id })
-          .from(commerceOrder)
-          .where(
-            eq(commerceOrder.workspaceId, metadata.workspaceId as string)
-          )
-          .limit(1);
-
-        if (existingOrder) {
-          orderId = existingOrder.id;
+      if (!orderId && metadata.workspaceId) {
+        const orders = await findOrdersByWorkspace(metadata.workspaceId as string);
+        if (orders.length > 0) {
+          orderId = orders[0].id;
         }
       }
 

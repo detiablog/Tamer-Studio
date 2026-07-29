@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getHomepageRuntime } from "@/core/homepage";
 import type { HomepageContext } from "@/core/homepage";
+import { logger } from "@/core/logger";
 
 function detectDevice(userAgent: string | null): "desktop" | "tablet" | "mobile" {
   if (!userAgent) return "desktop";
@@ -67,7 +68,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("[GET /api/homepage] Error:", error);
+    logger.error("[GET /api/homepage] Error:", error instanceof Error ? error : undefined);
     return NextResponse.json(
       {
         success: false,
@@ -128,7 +129,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("[POST /api/homepage] Error:", error);
+    logger.error("[POST /api/homepage] Error:", error instanceof Error ? error : undefined);
     return NextResponse.json(
       {
         success: false,

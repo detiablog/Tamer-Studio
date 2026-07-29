@@ -3,6 +3,7 @@ import { requireUser } from "@/core/auth/session";
 import { executeAIRequest, type AIExecutionResult } from "@/core/ai/ai-runtime";
 import { executeProductionWithMetrics } from "@/core/production/execution";
 import { apiLimiter, checkRateLimit } from "@/core/security/ratelimit";
+import { logger } from "@/core/logger";
 
 export async function POST(request: NextRequest) {
   try {
@@ -109,7 +110,7 @@ export async function POST(request: NextRequest) {
       }
     );
   } catch (error) {
-    console.error("Production execution error:", error);
+    logger.error("Production execution error:", error instanceof Error ? error : undefined);
 
     const message =
       error instanceof Error ? error.message : "Production execution failed";

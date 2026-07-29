@@ -18,13 +18,12 @@ type LivePreviewProps = {
  */
 export function LivePreview({ open, onClose }: LivePreviewProps) {
   const { t } = useLocalizationContext();
-  const { sections, loading, error } = useLandingSections();
+  const { sections, loading, error, refetch } = useLandingSections();
   const [refreshing, setRefreshing] = React.useState(false);
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    // Re-fetch sections
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await refetch();
     setRefreshing(false);
   };
 

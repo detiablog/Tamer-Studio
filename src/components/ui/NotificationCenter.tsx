@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { useLocalizationContext } from "@/providers/localization"
+import { useRouter } from "next/navigation"
 
 type Notification = {
   id: string
@@ -27,6 +28,7 @@ const typeConfig = {
 
 export function NotificationCenter({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useLocalizationContext()
+  const router = useRouter()
   const [notifications, setNotifications] = React.useState<Notification[]>([])
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
@@ -76,7 +78,7 @@ export function NotificationCenter({ open, onClose }: { open: boolean; onClose: 
 
   const handleViewAll = () => {
     onClose()
-    toast.info(t("admin.notifications.viewAll", "Opening notification center — TODO: Navigate to full notification page"))
+    router.push("/notifications")
   }
 
   const markAsRead = async (id: string) => {

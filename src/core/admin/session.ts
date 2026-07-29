@@ -11,18 +11,6 @@ export async function getAdminSession(): Promise<AdminSession | null> {
     return null;
   }
 
-  if (process.env.NODE_ENV === "development") {
-    logger.info("[DEV] Admin session found via cookie, allowing access");
-    return {
-      id: sessionToken,
-      token: sessionToken,
-      adminId: "dev-admin",
-      role: "admin",
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-      createdAt: new Date(),
-    };
-  }
-
   try {
     const sessionRecord = await adminSessionRepository.findByToken(sessionToken);
 
@@ -93,18 +81,6 @@ export async function getAdminSessionFromToken(
   ipAddress?: string,
   userAgent?: string
 ): Promise<AdminSession | null> {
-  if (process.env.NODE_ENV === "development") {
-    logger.info("[DEV] Admin session validated via token");
-    return {
-      id: token,
-      token,
-      adminId: "dev-admin",
-      role: "admin",
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-      createdAt: new Date(),
-    };
-  }
-
   try {
     const sessionRecord = await adminSessionRepository.findByToken(token);
 

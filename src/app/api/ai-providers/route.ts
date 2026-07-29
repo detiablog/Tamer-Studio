@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAvailableAIProviders, getAvailableAIModels } from "@/core/ai/ai-runtime";
+import { logger } from "@/core/logger";
 
 export async function GET(_request: NextRequest) {
   try {
@@ -16,7 +17,7 @@ export async function GET(_request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Failed to fetch AI providers:", error);
+    logger.error("Failed to fetch AI providers:", error instanceof Error ? error : undefined);
     return NextResponse.json(
       { error: "Failed to fetch AI providers" },
       { status: 500 }

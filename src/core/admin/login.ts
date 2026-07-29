@@ -41,37 +41,6 @@ export async function loginAdmin(credentials: {
     return { success: false, reason: "invalid_credentials" as const };
   }
 
-  if (process.env.NODE_ENV === "development") {
-    const envEmail = process.env.ADMIN_EMAIL;
-    const envPassword = process.env.ADMIN_PASSWORD;
-
-    if (
-      envEmail &&
-      envPassword &&
-      credentials.email === envEmail &&
-      credentials.password === envPassword
-    ) {
-      logger.info("[DEV] Admin login via environment credentials", {
-        email: credentials.email,
-      });
-
-      const token = randomUUID();
-      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-
-      return {
-        success: true,
-        reason: undefined,
-        session: {
-          id: token,
-          token,
-          adminId: randomUUID(),
-          expiresAt,
-          createdAt: new Date(),
-        },
-      };
-    }
-  }
-
   try {
     const adminRecord = await adminRepository.findByEmail(credentials.email);
 
@@ -152,38 +121,6 @@ export async function loginAdmin(credentials: {
     };
   } catch (err) {
     logger.error("Database error during admin login", err instanceof Error ? err : new Error(String(err)));
-
-    if (process.env.NODE_ENV === "development") {
-      logger.warn(
-        "[DEV] Database unavailable, falling back to environment credentials"
-      );
-
-      const envEmail = process.env.ADMIN_EMAIL;
-      const envPassword = process.env.ADMIN_PASSWORD;
-
-      if (
-        envEmail &&
-        envPassword &&
-        credentials.email === envEmail &&
-        credentials.password === envPassword
-      ) {
-        const token = randomUUID();
-        const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-
-        return {
-          success: true,
-          reason: undefined,
-          session: {
-            id: token,
-            token,
-            adminId: randomUUID(),
-            expiresAt,
-            createdAt: new Date(),
-          },
-        };
-      }
-    }
-
     throw err;
   }
 }

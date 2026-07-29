@@ -5,6 +5,7 @@ import {
   workspaceMetrics,
 } from "@/lib/db/schema/analytics";
 import { sql, eq, gte, lte, and, count, sum } from "drizzle-orm";
+import { logger } from "@/core/logger";
 
 export async function aggregateDailyMetrics() {
   try {
@@ -82,14 +83,14 @@ export async function aggregateDailyMetrics() {
         activeUsers: activeUsers.length,
       });
 
-      console.log(
+      logger.info(
         `Aggregated metrics for workspace ${workspaceId} on ${yesterday.toISOString()}`
       );
     }
 
     return { success: true, workspacesProcessed: workspaces.length };
   } catch (error) {
-    console.error("Daily metrics aggregation failed:", error);
+    logger.error("Daily metrics aggregation failed:", error instanceof Error ? error : undefined);
     throw error;
   }
 }

@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
     ip: request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0].trim() || undefined,
   };
 
-  const errorResponse = await runMiddleware([adminAuthentication(true)], ctx);
+  const errorResponse = await runMiddleware([adminAuthentication(false)], ctx);
   if (errorResponse) return errorResponse;
 
   try {
@@ -39,18 +39,6 @@ export async function GET(request: NextRequest) {
       if (profile?.isActive) {
         return NextResponse.json(successResponse(profile));
       }
-    }
-
-    if (process.env.NODE_ENV === "development") {
-      return NextResponse.json(successResponse({
-        id: "dev-admin",
-        email: "admin@tamer.studio",
-        name: "Admin User",
-        role: "super_admin",
-        isActive: true,
-        lastLoginAt: new Date(),
-        initials: "AU",
-      }));
     }
 
     return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });

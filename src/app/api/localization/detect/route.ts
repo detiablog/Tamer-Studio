@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { cookies } from "next/headers";
 import { regionService } from "@/core/localization/region.service";
+import { logger } from "@/core/logger";
 
 export async function GET(request: NextRequest) {
   try {
@@ -37,7 +38,7 @@ export async function GET(request: NextRequest) {
       supportedLanguages: profile.supportedLanguages,
     });
   } catch (error) {
-    console.error("[GET /api/localization/detect] Error:", error);
+    logger.error("[GET /api/localization/detect] Error:", error instanceof Error ? error : undefined);
     return NextResponse.json(
       {
         locale: "en",

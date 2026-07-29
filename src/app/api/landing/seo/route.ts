@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { cookies } from "next/headers";
 import { getSEORuntime } from "@/core/seo";
+import { logger } from "@/core/logger";
 
 export async function GET(request: NextRequest) {
   try {
@@ -58,7 +59,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("[GET /api/landing/seo] Error:", error);
+    logger.error("[GET /api/landing/seo] Error:", error instanceof Error ? error : undefined);
     return NextResponse.json({
       success: true,
       data: {

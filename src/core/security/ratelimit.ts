@@ -1,5 +1,6 @@
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
+import { logger } from "@/core/logger";
 
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL || "",
@@ -42,7 +43,7 @@ export async function checkRateLimit(
       resetTime: result.reset,
     };
   } catch (error) {
-    console.error("Rate limit check failed:", error);
+    logger.error("Rate limit check failed:", error instanceof Error ? error : undefined);
     // Fail open in case of Redis outage
     return { success: true, remaining: 1, resetTime: 0 };
   }

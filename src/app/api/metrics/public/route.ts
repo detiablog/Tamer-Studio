@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { logger } from "@/core/logger";
 
 const FALLBACK_METRICS = {
   activeUsers: 0,
@@ -51,7 +52,7 @@ export async function GET(request: NextRequest) {
           });
         }
       } catch {
-        console.warn("[Public Metrics] Backend unavailable, using fallback");
+        logger.warn("[Public Metrics] Backend unavailable, using fallback");
       }
     }
 
@@ -61,7 +62,7 @@ export async function GET(request: NextRequest) {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error("[Public Metrics] Fatal error:", error);
+    logger.error("[Public Metrics] Fatal error:", error instanceof Error ? error : undefined);
     return NextResponse.json({
       success: true,
       data: FALLBACK_METRICS,

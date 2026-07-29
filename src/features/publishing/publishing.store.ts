@@ -15,58 +15,15 @@ export type Publication = {
 
 const KEY = "tamer:publications";
 
-const samplePublications: Publication[] = [
-  {
-    id: crypto.randomUUID(),
-    title: "Q4 Campaign Launch",
-    platform: "YouTube",
-    status: "Scheduled",
-    date: "Oct 25, 2026",
-    views: "—",
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString(),
-    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString(),
-  },
-  {
-    id: crypto.randomUUID(),
-    title: "Product Review Short",
-    platform: "TikTok",
-    status: "Published",
-    date: "Oct 20, 2026",
-    views: "12.4K",
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 8).toISOString(),
-    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 8).toISOString(),
-  },
-  {
-    id: crypto.randomUUID(),
-    title: "Affiliate Link Roundup",
-    platform: "Instagram",
-    status: "Published",
-    date: "Oct 18, 2026",
-    views: "3.2K",
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 10).toISOString(),
-    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 10).toISOString(),
-  },
-  {
-    id: crypto.randomUUID(),
-    title: "Tutorial Series Ep.1",
-    platform: "YouTube",
-    status: "Draft",
-    date: "Nov 1, 2026",
-    views: "—",
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-  },
-];
-
 function readStore(): Publication[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(KEY);
-    if (!raw) return seedPublications();
+    if (!raw) return [];
     return JSON.parse(raw) as Publication[];
   } catch (err) {
     logger.error("Failed to read publications", err as Error);
-    return seedPublications();
+    return [];
   }
 }
 
@@ -77,13 +34,6 @@ function writeStore(list: Publication[]) {
   } catch (err) {
     logger.error("Failed to write publications", err as Error);
   }
-}
-
-function seedPublications() {
-  const list = readStore();
-  if (list.length) return list;
-  writeStore(samplePublications);
-  return samplePublications;
 }
 
 export const publicationStore = {

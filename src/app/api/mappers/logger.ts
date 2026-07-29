@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server";
+import { logger } from "@/core/logger";
 
 export interface LogEntry {
   requestId: string;
@@ -30,5 +31,5 @@ export function createLogEntry(
 }
 
 export function logRequest(entry: LogEntry): void {
-  console.log(JSON.stringify(entry));
+  logger.info(JSON.stringify(entry));
 }

@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { getAllTranslationKeys } from "@/lib/localization/keys";
 import { hasTranslation } from "@/lib/localization/translations";
 import { FLATTENED_EN } from "@/lib/localization/translations";
+import { logger } from "@/core/logger";
 
 export async function GET(request: NextRequest) {
   try {
@@ -45,7 +46,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("[GET /api/localization/admin/validate] Error:", error);
+    logger.error("[GET /api/localization/admin/validate] Error:", error instanceof Error ? error : undefined);
     return NextResponse.json({ error: "Failed to validate translations" }, { status: 500 });
   }
 }

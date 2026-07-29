@@ -26,7 +26,7 @@ export default function PublishingPage() {
 
   return (
     <AppShell>
-      <PageLayout title={t("dashboard.publishing")} description={t("dashboard.publishingDesc")} breadcrumb={[{ label: t("dashboard.publishing") }]} actions={<ActionButton>{t("dashboard.newPublication")}</ActionButton>}>
+      <PageLayout title={t("dashboard.publishing")} description={t("dashboard.publishingDesc")} breadcrumb={[{ label: t("dashboard.publishing") }]} actions={<ActionButton onClick={() => console.warn("TODO: open new publication dialog")}>{t("dashboard.newPublication")}</ActionButton>}>
         <div className="space-y-6">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard title={t("publishing.totalPublications", "Total Publications")} value={publications.length} delta={t("publishing.thisMonth", "+3 this month")} />

@@ -12,15 +12,17 @@ import { Play, RotateCcw, Copy, Download, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import { estimateExecutionTime } from "@/core/production/estimates";
 import { useLocalizationContext } from "@/providers/localization";
+import { authClient } from "@/core/auth/client";
+import { logger } from "@/core/logger";
 
 export default function ProductionDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = React.use(params);
   const { t } = useLocalizationContext();
+  const { data: session } = authClient.useSession();
   const [job, setJob] = React.useState<ReturnType<typeof productionStore.get> | null>(null);
   const [content, setContent] = React.useState("");
   const [isExecuting, setIsExecuting] = React.useState(false);
   const [executionResult, setExecutionResult] = React.useState<any>(null);
-  const [userToken, setUserToken] = React.useState<string>("");
   const [workspaceId, setWorkspaceId] = React.useState<string>("");
 
   React.useEffect(() => {
@@ -31,8 +33,6 @@ export default function ProductionDetailPage({ params }: { params: Promise<{ id:
       setContent(`${t("production.workflow")}: ${loadedJob.workflowName}\n${t("production.project")}: ${loadedJob.project}\n${t("common.status")}: ${loadedJob.status}`);
       setWorkspaceId(loadedJob.workspace);
     }
-    // In real app, get token from session
-    setUserToken("mock-token-" + Math.random().toString(36).slice(2));
   }, [id, t]);
 
   const handleExecuteProduction = async () => {
@@ -49,8 +49,9 @@ export default function ProductionDetailPage({ params }: { params: Promise<{ id:
         body: JSON.stringify({
           productionId: job.id,
           workspaceId: workspaceId,
-          userId: "user-123", // In real app, get from session
-          aiModel: "gpt-4",
+          userId: session?.user?.id ?? "",
+          // TODO: resolve the correct model from the workspace provider config instead of hardcoding
+          aiModel: job.workflowType === "Audio Generation" ? "wavesynth-sound-1" : "tamer-pro-1",
           workflowType: job.workflowType,
           prompt: content,
           parameters: {
@@ -82,7 +83,7 @@ export default function ProductionDetailPage({ params }: { params: Promise<{ id:
         toast.error(data.error || t("production.detail.executionFailed", "Production execution failed"));
       }
     } catch (error) {
-      console.error("Execution error:", error);
+      logger.error("Execution error", error instanceof Error ? error : new Error(String(error)));
       toast.error(t("production.detail.executeFailed", "Failed to execute production"));
     } finally {
       setIsExecuting(false);
@@ -194,7 +195,6 @@ export default function ProductionDetailPage({ params }: { params: Promise<{ id:
                   <CollaborativeProductionEditor
                     productionId={job.id}
                     workspaceId={workspaceId}
-                    token={userToken}
                     content={content}
                     onContentChange={setContent}
                   />

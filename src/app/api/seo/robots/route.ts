@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSEORuntime } from "@/core/seo";
+import { logger } from "@/core/logger";
 
 export async function GET() {
   try {
@@ -13,7 +14,7 @@ export async function GET() {
       },
     });
   } catch (error) {
-    console.error("[GET /api/seo/robots] Error:", error);
+    logger.error("[GET /api/seo/robots] Error:", error instanceof Error ? error : undefined);
     return new NextResponse("User-agent: *\nDisallow: /", {
       headers: { "Content-Type": "text/plain" },
     });

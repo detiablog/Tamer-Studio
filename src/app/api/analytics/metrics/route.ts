@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { recordProductionMetric, recordUserActivity } from "@/core/analytics/aggregation";
+import { logger } from "@/core/logger";
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,7 +22,7 @@ export async function POST(request: NextRequest) {
       { status: 400 }
     );
   } catch (error) {
-    console.error("Metrics recording error:", error);
+    logger.error("Metrics recording error:", error instanceof Error ? error : undefined);
     return NextResponse.json(
       { error: "Failed to record metric" },
       { status: 500 }

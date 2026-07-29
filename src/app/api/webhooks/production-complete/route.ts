@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { recordProductionMetric, recordUserActivity } from "@/core/analytics/aggregation";
+import { logger } from "@/core/logger";
 
 /**
  * Webhook endpoint for production completion
@@ -56,7 +57,7 @@ export async function POST(request: NextRequest) {
       resourceType: "production",
     });
 
-    console.log(`[Production Webhook] Recorded metrics for production ${productionId}`, {
+    logger.info(`[Production Webhook] Recorded metrics for production ${productionId}`, {
       status,
       cost: costUsd,
       time: executionTimeMs,
@@ -71,7 +72,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Production webhook error:", error);
+    logger.error("Production webhook error:", error instanceof Error ? error : undefined, { details: String(error) });
     return NextResponse.json(
       {
         error: "Failed to record production metrics",

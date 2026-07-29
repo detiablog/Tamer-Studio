@@ -1,6 +1,7 @@
 "use client";
 
 import { useLocalizationContext } from "@/providers/localization";
+import { AdminLoginForm } from "@/components/admin/AdminLoginForm";
 
 export function LoginPageClientContent({ csrfToken, error }: { csrfToken: string; error?: string }) {
   const { t } = useLocalizationContext();
@@ -37,7 +38,7 @@ export function LoginPageClientContent({ csrfToken, error }: { csrfToken: string
       <div className="flex-1 flex items-center justify-center px-4 py-8 pt-24">
         <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="rounded-2xl border border-border bg-card/50 backdrop-blur-xl p-8 shadow-xl ring-1 ring-destructive/10">
-            <AdminLoginForm error={error} csrfToken={csrfToken} />
+            <AdminLoginForm error={error as any} csrfToken={csrfToken} />
           </div>
 
           <div className="mt-6 rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-xs text-amber-700 dark:text-amber-200 text-center">
@@ -46,49 +47,5 @@ export function LoginPageClientContent({ csrfToken, error }: { csrfToken: string
         </div>
       </div>
     </div>
-  );
-}
-
-function AdminLoginForm({ error, csrfToken }: { error?: string; csrfToken: string }) {
-  const { t } = useLocalizationContext();
-
-  return (
-    <form action="/api/auth/admin-login" method="POST" className="space-y-4">
-      <div>
-        <h2 className="text-xl font-semibold">{t("admin.login.title")}</h2>
-        <p className="text-xs text-muted-foreground mt-1">{t("admin.login.subtitle")}</p>
-      </div>
-
-      {error && (
-        <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-3 text-xs text-destructive">
-          {t(`admin.login.errors.${error}`)}
-        </div>
-      )}
-
-      <div className="space-y-2">
-        <label htmlFor="master_key" className="text-sm font-medium">{t("admin.login.masterKeyLabel")}</label>
-        <input
-          id="master_key"
-          name="master_key"
-          type="password"
-          required
-          className="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
-          placeholder={t("admin.login.masterKeyPlaceholder")}
-        />
-      </div>
-
-      <input type="hidden" name="csrf_token" value={csrfToken} />
-
-      <button
-        type="submit"
-        className="w-full rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/80"
-      >
-        {t("admin.login.submit")}
-      </button>
-
-      <p className="text-center text-xs text-muted-foreground">
-        <a href="/" className="text-primary hover:underline">{t("admin.login.backToHome")}</a>
-      </p>
-    </form>
   );
 }

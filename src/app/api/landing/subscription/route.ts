@@ -25,9 +25,6 @@ export async function GET(request: NextRequest) {
     }
 
     const service = new LandingService();
-    const whereClause = regionProfile?.pricingProfile
-      ? { sectionKey: "pricing" }
-      : { sectionKey: "pricing" };
 
     const section = await service.getSectionByKey("pricing");
 

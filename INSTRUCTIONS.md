@@ -886,3 +886,22 @@ report it,
 stop the conflicting process only if explicitly permitted,
 or request confirmation before using another port.
 Every verification report must record why a different port was used, if applicable.
+No new feature development is allowed if the authentication lifecycle is failing. Every authentication-related change must pass the complete end-to-end authentication verification (Register → Login → Session → Middleware → Protected API → Logout) before the sprint can be marked as complete.
+
+## Mandatory Verification Rule
+
+Before implementing any new feature or bug fix, the AI must verify that:
+
+1. Database schema matches the latest Drizzle schema.
+2. Database matches Better Auth requirements.
+3. No migration drift exists.
+4. Register lifecycle passes.
+5. User login lifecycle passes.
+6. Admin login lifecycle passes.
+7. Session persistence passes.
+8. Protected API verification passes.
+9. Middleware verification passes.
+
+If any verification fails, feature development must stop until the issue is resolved.
+
+No sprint may be marked COMPLETE without passing all verification checks.

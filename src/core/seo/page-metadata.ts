@@ -1,5 +1,15 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { getSEORuntime } from "./seo-runtime";
+
+function resolveLocale(): string {
+  try {
+    // This is sync-safe in Next.js server components
+    return "en";
+  } catch {
+    return "en";
+  }
+}
 
 export async function generatePageMetadata(input: {
   route: string;
@@ -14,15 +24,15 @@ export async function generatePageMetadata(input: {
   noindex?: boolean;
   breadcrumbs?: Array<{ label: string; href: string }>;
   schema?: Array<{ type: string; data: Record<string, unknown> }>;
+  locale?: string;
 }): Promise<Metadata> {
   const seoRuntime = getSEORuntime();
+  const locale = input.locale || "en";
 
   try {
     const resolved = await seoRuntime.resolvePage({
       route: input.route,
-      locale: "en",
-      title: input.title,
-      description: input.description,
+      locale,
       image: input.image,
       type: input.type,
       keywords: input.keywords,

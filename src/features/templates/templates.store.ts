@@ -12,63 +12,15 @@ export type Template = {
 
 const KEY = "tamer:templates";
 
-const sampleTemplates: Template[] = [
-  {
-    id: crypto.randomUUID(),
-    name: "YouTube Script Template",
-    category: "Script",
-    uses: 24,
-    favorite: true,
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30).toISOString(),
-    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
-  },
-  {
-    id: crypto.randomUUID(),
-    name: "Product Image Prompt",
-    category: "Prompt",
-    uses: 18,
-    favorite: false,
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 25).toISOString(),
-    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString(),
-  },
-  {
-    id: crypto.randomUUID(),
-    name: "Social Media Batch",
-    category: "Production",
-    uses: 12,
-    favorite: true,
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 20).toISOString(),
-    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 8).toISOString(),
-  },
-  {
-    id: crypto.randomUUID(),
-    name: "Voiceover Style Guide",
-    category: "Prompt",
-    uses: 8,
-    favorite: false,
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 15).toISOString(),
-    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 10).toISOString(),
-  },
-  {
-    id: crypto.randomUUID(),
-    name: "Affiliate Review Framework",
-    category: "Script",
-    uses: 15,
-    favorite: true,
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 10).toISOString(),
-    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(),
-  },
-];
-
 function readStore(): Template[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(KEY);
-    if (!raw) return seedTemplates();
+    if (!raw) return [];
     return JSON.parse(raw) as Template[];
   } catch (err) {
     logger.error("Failed to read templates", err as Error);
-    return seedTemplates();
+    return [];
   }
 }
 
@@ -79,13 +31,6 @@ function writeStore(list: Template[]) {
   } catch (err) {
     logger.error("Failed to write templates", err as Error);
   }
-}
-
-function seedTemplates() {
-  const list = readStore();
-  if (list.length) return list;
-  writeStore(sampleTemplates);
-  return sampleTemplates;
 }
 
 export const templateStore = {

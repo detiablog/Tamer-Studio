@@ -1,5 +1,6 @@
 import { recordProductionMetric, recordUserActivity } from "@/core/analytics/aggregation";
 import type { ProductionJob } from "@/features/production/production.store";
+import { logger } from "@/core/logger";
 
 export interface ProductionExecutionConfig {
   productionId: string;
@@ -66,7 +67,7 @@ export async function executeProductionWithMetrics(
       },
     });
   } catch (err) {
-    console.error("Failed to record production metric:", err);
+    logger.error("Failed to record production metric:", err instanceof Error ? err : undefined);
   }
 
   // Record user activity
@@ -79,7 +80,7 @@ export async function executeProductionWithMetrics(
       resourceType: "production",
     });
   } catch (err) {
-    console.error("Failed to record user activity:", err);
+    logger.error("Failed to record user activity:", err instanceof Error ? err : undefined);
   }
 
   return result;
@@ -152,7 +153,7 @@ export async function streamProductionExecution(
       resourceType: "production",
     });
   } catch (err) {
-    console.error("Failed to record metrics:", err);
+    logger.error("Failed to record metrics:", err instanceof Error ? err : undefined);
   }
 
   // Emit completion event

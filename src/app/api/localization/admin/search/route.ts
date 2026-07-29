@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getAllTranslationKeys } from "@/lib/localization/keys";
 import { hasTranslation, getTranslation } from "@/lib/localization/translations";
+import { logger } from "@/core/logger";
 
 export async function GET(request: NextRequest) {
   try {
@@ -37,7 +38,7 @@ export async function GET(request: NextRequest) {
       missingKeys: missing,
     });
   } catch (error) {
-    console.error("[GET /api/localization/admin/search] Error:", error);
+    logger.error("[GET /api/localization/admin/search] Error:", error instanceof Error ? error : undefined);
     return NextResponse.json({ error: "Failed to search translations" }, { status: 500 });
   }
 }

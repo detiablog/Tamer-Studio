@@ -14,9 +14,13 @@ import {
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
-export function NotificationsContent() {
+export function NotificationsContent({ onMarkedAllRead }: { onMarkedAllRead?: (fn: () => void) => void } = {}) {
   const { data, error, mutate } = useSWR("/api/notifications", fetcher);
   const [filter, setFilter] = React.useState<"all" | "unread">("all");
+
+  React.useEffect(() => {
+    onMarkedAllRead?.(() => mutate());
+  }, [onMarkedAllRead, mutate]);
 
   const notifications = data?.notifications ?? [];
   const filtered = filter === "unread" ? notifications.filter((n: any) => !n.read) : notifications;

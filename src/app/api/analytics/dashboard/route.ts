@@ -3,6 +3,7 @@ import { getWorkspaceDashboardMetrics } from "@/core/analytics/aggregation";
 import type { RequestContext } from "@/core/middleware/types";
 import { runMiddleware } from "@/core/middleware/compose";
 import { userAuthentication } from "@/core/middleware";
+import { logger } from "@/core/logger";
 
 export async function GET(request: NextRequest) {
   const ctx: RequestContext = {
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(metrics);
   } catch (error) {
-    console.error("Dashboard metrics error:", error);
+    logger.error("Dashboard metrics error:", error instanceof Error ? error : undefined);
     return NextResponse.json(
       { error: "Failed to fetch metrics" },
       { status: 500 }

@@ -1,29 +1,11 @@
 "use client";
 
 import * as React from "react";
-
-const ADMIN_PERMISSIONS = [
-  "admin:users",
-  "admin:organizations",
-  "admin:workspaces",
-  "admin:ai_providers",
-  "admin:landing_builder",
-  "admin:jobs",
-  "admin:queues",
-  "admin:billing",
-  "admin:subscriptions",
-  "admin:coupons",
-  "admin:analytics",
-  "admin:audit_logs",
-  "admin:feature_flags",
-  "admin:system",
-  "admin:email",
-] as const;
-
-export type AdminPermission = typeof ADMIN_PERMISSIONS[number];
+import { ADMIN_ROUTE_PERMISSIONS, type AdminPermission } from "@/core/admin/rbac";
 
 export function useAdminPermissions() {
   const [isAdmin, setIsAdmin] = React.useState(false);
+  const [permissions, setPermissions] = React.useState<AdminPermission[]>([]);
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
@@ -33,16 +15,31 @@ export function useAdminPermissions() {
 
     setIsAdmin(hasAdminSession);
     setMounted(true);
+
+    if (hasAdminSession) {
+      fetch("/api/admin/me")
+        .then((res) => {
+          if (res.ok) return res.json();
+          return null;
+        })
+        .then((data) => {
+          if (data?.admin?.role) {
+            const allPerms = Object.values(ADMIN_ROUTE_PERMISSIONS).flat();
+            setPermissions([...new Set(allPerms)] as AdminPermission[]);
+          }
+        })
+        .catch(() => {});
+    }
   }, []);
 
   const hasPermission = (permission: AdminPermission) => {
-    return isAdmin && mounted;
+    return isAdmin && mounted && permissions.includes(permission);
   };
 
   return {
     isAdmin,
     mounted,
     hasPermission,
-    permissions: isAdmin && mounted ? ADMIN_PERMISSIONS : [],
+    permissions: isAdmin && mounted ? permissions : [],
   };
 }
