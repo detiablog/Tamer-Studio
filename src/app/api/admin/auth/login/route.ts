@@ -54,13 +54,14 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json({ success: true, session: result.session });
 
     if (result.session?.token) {
-      // In development, be very lenient with cookie settings for easier debugging
-      const isDev = process.env.NODE_ENV === "development";
+      const host = request.headers.get("host") || "";
+      const isLocalhost = host.includes("localhost") || host.includes("127.0.0.1");
+      const isSecure = process.env.NODE_ENV === "production" && !isLocalhost;
       
       response.cookies.set("admin_session", result.session.token, {
-        httpOnly: isDev ? false : true, // Allow client JS access in dev
-        secure: isDev ? false : true, // Allow http in dev
-        sameSite: isDev ? "none" : "lax", // More lenient in dev
+        httpOnly: true,
+        secure: isSecure,
+        sameSite: "lax",
         path: "/",
         maxAge: 60 * 60 * 24,
       });

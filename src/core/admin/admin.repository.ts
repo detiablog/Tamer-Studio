@@ -61,6 +61,10 @@ export class AdminSessionRepository {
   async deleteExpired(): Promise<void> {
     await db.delete(adminSession).where(eq(adminSession.expiresAt, new Date()));
   }
+
+  async extendSession(id: string, newExpiresAt: Date): Promise<void> {
+    await db.update(adminSession).set({ expiresAt: newExpiresAt }).where(eq(adminSession.id, id));
+  }
 }
 
 export const adminRepository = new AdminRepository();

@@ -36,6 +36,13 @@
       "when": 1753745525000,
       "tag": "0034_create_missing_localization_media",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1753745600000,
+      "tag": "0035_schema_sync_repair",
+      "breakpoints": true
     }
   ]
 }

@@ -47,11 +47,17 @@ export function useHomepage(context?: Partial<HomepageContext>): UseHomepageRetu
       if (context?.device) params.set("device", context.device);
       if (context?.currency) params.set("currency", context.currency);
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
       const response = await fetch(`/api/homepage?${params.toString()}`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         cache: "no-cache",
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         throw new Error(`Failed to fetch homepage: ${response.status}`);

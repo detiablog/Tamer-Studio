@@ -185,18 +185,24 @@ export class HomepageRuntime {
       ],
     };
 
-    const resolved = await seoRuntime.resolvePage({
-      route: '/',
-      locale: context.locale,
-      title: page?.seo?.title || defaultSEO.title,
-      description: page?.seo?.description || defaultSEO.description,
-      keywords: defaultSEO.keywords,
-      image: page?.seo?.ogImage || defaultSEO.image,
-      type: 'website',
-      author: 'Tamer Studio',
-    });
+    try {
+      const resolved = await Promise.race([
+        seoRuntime.resolvePage({
+          route: '/',
+          locale: context.locale,
+          title: page?.seo?.title || defaultSEO.title,
+          description: page?.seo?.description || defaultSEO.description,
+          keywords: defaultSEO.keywords,
+          image: page?.seo?.ogImage || defaultSEO.image,
+          type: 'website',
+          author: 'Tamer Studio',
+        }),
+        new Promise<null>((_, reject) => setTimeout(() => reject(new Error('SEO timeout')), 3000)),
+      ]);
 
-    return {
+      if (!resolved) return defaultSEO;
+
+      return {
       title: resolved.metadata.title,
       description: resolved.metadata.description,
       keywords: resolved.metadata.keywords,
@@ -213,6 +219,9 @@ export class HomepageRuntime {
         href: h.href,
       })),
     };
+    } catch {
+      return defaultSEO;
+    }
   }
 
   resolveLocalization(context: HomepageContext): HomepageResolutionResult["localization"] {

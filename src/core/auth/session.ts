@@ -4,15 +4,29 @@ import { InvalidSessionError } from "./errors";
 import { getEffectivePermissions, hasPermission, hasAnyPermission, hasAllPermissions, type UserRole, type Permission } from "./permissions";
 import type { UserSession } from "./types";
 
-export async function getServerSession(): Promise<UserSession | null> {
+export async function getServerSession(request?: Request): Promise<UserSession | null> {
   try {
-    const cookieStore = await cookies();
-    const headers = new Headers();
-    for (const [name, value] of cookieStore) {
-      if (typeof value === "string") {
-        headers.set(name, value);
+    let headers: Headers;
+
+    if (request) {
+      headers = new Headers(request.headers);
+    } else {
+      const cookieStore = await cookies();
+      const parts: string[] = [];
+      for (const entry of cookieStore) {
+        const name = entry[0];
+        const cookie = entry[1];
+        const value = typeof cookie === "string" ? cookie : (typeof cookie === "object" && cookie !== null ? (cookie as any).value : undefined);
+        if (name && value) {
+          parts.push(`${name}=${value}`);
+        }
+      }
+      headers = new Headers();
+      if (parts.length > 0) {
+        headers.append("Cookie", parts.join("; "));
       }
     }
+
     const session = await auth.api.getSession({ headers });
     return session as UserSession | null;
   } catch {

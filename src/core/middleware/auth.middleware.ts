@@ -75,7 +75,7 @@ export function userAuthentication(allowAnonymous = false): Middleware {
       };
     }
 
-    const session = await getServerSession();
+    const session = await getServerSession(ctx.request as Request);
     if (!session) {
       return {
         status: 401,

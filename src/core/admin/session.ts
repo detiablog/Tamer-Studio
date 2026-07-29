@@ -26,10 +26,7 @@ export async function getAdminSession(): Promise<AdminSession | null> {
     const now = new Date();
     const newExpiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000);
     if (newExpiresAt > sessionRecord.expiresAt) {
-      await adminSessionRepository.create({
-        ...sessionRecord,
-        expiresAt: newExpiresAt,
-      });
+      await adminSessionRepository.extendSession(sessionRecord.id, newExpiresAt);
     }
 
     const adminRecord = await adminRepository.findById(sessionRecord.adminId);
@@ -64,7 +61,7 @@ export async function setAdminSessionCookie(token: string): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.set("admin_session", token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: false,
     sameSite: "lax",
     maxAge: 24 * 60 * 60,
     path: "/",

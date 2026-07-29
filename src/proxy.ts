@@ -40,7 +40,7 @@ function setLocalizationCookies(request: NextRequest, response: NextResponse) {
     if (!request.cookies.get("tamer_country")?.value) {
       response.cookies.set("tamer_country", country, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: false,
         sameSite: "lax",
         maxAge: 60 * 60 * 24 * 365,
         path: "/",
@@ -65,9 +65,7 @@ export async function proxy(request: NextRequest) {
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon") ||
-    pathname.startsWith("/api/auth") ||
-    pathname.startsWith("/api/admin") ||
-    pathname.startsWith("/api/health") ||
+    pathname.startsWith("/api/") ||
     pathname.includes(".")
   ) {
     metrics.increment("api.request", { method, route: pathname, status: "routed" });
@@ -104,9 +102,11 @@ export async function proxy(request: NextRequest) {
 
     const response = withSecurityHeaders(NextResponse.next());
     if (!request.cookies.get("csrf_token")?.value) {
+      const host = request.headers.get("host") || "";
+      const isSecure = process.env.NODE_ENV === "production" && !host.includes("localhost");
       response.cookies.set("csrf_token", generateCsrfToken(), {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: isSecure,
         sameSite: "lax",
         maxAge: 60 * 60,
         path: "/",

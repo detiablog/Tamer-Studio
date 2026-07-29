@@ -14,7 +14,9 @@ export default function RegisterPage() {
   const { data: session, isPending } = authClient.useSession();
 
   useEffect(() => {
-    if (!isPending && session) router.push("/verify-email" as unknown as Parameters<typeof router.push>[0]);
+    if (!isPending && session?.user?.emailVerified) {
+      router.push("/dashboard" as unknown as Parameters<typeof router.push>[0]);
+    }
   }, [isPending, session, router]);
 
   return (

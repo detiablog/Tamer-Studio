@@ -5,9 +5,9 @@ import { runMiddleware } from "@/core/middleware/compose";
 import { adminAuthentication, requireAdminPermission } from "@/core/middleware";
 import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
 import { successResponse } from "@/app/api/mappers/response";
-import { db } from "@/lib/db";
-import { coupon as couponTable } from "@/lib/db/schema/commerce";
-import { eq } from "drizzle-orm";
+import { DefaultCouponRepository } from "@/core/commerce/coupon/coupon.repository";
+
+const couponRepo = new DefaultCouponRepository();
 
 export async function GET(
   request: NextRequest,
@@ -37,29 +37,13 @@ export async function GET(
 
   try {
     const { id } = await params;
-    const [row] = await db.select().from(couponTable).where(eq(couponTable.id, id)).limit(1);
+    const coupon = await couponRepo.getCouponById(id);
 
-    if (!row) {
+    if (!coupon) {
       return NextResponse.json({ success: false, error: "Coupon not found" }, { status: 404 });
     }
 
-    return NextResponse.json(successResponse({
-      id: row.id,
-      code: row.code,
-      type: row.type,
-      value: Number(row.value),
-      currency: row.currency,
-      minPurchase: row.minPurchase ? Number(row.minPurchase) : undefined,
-      maxDiscount: row.maxDiscount ? Number(row.maxDiscount) : undefined,
-      expiresAt: row.expiresAt.toISOString(),
-      usageLimit: Number(row.usageLimit),
-      isActive: row.isActive,
-      applicableProducts: row.applicableProducts,
-      applicablePlans: row.applicablePlans,
-      metadata: row.metadata,
-      createdAt: row.createdAt.toISOString(),
-      updatedAt: row.updatedAt.toISOString(),
-    }));
+    return NextResponse.json(successResponse(coupon));
   } catch (error) {
     return mapErrorToResponse(error);
   }
@@ -95,12 +79,12 @@ export async function PUT(
     const { id } = await params;
     const body = await request.json();
 
-    const [existing] = await db.select().from(couponTable).where(eq(couponTable.id, id)).limit(1);
+    const existing = await couponRepo.getCouponById(id);
     if (!existing) {
       return NextResponse.json({ success: false, error: "Coupon not found" }, { status: 404 });
     }
 
-    const updateData: Record<string, unknown> = { updatedAt: new Date() };
+    const updateData: Record<string, unknown> = {};
     if (body.code !== undefined) updateData.code = body.code;
     if (body.type !== undefined) updateData.type = body.type;
     if (body.value !== undefined) updateData.value = String(body.value);
@@ -114,25 +98,9 @@ export async function PUT(
     if (body.applicablePlans !== undefined) updateData.applicablePlans = body.applicablePlans;
     if (body.metadata !== undefined) updateData.metadata = body.metadata;
 
-    const [updated] = await db.update(couponTable).set(updateData).where(eq(couponTable.id, id)).returning();
+    const updated = await couponRepo.updateCoupon(id, updateData);
 
-    return NextResponse.json(successResponse({
-      id: updated.id,
-      code: updated.code,
-      type: updated.type,
-      value: Number(updated.value),
-      currency: updated.currency,
-      minPurchase: updated.minPurchase ? Number(updated.minPurchase) : undefined,
-      maxDiscount: updated.maxDiscount ? Number(updated.maxDiscount) : undefined,
-      expiresAt: updated.expiresAt.toISOString(),
-      usageLimit: Number(updated.usageLimit),
-      isActive: updated.isActive,
-      applicableProducts: updated.applicableProducts,
-      applicablePlans: updated.applicablePlans,
-      metadata: updated.metadata,
-      createdAt: updated.createdAt.toISOString(),
-      updatedAt: updated.updatedAt.toISOString(),
-    }));
+    return NextResponse.json(successResponse(updated));
   } catch (error) {
     return mapErrorToResponse(error);
   }
@@ -167,12 +135,12 @@ export async function DELETE(
   try {
     const { id } = await params;
 
-    const [existing] = await db.select().from(couponTable).where(eq(couponTable.id, id)).limit(1);
+    const existing = await couponRepo.getCouponById(id);
     if (!existing) {
       return NextResponse.json({ success: false, error: "Coupon not found" }, { status: 404 });
     }
 
-    await db.delete(couponTable).where(eq(couponTable.id, id));
+    await couponRepo.deleteCoupon(id);
 
     return NextResponse.json(successResponse({ message: "Coupon deleted successfully" }));
   } catch (error) {

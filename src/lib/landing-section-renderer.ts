@@ -95,7 +95,8 @@ export function CustomSection({ section }: { section: SectionRendererProps['sect
 }
 
 export function renderLandingSection(section: LandingSection): React.ReactNode {
-  const Component = SECTION_COMPONENTS[section.sectionKey];
+  const lookupKey = (section as any).type || section.sectionKey;
+  const Component = SECTION_COMPONENTS[lookupKey] || SECTION_COMPONENTS[section.sectionKey];
 
   if (!Component) {
     return React.createElement(CustomSection, { key: section.id, section: section as SectionRendererProps['section'] });

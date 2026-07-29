@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
   };
 
   const middlewareError = await runMiddleware([
-    adminAuthentication(true),
+    adminAuthentication(false),
     requireAdminPermission("admin:read"),
   ], ctx);
 

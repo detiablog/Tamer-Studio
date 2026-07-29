@@ -46,9 +46,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: { code: "AUTHENTICATION_ERROR", message: "Unauthorized" } }, { status: 401 });
     }
     const service = new UserService();
-    const profile = await service.getProfile(userId);
+    let profile = await service.getProfile(userId);
     if (!profile) {
-      return NextResponse.json({ success: false, error: { code: "NOT_FOUND", message: "Profile not found" } }, { status: 404 });
+      const user = await service.getUserById(userId);
+      if (!user) {
+        return NextResponse.json({ success: false, error: { code: "NOT_FOUND", message: "User not found" } }, { status: 404 });
+      }
+      profile = { id: user.id, name: user.name, email: user.email, image: user.image, role: user.role } as any;
     }
     return NextResponse.json(successResponse(profile));
   } catch (error) {

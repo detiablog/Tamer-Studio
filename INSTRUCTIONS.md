@@ -905,3 +905,88 @@ Before implementing any new feature or bug fix, the AI must verify that:
 If any verification fails, feature development must stop until the issue is resolved.
 
 No sprint may be marked COMPLETE without passing all verification checks.
+
+## Authentication Architecture Rule
+
+The project must maintain a single authentication architecture.
+
+Every authentication and authorization flow must use the same Better Auth runtime.
+
+Forbidden:
+
+- Manual cookie parsing
+- Custom admin sessions
+- Separate admin authentication
+- Legacy authentication middleware
+- Duplicate session validation
+- Direct authentication table queries for authorization
+
+Every protected route and API must retrieve the authenticated user through the centralized authentication helper.
+
+Role and permission validation must always be performed on the server using the authenticated session.
+
+Any new admin feature must automatically integrate with the shared authentication runtime without introducing a second authentication mechanism.
+
+## Authentication Runtime Rules
+
+Every authenticated request must use the centralized Better Auth runtime.
+
+The following are strictly forbidden:
+
+- Manual cookie parsing
+- Manual JWT validation
+- Multiple authentication helpers
+- Multiple session implementations
+- Custom admin authentication
+- Legacy authentication middleware
+- Reading authentication state directly from cookies
+- Reading roles from request payloads
+
+Middleware, Server Components, Route Handlers, Server Actions and API Routes must all use the same authentication helper.
+
+Authentication logic must never be duplicated.
+
+Any authentication change must automatically execute the complete authentication verification suite before being considered complete.
+
+## API Architecture Rules
+
+Every backend endpoint must use the centralized runtime architecture.
+
+Every API Route must:
+
+- Use the shared Better Auth helper.
+- Use the shared database client.
+- Validate every request using the project's standard validation library.
+- Return standardized response objects.
+- Handle every exception gracefully.
+- Never expose internal errors.
+- Never duplicate authentication logic.
+- Never duplicate database initialization.
+- Never create additional API patterns outside the established architecture.
+
+Any newly created API Route must automatically pass the API verification suite before it is considered complete.
+
+## Runtime Verification Policy
+
+Runtime behavior is the single source of truth.
+
+Documentation, generated reports, static analysis, and previous verification results must never override actual browser behavior.
+
+A sprint cannot be marked PASS if:
+
+- Browser login fails.
+- Console contains runtime errors.
+- Required pages do not render correctly.
+- Network requests fail.
+- Playwright end-to-end tests fail.
+- The UI does not match the expected application state.
+
+Every verification sprint must end with:
+
+1. Playwright browser execution.
+2. Browser screenshots.
+3. Console error verification.
+4. Network request verification.
+5. Database state verification.
+
+Reports may only be generated after all runtime verification steps have passed successfully.

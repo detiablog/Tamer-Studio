@@ -15,20 +15,20 @@ export default function LoginPage() {
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsInitialized(true);
-    }, 3000);
-
     if (!isPending && session?.user) {
-      clearTimeout(timer);
       router.replace("/dashboard");
       return;
     }
 
     if (!isPending) {
-      clearTimeout(timer);
       setIsInitialized(true);
+      return;
     }
+
+    // Fallback: show form after 2 seconds even if session check hangs
+    const timer = setTimeout(() => {
+      setIsInitialized(true);
+    }, 2000);
 
     return () => clearTimeout(timer);
   }, [isPending, session, router]);
