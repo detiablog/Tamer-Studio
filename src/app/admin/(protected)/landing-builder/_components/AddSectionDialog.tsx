@@ -75,7 +75,7 @@ export function AddSectionDialog({ open, onClose, onCreated, adminToken }: AddSe
 
       const result = await response.json();
       if (!response.ok) {
-        toast.error(result.error || t("addSectionDialog.failedCreate", "Failed to create section"));
+        toast.error(typeof result.error === "string" ? result.error : (result.error?.message || t("addSectionDialog.failedCreate", "Failed to create section")));
         return;
       }
 

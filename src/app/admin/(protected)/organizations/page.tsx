@@ -12,12 +12,6 @@ import { toast } from "sonner";
 import { Breadcrumbs } from "@/components/admin/Breadcrumbs";
 import { useLocalizationContext } from "@/providers/localization";
 
-const MOCK_ORGS = [
-  { id: "1", name: "Acme Studio", plan: "Pro", status: "Active", members: 5, createdAt: "Oct 1, 2026" },
-  { id: "2", name: "Marketing Team", plan: "Enterprise", status: "Active", members: 12, createdAt: "Sep 15, 2026" },
-  { id: "3", name: "Solo Creator", plan: "Starter", status: "Active", members: 1, createdAt: "Aug 20, 2026" },
-];
-
 const fetcher = (url: string) => 
   fetch(url)
     .then((r) => {
@@ -25,7 +19,6 @@ const fetcher = (url: string) =>
       return r.json();
     })
     .catch((error) => {
-      console.error(`[Fetcher] Failed to fetch ${url}:`, error);
       throw error;
     });
 
@@ -36,7 +29,7 @@ export default function AdminOrganizationsPage() {
     shouldRetryOnError: false,
   });
   
-  const [orgs, setOrgs] = React.useState(MOCK_ORGS);
+  const [orgs, setOrgs] = React.useState<any[]>([]);
   const [search, setSearch] = React.useState("");
   const [filterOpen, setFilterOpen] = React.useState(false);
   const [planFilter, setPlanFilter] = React.useState<string>("all");
@@ -75,7 +68,7 @@ export default function AdminOrganizationsPage() {
 
       const result = await response.json();
       if (!response.ok) {
-        toast.error(result.error || t("admin.failedToCreateOrg", "Failed to create organization"));
+        toast.error(typeof result.error === "string" ? result.error : (result.error?.message || result.error?.toString?.() || t("admin.failedToCreateOrg", "Failed to create organization")));
         return;
       }
 
@@ -85,7 +78,6 @@ export default function AdminOrganizationsPage() {
       mutate();
     } catch (error) {
       toast.error(t("admin.errorCreatingOrg", "Error creating organization"));
-      console.error(error);
     } finally {
       setFormLoading(false);
     }
@@ -106,7 +98,7 @@ export default function AdminOrganizationsPage() {
 
       const result = await response.json();
       if (!response.ok) {
-        toast.error(result.error || t("admin.failedToUpdateOrg", "Failed to update organization"));
+        toast.error(typeof result.error === "string" ? result.error : (result.error?.message || result.error?.toString?.() || t("admin.failedToUpdateOrg", "Failed to update organization")));
         return;
       }
 
@@ -117,7 +109,6 @@ export default function AdminOrganizationsPage() {
       mutate();
     } catch (error) {
       toast.error(t("admin.errorUpdatingOrg", "Error updating organization"));
-      console.error(error);
     } finally {
       setFormLoading(false);
     }
@@ -140,7 +131,6 @@ export default function AdminOrganizationsPage() {
       mutate();
     } catch (error) {
       toast.error(t("admin.errorDeletingOrg", "Error deleting organization"));
-      console.error(error);
     }
   };
 

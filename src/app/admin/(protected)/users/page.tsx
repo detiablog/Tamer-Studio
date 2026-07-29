@@ -19,7 +19,6 @@ const fetcher = (url: string) =>
       return r.json();
     })
     .catch((error) => {
-      console.error(`[Fetcher] Failed to fetch ${url}:`, error);
       throw error;
     });
 
@@ -103,7 +102,7 @@ export default function AdminUsersPage() {
 
       const result = await response.json();
       if (!response.ok) {
-        toast.error(result.error || t("admin.failedToCreateUser", "Failed to create user"));
+        toast.error(typeof result.error === "string" ? result.error : (result.error?.message || result.error?.toString?.() || t("admin.failedToCreateUser", "Failed to create user")));
         return;
       }
 
@@ -113,7 +112,6 @@ export default function AdminUsersPage() {
       mutate();
     } catch (error) {
       toast.error(t("admin.errorCreatingUser", "Error creating user"));
-      console.error(error);
     } finally {
       setFormLoading(false);
     }
@@ -168,7 +166,7 @@ export default function AdminUsersPage() {
 
       const result = await response.json();
       if (!response.ok) {
-        toast.error(result.error || t("admin.failedToUpdateUser", "Failed to update user"));
+        toast.error(typeof result.error === "string" ? result.error : (result.error?.message || result.error?.toString?.() || t("admin.failedToUpdateUser", "Failed to update user")));
         return;
       }
 
@@ -180,7 +178,6 @@ export default function AdminUsersPage() {
       mutate();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : t("admin.errorUpdatingUser", "Error updating user"));
-      console.error(error);
     } finally {
       setFormLoading(false);
     }
@@ -204,7 +201,6 @@ export default function AdminUsersPage() {
       mutate();
     } catch (error) {
       toast.error(t("admin.errorDeletingUser", "Error deleting user"));
-      console.error(error);
     }
   };
 

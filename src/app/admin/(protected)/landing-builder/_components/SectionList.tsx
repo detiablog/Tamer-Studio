@@ -40,7 +40,7 @@ type SectionListProps = {
   onToggleVisibility: (section: LandingSection) => void;
   onToggleLock: (section: LandingSection) => void;
   onReorder: (sections: { sectionKey: string; order: number }[]) => void;
-  onRefresh: () => void;
+  onRefresh?: () => void;
 };
 
 const TYPE_BADGE_TONE: Record<string, "default" | "success" | "warning" | "info" | "muted" | "purple"> = {
@@ -161,14 +161,6 @@ export function SectionList({
             <span className="text-sm text-muted-foreground font-medium">
               {t("sectionList.ofSections", "{0} of {1} sections").replace("{0}", String(filteredSections.length)).replace("{1}", String(sections.length))}
             </span>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={onRefresh}>
-              Refresh
-            </Button>
-            <Button size="sm" onClick={onAdd} className="bg-gradient-to-r from-primary to-primary/80">
-              Add Section
-            </Button>
           </div>
         </div>
 

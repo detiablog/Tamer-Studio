@@ -16,7 +16,7 @@ const cmsService = new CMSService();
 
 const UpdateSectionSchema = z.object({
   title: z.string().min(1).max(255).optional(),
-  description: z.string().optional(),
+  description: z.string().nullable().optional(),
   component: z.string().optional(),
   type: z.string().optional(),
   visible: z.boolean().optional(),

@@ -12,12 +12,6 @@ import { toast } from "sonner";
 import { Breadcrumbs } from "@/components/admin/Breadcrumbs";
 import { useLocalizationContext } from "@/providers/localization";
 
-const MOCK_WORKSPACES = [
-  { id: "ws_1", name: "Default Workspace", slug: "default", description: "Main workspace", status: "active", createdAt: "23/07/2026" },
-  { id: "ws_2", name: "Development", slug: "development", description: "Dev environment", status: "active", createdAt: "22/07/2026" },
-  { id: "ws_3", name: "Testing", slug: "testing", description: "QA workspace", status: "active", createdAt: "21/07/2026" },
-];
-
 const fetcher = (url: string) => 
   fetch(url)
     .then((r) => {
@@ -25,7 +19,6 @@ const fetcher = (url: string) =>
       return r.json();
     })
     .catch((error) => {
-      console.error(`[Fetcher] Failed to fetch ${url}:`, error);
       throw error;
     });
 
@@ -51,8 +44,8 @@ export default function AdminWorkspacesPage() {
   React.useEffect(() => {
     if (data?.data && data.success) {
       setWorkspaces(data.data);
-    } else if (error && workspaces.length === 0) {
-      setWorkspaces(MOCK_WORKSPACES);
+    } else if (error) {
+      setWorkspaces([]);
     }
   }, [data, error]);
 
@@ -86,7 +79,7 @@ export default function AdminWorkspacesPage() {
 
       const result = await response.json();
       if (!response.ok) {
-        toast.error(result.error || t("admin.failedToCreateWorkspace", "Failed to create workspace"));
+        toast.error(typeof result.error === "string" ? result.error : (result.error?.message || result.error?.toString?.() || t("admin.failedToCreateWorkspace", "Failed to create workspace")));
         return;
       }
 
@@ -96,7 +89,6 @@ export default function AdminWorkspacesPage() {
       mutate();
     } catch (error) {
       toast.error(t("admin.errorCreatingWorkspace", "Error creating workspace"));
-      console.error(error);
     } finally {
       setFormLoading(false);
     }
@@ -140,7 +132,7 @@ export default function AdminWorkspacesPage() {
 
       const result = await response.json();
       if (!response.ok) {
-        toast.error(result.error || t("admin.failedToUpdateWorkspace", "Failed to update workspace"));
+        toast.error(typeof result.error === "string" ? result.error : (result.error?.message || result.error?.toString?.() || t("admin.failedToUpdateWorkspace", "Failed to update workspace")));
         return;
       }
 
@@ -152,7 +144,6 @@ export default function AdminWorkspacesPage() {
       mutate();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : t("admin.errorUpdatingWorkspace", "Error updating workspace"));
-      console.error(error);
     } finally {
       setFormLoading(false);
     }
@@ -176,7 +167,6 @@ export default function AdminWorkspacesPage() {
       mutate();
     } catch (error) {
       toast.error(t("admin.errorDeletingWorkspace", "Error deleting workspace"));
-      console.error(error);
     }
   };
 

@@ -1,10 +1,19 @@
 "use client";
 
+import * as React from "react";
 import { useLocalizationContext } from "@/providers/localization";
 import { AdminLoginForm } from "@/components/admin/AdminLoginForm";
+import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
+import { Button } from "@/components/ui/button";
+import { Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
 
 export function LoginPageClientContent({ csrfToken, error }: { csrfToken: string; error?: string }) {
   const { t } = useLocalizationContext();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => { setMounted(true); }, []);
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-background via-background to-muted/30">
@@ -14,16 +23,8 @@ export function LoginPageClientContent({ csrfToken, error }: { csrfToken: string
       <header className="fixed top-0 left-0 right-0 z-40 border-b border-border/50 bg-background/80 backdrop-blur-xl">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="flex h-16 items-center justify-between">
-            <a 
-              href="/" 
-              className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition hover:text-primary"
-              aria-label={t("admin.login.backToHomeAria", "Back to home")}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-4"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-              {t("admin.login.backToHome")}
-            </a>
-            <a 
-              href="/" 
+            <a
+              href="/"
               className="flex items-center gap-2 transition hover:opacity-80"
             >
               <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/60 text-primary-foreground shadow-md">
@@ -31,6 +32,20 @@ export function LoginPageClientContent({ csrfToken, error }: { csrfToken: string
               </div>
               <span className="hidden sm:inline text-sm font-semibold">Tamer Studio</span>
             </a>
+
+            <div className="flex items-center gap-1">
+              <LanguageSwitcher />
+              {mounted && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                  aria-label={t("topbar.toggleTheme", "Toggle theme")}
+                >
+                  {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </header>

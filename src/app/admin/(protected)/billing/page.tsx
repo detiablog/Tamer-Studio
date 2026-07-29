@@ -20,7 +20,6 @@ const fetcher = (url: string) =>
       return r.json();
     })
     .catch((error) => {
-      console.error(`[Fetcher] Failed to fetch ${url}:`, error);
       throw error;
     });
 

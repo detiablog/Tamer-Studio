@@ -43,12 +43,14 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
   const [form, setForm] = React.useState<Partial<LandingSection>>({});
   const [saving, setSaving] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState("general");
+  const [isDirty, setIsDirty] = React.useState(false);
   const saveTimerRef = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   React.useEffect(() => {
     if (section) {
       setForm({ ...section });
     }
+    setIsDirty(false);
     setActiveTab("general");
   }, [section]);
 
@@ -81,12 +83,13 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(payload),
       });
 
       const result = await response.json();
       if (!response.ok) {
-        toast.error(result.error || t("sectionDrawer.failedToSave", "Failed to save section"));
+        toast.error(typeof result.error === "string" ? result.error : (result.error?.message || t("sectionDrawer.failedToSave", "Failed to save section")));
         return;
       }
 
@@ -119,7 +122,7 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
   }, [open]);
 
   React.useEffect(() => {
-    if (!open || !section) return;
+    if (!open || !section || !isDirty) return;
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => {
       autoSave();
@@ -127,18 +130,27 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
     return () => {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     };
-  }, [form, open, section, autoSave]);
+  }, [form, open, section, autoSave, isDirty]);
 
-  const handleClose = () => {
+  const handleClose = async () => {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-    autoSave().then(() => onClose());
+    if (isDirty) {
+      try {
+        await autoSave();
+      } catch {
+        // autoSave already shows toast.error
+      }
+    }
+    onClose();
   };
 
   const handleChange = (field: keyof LandingSection, value: unknown) => {
+    setIsDirty(true);
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleConfigChange = (key: string, value: unknown) => {
+    setIsDirty(true);
     setForm((prev) => ({
       ...prev,
       config: { ...(prev.config ?? {}), [key]: value },
@@ -146,6 +158,7 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
   };
 
   const handleStylesChange = (key: string, value: unknown) => {
+    setIsDirty(true);
     setForm((prev) => ({
       ...prev,
       styles: { ...(prev.styles ?? {}), [key]: value },

@@ -108,7 +108,7 @@ export function AdminLandingBuilderClient({ adminToken }: AdminLandingBuilderCli
 
       const result = await response.json();
       if (!response.ok) {
-        toast.error(result.error || t("landingBuilder.failedToDelete", "Failed to delete section"));
+        toast.error(typeof result.error === "string" ? result.error : (result.error?.message || result.error?.toString?.() || t("landingBuilder.failedToDelete", "Failed to delete section")));
         return;
       }
 
@@ -149,7 +149,7 @@ export function AdminLandingBuilderClient({ adminToken }: AdminLandingBuilderCli
         toast.success(t("landingBuilder.sectionRestored", "Section restored"));
         await mutate();
       } else {
-        toast.error(result.error || t("landingBuilder.failedToRestore", "Failed to restore section"));
+        toast.error(typeof result.error === "string" ? result.error : (result.error?.message || result.error?.toString?.() || t("landingBuilder.failedToRestore", "Failed to restore section")));
       }
     } catch {
       toast.error(t("landingBuilder.errorRestoring", "Error restoring section"));
@@ -166,7 +166,7 @@ export function AdminLandingBuilderClient({ adminToken }: AdminLandingBuilderCli
 
       const result = await response.json();
       if (!response.ok) {
-        toast.error(result.error || t("landingBuilder.failedToUpdateVisibility", "Failed to update visibility"));
+        toast.error(typeof result.error === "string" ? result.error : (result.error?.message || result.error?.toString?.() || t("landingBuilder.failedToUpdateVisibility", "Failed to update visibility")));
         return;
       }
 
@@ -187,7 +187,7 @@ export function AdminLandingBuilderClient({ adminToken }: AdminLandingBuilderCli
 
       const result = await response.json();
       if (!response.ok) {
-        toast.error(result.error || t("landingBuilder.failedToUpdateLockState", "Failed to update lock state"));
+        toast.error(typeof result.error === "string" ? result.error : (result.error?.message || result.error?.toString?.() || t("landingBuilder.failedToUpdateLockState", "Failed to update lock state")));
         return;
       }
 
@@ -210,7 +210,7 @@ export function AdminLandingBuilderClient({ adminToken }: AdminLandingBuilderCli
 
       const result = await response.json();
       if (!response.ok) {
-        toast.error(result.error || t("landingBuilder.failedToDuplicate", "Failed to duplicate section"));
+        toast.error(typeof result.error === "string" ? result.error : (result.error?.message || result.error?.toString?.() || t("landingBuilder.failedToDuplicate", "Failed to duplicate section")));
         return;
       }
 
@@ -231,7 +231,7 @@ export function AdminLandingBuilderClient({ adminToken }: AdminLandingBuilderCli
 
       const result = await response.json();
       if (!response.ok) {
-        toast.error(result.error || t("landingBuilder.failedToReorder", "Failed to reorder sections"));
+        toast.error(typeof result.error === "string" ? result.error : (result.error?.message || result.error?.toString?.() || t("landingBuilder.failedToReorder", "Failed to reorder sections")));
         await mutate();
         return;
       }
@@ -367,23 +367,9 @@ export function AdminLandingBuilderClient({ adminToken }: AdminLandingBuilderCli
       <AddSectionDialog
         open={addDialogOpen}
         onClose={() => setAddDialogOpen(false)}
-        onCreated={({ key, title }) => {
-          const newSection: LandingSection = {
-            id: crypto.randomUUID(),
-            sectionKey: key,
-            title,
-            description: null,
-            component: key,
-            type: key,
-            visible: true,
-            locked: false,
-            order: sections.length,
-            config: {},
-            styles: {},
-            media: [],
-          };
-          setEditingSection(newSection);
-          setEditorOpen(true);
+        onCreated={async () => {
+          await mutate();
+          toast.success(t("addSectionDialog.success", "Section created successfully"));
         }}
         adminToken={adminToken}
       />

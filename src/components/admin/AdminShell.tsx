@@ -31,12 +31,13 @@ export function AdminShell({ children }: AdminShellProps) {
 
   return (
     <div className="min-h-screen flex bg-background text-foreground">
-      <div className={cn(
-        "hidden border-r bg-sidebar p-3 dark:block sm:block transition-all duration-300 ease-in-out",
-        collapsed ? "w-20" : "w-72"
+      <aside className={cn(
+        "shrink-0 border-r bg-sidebar p-3 transition-all duration-300 ease-in-out",
+        collapsed ? "w-20" : "w-72",
+        "max-md:hidden"
       )}>
         <AdminSidebar pathname={pathname} collapsed={collapsed} onToggle={toggleCollapsed} />
-      </div>
+      </aside>
 
       <div className="flex flex-1 flex-col">
         <AdminTopbar />
