@@ -1,16 +1,25 @@
 import type { Metadata } from "next";
-import { generatePageMetadata } from "@/core/seo";
 import { AboutContent } from "./AboutContent";
 
-export async function generateMetadata(): Promise<Metadata> {
-  return generatePageMetadata({
-    route: "/about",
+export const metadata: Metadata = {
+  title: "About — Tamer Studio",
+  description: "Learn about Tamer Studio, the AI-first production operating system for creators, agencies, and businesses.",
+  keywords: ["Tamer Studio", "about Tamer Studio", "AI production platform", "company"],
+  openGraph: {
     title: "About — Tamer Studio",
     description: "Learn about Tamer Studio, the AI-first production operating system for creators, agencies, and businesses.",
-    keywords: ["Tamer Studio", "about Tamer Studio", "AI production platform", "company"],
     type: "website",
-  });
-}
+    url: "https://tamerstudio.com/about",
+    siteName: "Tamer Studio",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "About — Tamer Studio",
+    description: "Learn about Tamer Studio, the AI-first production operating system for creators, agencies, and businesses.",
+  },
+  robots: { index: true, follow: true },
+};
 
 export default function AboutPage() {
   return <AboutContent />;

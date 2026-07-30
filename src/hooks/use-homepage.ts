@@ -48,7 +48,7 @@ export function useHomepage(context?: Partial<HomepageContext>): UseHomepageRetu
       if (context?.currency) params.set("currency", context.currency);
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
 
       const response = await fetch(`/api/homepage?${params.toString()}`, {
         method: "GET",

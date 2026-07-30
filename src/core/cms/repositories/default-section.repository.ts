@@ -76,6 +76,8 @@ export class DefaultCMSSectionRepository implements CMSSectionRepository {
   }
 
   private mapRow(row: typeof cmsSection.$inferSelect): CMSSection {
+    const cfg = row.config ?? {};
+    console.log('[mapRow] config type:', typeof cfg, 'value:', JSON.stringify(cfg)?.substring(0, 100));
     return {
       id: row.id,
       pageId: row.pageId,

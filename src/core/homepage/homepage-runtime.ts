@@ -71,9 +71,14 @@ export class HomepageRuntime {
 
     const page = await this.resolvePage(context);
     const sections = await this.resolveSections(page, context);
-    const navigation = await this.resolveNavigation(context);
-    const seo = await this.resolveSEO(page, context);
-    const localization = this.resolveLocalization(context);
+    
+    // Run independent queries in parallel
+    const [navigation, seo, localization] = await Promise.all([
+      this.resolveNavigation(context),
+      this.resolveSEO(page, context),
+      Promise.resolve(this.resolveLocalization(context)),
+    ]);
+    
     const media = this.resolveMedia(sections);
 
     const result: HomepageResolutionResult = {

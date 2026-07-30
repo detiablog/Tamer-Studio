@@ -1,18 +1,17 @@
 import { Suspense } from 'react';
 import { HomepageRuntimeContent } from '@/components/homepage/HomepageRuntimeContent';
 import { LandingKeyboardShortcuts } from '@/components/landing/LandingKeyboardShortcuts';
-import { generatePageMetadata } from '@/core/seo';
 
-export async function generateMetadata() {
-  return generatePageMetadata({
-    route: '/',
-    title: 'Tamer Studio — AI-first Production Operating System',
-    description: 'Tamer Studio is the AI-first production operating system for creators, agencies, and businesses.',
-    keywords: ['AI production platform', 'content production', 'AI generation', 'Tamer Studio'],
+export const metadata = {
+  title: 'Tamer Studio — AI-first Production Operating System',
+  description: 'Tamer Studio is the AI-first production operating system for creators, agencies, and businesses.',
+  keywords: ['AI production platform', 'content production', 'AI generation', 'Tamer Studio'],
+  openGraph: {
+    title: 'Tamer Studio',
+    description: 'AI-first production operating system.',
     type: 'website',
-    author: 'Tamer Studio',
-  });
-}
+  },
+};
 
 export default function HomePage() {
   return (

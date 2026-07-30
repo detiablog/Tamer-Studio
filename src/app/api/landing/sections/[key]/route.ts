@@ -130,16 +130,6 @@ export async function PATCH(
       return NextResponse.json({ success: false, error: { code: "PERMISSION_DENIED", message: "Cannot hide a locked section" } }, { status: 403 });
     }
 
-    if (parsed.data.config && typeof parsed.data.config === "object") {
-      const validation = validateConfigTranslationKeys(parsed.data.config as Record<string, unknown>);
-      if (!validation.valid) {
-        return NextResponse.json(
-          { success: false, error: { code: "VALIDATION_ERROR", message: `Invalid translation keys in config: ${validation.warnings.join(", ")}` } },
-          { status: 400 }
-        );
-      }
-    }
-
     const updateData: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(parsed.data)) {
       if (v !== undefined) {

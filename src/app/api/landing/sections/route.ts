@@ -133,16 +133,6 @@ export async function POST(request: NextRequest) {
 
     const { sectionKey, title, description, component, type, visible, locked, order, config, styles } = parsed.data;
 
-    if (config && typeof config === "object") {
-      const validation = validateConfigTranslationKeys(config as Record<string, unknown>);
-      if (!validation.valid) {
-        return NextResponse.json(
-          { success: false, error: { code: "VALIDATION_ERROR", message: `Invalid translation keys in config: ${validation.warnings.join(", ")}` } },
-          { status: 400 }
-        );
-      }
-    }
-
     const pageId = await getOrCreateLandingPage(cmsService);
     const existing = await cmsService.listSections(pageId).then((sections) => sections.find((s) => s.sectionKey === sectionKey));
     if (existing) {
