@@ -13,6 +13,8 @@ const UpdateUserSchema = z.object({
   email: z.string().email("Invalid email format").optional(),
   role: z.string().optional(),
   status: z.string().optional(),
+  password: z.string().min(12, "Password must be at least 12 characters").optional(),
+  emailVerified: z.boolean().optional(),
 });
 
 export async function PUT(
@@ -55,12 +57,15 @@ export async function PUT(
     }
 
     const service = new UserService();
+    const adminSessionToken = ctx.state.adminSession?.token;
     const user = await service.updateUser(id, {
       name: parsed.data.name,
       email: parsed.data.email,
       role: parsed.data.role,
       status: parsed.data.status,
-    });
+      password: parsed.data.password,
+      emailVerified: parsed.data.emailVerified,
+    }, adminSessionToken);
 
     return NextResponse.json(successResponse(user, "User updated successfully"));
   } catch (error) {

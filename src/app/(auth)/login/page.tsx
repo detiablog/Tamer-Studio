@@ -1,52 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { LogIn, ArrowRight, Lock } from "lucide-react";
-import { authClient } from "@/core/auth/client";
+import { LogIn, ArrowRight } from "lucide-react";
 import { LoginForm } from "@/features/auth/components/login-form";
 import { useLocalizationContext } from "@/providers/localization";
 
 export default function LoginPage() {
   const router = useRouter();
   const { t } = useLocalizationContext();
-  const { data: session, isPending } = authClient.useSession();
-  const [isInitialized, setIsInitialized] = useState(false);
-
-  useEffect(() => {
-    if (!isPending && session?.user) {
-      router.replace("/dashboard");
-      return;
-    }
-
-    if (!isPending) {
-      setIsInitialized(true);
-      return;
-    }
-
-    // Fallback: show form after 2 seconds even if session check hangs
-    const timer = setTimeout(() => {
-      setIsInitialized(true);
-    }, 2000);
-
-    return () => clearTimeout(timer);
-  }, [isPending, session, router]);
-
-  if (!isInitialized || isPending) {
-    return (
-      <main className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-        <div className="animate-spin">
-          <Lock className="size-6 text-primary" />
-        </div>
-        <p className="text-sm text-muted-foreground">{t("auth.login.checkingSession")}</p>
-      </main>
-    );
-  }
-
-  if (session?.user) {
-    return null;
-  }
 
   return (
     <main className="space-y-6">
@@ -68,12 +31,12 @@ export default function LoginPage() {
       <div className="space-y-4 pt-2">
         <div className="relative flex items-center gap-4">
           <div className="flex-1 h-px bg-border" />
-          <span className="text-xs text-muted-foreground">          {t("auth.login.newToTamer")}</span>
+          <span className="text-xs text-muted-foreground">{t("auth.login.newToTamer")}</span>
           <div className="flex-1 h-px bg-border" />
         </div>
 
-        <Link 
-          href="/register" 
+        <Link
+          href="/register"
           className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-muted hover:border-foreground/20 group"
         >
           {t("auth.login.createAccount")}

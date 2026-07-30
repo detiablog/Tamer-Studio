@@ -7,6 +7,7 @@ import { AdminDataTable } from "@/components/admin/AdminDataTable";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Search, Filter, UserPlus, Loader, X, Trash2, Edit } from "lucide-react";
 import { toast } from "sonner";
 import { Breadcrumbs } from "@/components/admin/Breadcrumbs";
@@ -39,7 +40,7 @@ export default function AdminUsersPage() {
   const [editingUser, setEditingUser] = React.useState<any>(null);
   const [originalData, setOriginalData] = React.useState<any>(null);
   const [formLoading, setFormLoading] = React.useState(false);
-  const [formData, setFormData] = React.useState({ name: "", email: "", password: "", role: "user", status: "active" });
+  const [formData, setFormData] = React.useState({ name: "", email: "", password: "", role: "user", status: "active", emailVerified: false });
 
   const dbUsers = React.useMemo(() => {
     if (data?.success && Array.isArray(data.data)) {
@@ -81,7 +82,8 @@ export default function AdminUsersPage() {
       email: user.email || "", 
       password: "",
       role: roleValue,
-      status: statusValue
+      status: statusValue,
+      emailVerified: user.emailVerified || false,
     };
     
     setOriginalData(data);
@@ -134,24 +136,15 @@ export default function AdminUsersPage() {
       return;
     }
 
-    const changedFields: Record<string, unknown> = {};
-
-    if (formData.name.trim() !== originalData?.name) {
-      changedFields.name = formData.name.trim();
-    }
-    if (formData.email.trim() !== originalData?.email) {
-      changedFields.email = formData.email.trim();
-    }
-    if (formData.role !== originalData?.role) {
-      changedFields.role = formData.role;
-    }
-    if (formData.status !== originalData?.status) {
-      changedFields.status = formData.status;
-    }
-
-    if (Object.keys(changedFields).length === 0) {
-      toast.info(t("admin.noChanges", "No changes made"));
-      return;
+    const payload: Record<string, unknown> = {
+      name: formData.name.trim(),
+      email: formData.email.trim(),
+      role: formData.role,
+      status: formData.status,
+      emailVerified: formData.emailVerified,
+    };
+    if (formData.password && formData.password.trim().length >= 12) {
+      payload.password = formData.password.trim();
     }
 
     const userId = String(editingUser.id);
@@ -161,7 +154,8 @@ export default function AdminUsersPage() {
       const response = await fetch(`/api/admin/users/${userId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(changedFields),
+        credentials: "include",
+        body: JSON.stringify(payload),
       });
 
       const result = await response.json();
@@ -171,7 +165,7 @@ export default function AdminUsersPage() {
       }
 
       toast.success(t("admin.userUpdatedSuccess", "User updated successfully!"));
-      setFormData({ name: "", email: "", password: "", role: "user", status: "active" });
+      setFormData({ name: "", email: "", password: "", role: "user", status: "active", emailVerified: false });
       setOriginalData(null);
       setEditingUser(null);
       setEditUserOpen(false);
@@ -189,6 +183,7 @@ export default function AdminUsersPage() {
     try {
       const response = await fetch(`/api/admin/users/${userId}`, {
         method: "DELETE",
+        credentials: "include",
       });
 
       if (!response.ok) {
@@ -392,45 +387,123 @@ export default function AdminUsersPage() {
       {editUserOpen && editingUser && (
         <>
           <div className="fixed inset-0 z-40 bg-black/50" onClick={() => setEditUserOpen(false)} />
-          <div className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-xl border border-border bg-card p-6 shadow-lg">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold">{t("admin.editUser", "Edit User")}</h2>
-              <button onClick={() => setEditUserOpen(false)} className="text-muted-foreground hover:text-foreground">
-                <X className="size-5" />
+          <div className="fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-border bg-card shadow-xl ring-1 ring-primary/5">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+              <div>
+                <h2 className="text-lg font-semibold">{t("admin.editUser", "Edit User")}</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">{editingUser.email}</p>
+              </div>
+              <button onClick={() => setEditUserOpen(false)} className="size-8 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition">
+                <X className="size-4" />
               </button>
             </div>
 
-            <form onSubmit={handleEditUser} className="space-y-4">
-              <div>
-                <label className="text-sm font-medium mb-1.5 block">{t("common.name", "Name")}</label>
-                <Input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
+            {/* Form */}
+            <form onSubmit={handleEditUser} className="p-6 space-y-5">
+              {/* Name */}
+              <div className="space-y-2">
+                <Label htmlFor="edit-name" className="text-sm font-semibold">{t("common.name", "Name")}</Label>
+                <Input
+                  id="edit-name"
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="Full name"
+                  required
+                  disabled={formLoading}
+                  className="h-10 bg-background/50 border-border focus:border-primary transition"
+                />
               </div>
-              <div>
-                <label className="text-sm font-medium mb-1.5 block">{t("common.email", "Email")}</label>
-                <Input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required />
+
+              {/* Email */}
+              <div className="space-y-2">
+                <Label htmlFor="edit-email" className="text-sm font-semibold">{t("common.email", "Email")}</Label>
+                <Input
+                  id="edit-email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  placeholder="user@example.com"
+                  required
+                  disabled={formLoading}
+                  className="h-10 bg-background/50 border-border focus:border-primary transition"
+                />
               </div>
-              <div>
-                <label className="text-sm font-medium mb-1.5 block">{t("common.password", "Password (optional)")}</label>
-                <Input type="password" placeholder="••••••••" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} />
+
+              {/* Password */}
+              <div className="space-y-2">
+                <Label htmlFor="edit-password" className="text-sm font-semibold">{t("admin.passwordOptional", "Password")} <span className="text-muted-foreground font-normal text-xs">({t("admin.leaveEmptyToKeep", "leave empty to keep current")})</span></Label>
+                <Input
+                  id="edit-password"
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  placeholder="••••••••"
+                  disabled={formLoading}
+                  className="h-10 bg-background/50 border-border focus:border-primary transition"
+                />
               </div>
-              <div>
-                <label className="text-sm font-medium mb-1.5 block">{t("admin.role", "Role")}</label>
-                <select value={formData.role} onChange={(e) => setFormData({ ...formData, role: e.target.value })} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm">
-                  <option value="admin">{t("admin.roleAdmin", "Admin")}</option>
-                  <option value="user">{t("admin.roleUser", "User")}</option>
-                </select>
+
+              {/* Role & Status in a row */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-role" className="text-sm font-semibold">{t("admin.role", "Role")}</Label>
+                  <select
+                    id="edit-role"
+                    value={formData.role}
+                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                    disabled={formLoading}
+                    className="w-full h-10 rounded-lg border border-border bg-background/50 px-3 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
+                  >
+                    <option value="user">{t("admin.roleUser", "User")}</option>
+                    <option value="admin">{t("admin.roleAdmin", "Admin")}</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-status" className="text-sm font-semibold">{t("admin.status", "Status")}</Label>
+                  <select
+                    id="edit-status"
+                    value={formData.status}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                    disabled={formLoading}
+                    className="w-full h-10 rounded-lg border border-border bg-background/50 px-3 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
+                  >
+                    <option value="active">{t("admin.active", "Active")}</option>
+                    <option value="pending">{t("admin.pending", "Pending")}</option>
+                    <option value="suspended">{t("admin.suspended", "Suspended")}</option>
+                  </select>
+                </div>
               </div>
-              <div>
-                <label className="text-sm font-medium mb-1.5 block">{t("admin.status", "Status")}</label>
-                <select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm">
-                  <option value="active">{t("admin.active", "Active")}</option>
-                  <option value="pending">{t("admin.pending", "Pending")}</option>
-                  <option value="suspended">{t("admin.suspended", "Suspended")}</option>
-                </select>
+
+              {/* Email Verified Toggle */}
+              <div className="flex items-center gap-3 p-3 rounded-lg border border-border/50 bg-muted/30">
+                <input
+                  type="checkbox"
+                  id="editEmailVerified"
+                  checked={formData.emailVerified}
+                  onChange={(e) => setFormData({ ...formData, emailVerified: e.target.checked })}
+                  disabled={formLoading}
+                  className="h-4 w-4 rounded border-border cursor-pointer transition accent-primary"
+                />
+                <div>
+                  <label htmlFor="editEmailVerified" className="text-sm font-medium cursor-pointer">
+                    {t("admin.emailVerified", "Email Verified")}
+                  </label>
+                  <p className="text-xs text-muted-foreground">{t("admin.emailVerifiedDesc", "Mark this user's email as verified")}</p>
+                </div>
               </div>
-              <div className="flex gap-2 pt-4">
-                <Button type="button" variant="outline" onClick={() => setEditUserOpen(false)} className="flex-1">{t("common.cancel", "Cancel")}</Button>
-                <Button type="submit" disabled={formLoading} className="flex-1">{formLoading ? t("admin.updating", "Updating...") : t("admin.update", "Update")}</Button>
+
+              {/* Buttons */}
+              <div className="flex gap-3 pt-2">
+                <Button type="button" variant="outline" onClick={() => setEditUserOpen(false)} disabled={formLoading} className="flex-1 h-10">
+                  {t("common.cancel", "Cancel")}
+                </Button>
+                <Button type="submit" disabled={formLoading} className="flex-1 h-10 text-sm font-semibold bg-gradient-to-r from-primary to-primary/80 hover:shadow-lg transition">
+                  {formLoading ? (
+                    <><span className="inline-block animate-spin mr-2">⏳</span>{t("admin.updating", "Updating...")}</>
+                  ) : t("admin.update", "Update User")}
+                </Button>
               </div>
             </form>
           </div>

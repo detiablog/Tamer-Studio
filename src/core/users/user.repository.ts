@@ -1,12 +1,12 @@
 import type { UserProfile, UserPreferences, ExternalIdentity, UpdateUserProfileInput } from "./user.types";
 import { db } from "@/lib/db";
-import { user } from "@/lib/db/schema/auth";
+import { user, account, verification } from "@/lib/db/schema/auth";
 import { userProfile, userPreferences, externalIdentity } from "@/lib/db/schema/identity";
 import { eq, and, desc } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export class UserRepository {
-  async getAllUsers(): Promise<Array<{ id: string; name: string; email: string; role: string; status: string }>> {
+  async getAllUsers(): Promise<Array<{ id: string; name: string; email: string; role: string; status: string; emailVerified: boolean; createdAt: Date }>> {
     const rows = await db.select().from(user);
     return rows.map((u) => ({
       id: u.id,
@@ -14,28 +14,39 @@ export class UserRepository {
       email: u.email,
       role: u.role || "user",
       status: u.status || "pending",
+      emailVerified: u.emailVerified || false,
+      createdAt: u.createdAt,
     }));
   }
 
-  async createUser(input: { name: string; email: string; role?: string; status?: string }): Promise<{ id: string; name: string; email: string; role: string; status: string }> {
-    const id = `user_${randomUUID()}`;
+  async createUser(input: { name: string; email: string; password: string; role?: string; status?: string }): Promise<{ id: string; name: string; email: string; role: string; status: string }> {
+    // Use Better Auth to create user with correct password hash
+    const { auth } = await import("@/core/auth");
+    const url = new URL("/api/auth/sign-up/email", "http://localhost:3000");
+    const signUpResult = await auth.handler(new Request(url.toString(), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: input.email, password: input.password, name: input.name }),
+    }));
+
+    let userId: string;
+    if (signUpResult.ok) {
+      const body = await signUpResult.json() as any;
+      userId = body.user.id;
+    } else {
+      throw new Error("Failed to create user via Better Auth");
+    }
+
+    // Update role and status (Better Auth doesn't have these fields)
     const now = new Date();
-    const [row] = await db.insert(user).values({
-      id,
+    await db.update(user).set({ role: input.role || "user", status: input.status || "pending", updatedAt: now }).where(eq(user.id, userId));
+
+    return {
+      id: userId,
       name: input.name,
       email: input.email,
       role: input.role || "user",
       status: input.status || "pending",
-      emailVerified: false,
-      createdAt: now,
-      updatedAt: now,
-    }).returning();
-    return {
-      id: row.id,
-      name: row.name,
-      email: row.email,
-      role: row.role,
-      status: row.status,
     };
   }
 
@@ -177,7 +188,7 @@ export class UserRepository {
     };
   }
 
-  async updateUser(userId: string, input: Record<string, unknown>): Promise<{ id: string; name: string; email: string; role: string; status: string; emailVerified: boolean; createdAt: Date; updatedAt: Date }> {
+  async updateUser(userId: string, input: Record<string, unknown>, adminSessionToken?: string): Promise<{ id: string; name: string; email: string; role: string; status: string; emailVerified: boolean; createdAt: Date; updatedAt: Date }> {
     const existing = await this.getUserById(userId);
     if (!existing) throw new Error("User not found");
     const now = new Date();
@@ -186,7 +197,36 @@ export class UserRepository {
     if (input.email !== undefined) updates.email = input.email as string;
     if (input.role !== undefined) updates.role = input.role as string;
     if (input.status !== undefined) updates.status = input.status as string;
+    if (input.emailVerified !== undefined) updates.emailVerified = input.emailVerified as boolean;
     const [row] = await db.update(user).set(updates).where(eq(user.id, userId)).returning();
+
+    // Update password if provided — complete user replacement via Better Auth
+    if (input.password && typeof input.password === "string" && input.password.length >= 12) {
+      try {
+        const { auth } = await import("@/core/auth");
+        // Step 1: Delete the original user and all accounts (Better Auth will re-create)
+        await db.delete(account).where(eq(account.userId, userId));
+        await db.delete(user).where(eq(user.id, userId));
+        // Step 2: Create user + account via Better Auth sign-up
+        const url = new URL("/api/auth/sign-up/email", "http://localhost:3000");
+        const result = await auth.handler(new Request(url.toString(), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: row.email, password: input.password, name: row.name }),
+        }));
+        if (result.ok) {
+          const body = await result.clone().json().catch(() => ({}));
+          const newUserId = body?.user?.id;
+          if (newUserId) {
+            // Update the new user with original role/status
+            await db.update(user).set({ role: updates.role || "user", status: updates.status || "pending" }).where(eq(user.id, newUserId));
+          }
+        }
+      } catch {
+        // Password update failed
+      }
+    }
+
     return {
       id: row.id,
       name: row.name || "Unknown",
@@ -200,6 +240,19 @@ export class UserRepository {
   }
 
   async deleteUser(userId: string): Promise<boolean> {
+    // 1. Look up the user to get their email for verification cleanup
+    const targetUser = await db.select({ id: user.id, email: user.email }).from(user).where(eq(user.id, userId)).limit(1);
+    if (!targetUser.length) return false;
+
+    // 2. Clean up verification records (no FK to user — won't cascade)
+    const email = targetUser[0].email;
+    if (email) {
+      await db.delete(verification).where(eq(verification.identifier, email));
+    }
+
+    // 3. Hard delete from user table (cascades to: session, account, api_key,
+    //    notification, notification_preference, workspace_member, user_preferences,
+    //    external_identity, organization_member, support_ticket, etc.)
     const [row] = await db.delete(user).where(eq(user.id, userId)).returning({ id: user.id });
     return !!row;
   }

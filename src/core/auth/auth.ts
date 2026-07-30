@@ -15,9 +15,13 @@ export const auth = betterAuth({
   emailVerification: {
     sendOnSignUp: true,
     sendVerificationEmail: async ({ user, url }) => {
-      const token = await defaultEmailService.createVerificationToken(user.email, user.id);
-      await defaultEmailService.sendVerification(user.email, token, user.name);
-      logger.info("Verification email sent", { userId: user.id, email: user.email });
+      try {
+        const token = await defaultEmailService.createVerificationToken(user.email, user.id);
+        await defaultEmailService.sendVerification(user.email, token, user.name);
+        logger.info("Verification email sent", { userId: user.id, email: user.email });
+      } catch (err) {
+        logger.error("Failed to send verification email (non-blocking)", err as Error);
+      }
     },
   },
 
@@ -25,9 +29,13 @@ export const auth = betterAuth({
     enabled: true,
     minPasswordLength: 12,
     sendResetPassword: async ({ user, url }) => {
-      const token = await defaultEmailService.createResetPasswordToken(user.email, user.id);
-      await defaultEmailService.sendResetPassword(user.email, token, user.name);
-      logger.info("Reset password email sent", { userId: user.id, email: user.email });
+      try {
+        const token = await defaultEmailService.createResetPasswordToken(user.email, user.id);
+        await defaultEmailService.sendResetPassword(user.email, token, user.name);
+        logger.info("Reset password email sent", { userId: user.id, email: user.email });
+      } catch (err) {
+        logger.error("Failed to send reset password email (non-blocking)", err as Error);
+      }
     },
     onSignInError: async (ctx: { email?: string; error?: { message?: string } }) => {
       logger.security("Better-auth sign-in error", { email: ctx.email, error: ctx.error?.message });

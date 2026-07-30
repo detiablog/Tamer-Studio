@@ -11,6 +11,7 @@ import { z } from "zod";
 const CreateUserSchema = z.object({
   name: z.string().min(1, "Name is required").max(255),
   email: z.string().email("Invalid email format"),
+  password: z.string().min(12, "Password must be at least 12 characters"),
   role: z.string().default("user"),
   status: z.string().optional(),
 });
@@ -92,6 +93,7 @@ export async function POST(request: NextRequest) {
     const user = await service.createUser({
       name: parsed.data.name,
       email: parsed.data.email,
+      password: parsed.data.password,
       role: parsed.data.role || "user",
       status: parsed.data.status || "pending",
     });

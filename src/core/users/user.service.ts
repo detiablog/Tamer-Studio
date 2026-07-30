@@ -13,7 +13,7 @@ export class UserService {
     return this.repository.getAllUsers();
   }
 
-  async createUser(input: { name: string; email: string; role?: string; status?: string }): Promise<{ id: string; name: string; email: string; role: string; status: string }> {
+  async createUser(input: { name: string; email: string; password: string; role?: string; status?: string }): Promise<{ id: string; name: string; email: string; role: string; status: string }> {
     const user = await this.repository.createUser(input);
     logAction("user.created", undefined, undefined, { userId: user.id });
     return user;
@@ -68,8 +68,8 @@ export class UserService {
     return this.repository.getUserById(userId);
   }
 
-  async updateUser(userId: string, input: Record<string, unknown>): Promise<{ id: string; name: string; email: string; role: string; status: string }> {
-    const user = await this.repository.updateUser(userId, input);
+  async updateUser(userId: string, input: Record<string, unknown>, adminSessionToken?: string): Promise<{ id: string; name: string; email: string; role: string; status: string }> {
+    const user = await this.repository.updateUser(userId, input, adminSessionToken);
     logAction("user.updated", undefined, undefined, { userId, changes: input });
     return user;
   }
