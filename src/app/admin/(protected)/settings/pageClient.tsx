@@ -3,6 +3,7 @@
 import * as React from "react";
 import useSWR from "swr";
 import { cn } from "@/lib/utils";
+import { logger } from "@/core/logger";
 import { PageContainer } from "@/components/ui/PageContainer";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { DashboardCard } from "@/components/ui/DashboardCard";
@@ -13,6 +14,7 @@ import { Save, RefreshCw, User, Mail, Shield, Database, Sparkles, CreditCard, Ke
 import { toast } from "sonner";
 import { Breadcrumbs } from "@/components/admin/Breadcrumbs";
 import { useLocalizationContext } from "@/providers/localization";
+import { EmailSettingsTab } from "./emailSettingsTab";
 
 const fetcher = (url: string) =>
   fetch(url)
@@ -21,7 +23,7 @@ const fetcher = (url: string) =>
       return r.json();
     })
     .catch((error) => {
-      console.error(`[Fetcher] Failed to fetch ${url}:`, error);
+      logger.error(`[Fetcher] Failed to fetch ${url}`, error instanceof Error ? error : new Error(String(error)));
       throw error;
     });
 
@@ -548,121 +550,7 @@ export function SettingsPage({ adminToken }: SettingsPageProps) {
           )}
 
           {activeTab === "email" && (
-            <div className="space-y-6">
-              <DashboardCard>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-heading text-base font-medium">{t("admin.emailNotifications")}</h3>
-                    <p className="text-xs text-muted-foreground mt-0.5">{t("admin.emailNotifications", "Master switch for email notifications")}</p>
-                  </div>
-                  <Button variant={formData.emailNotifications ? "default" : "outline"} size="sm" onClick={() => setFormData({ ...formData, emailNotifications: !formData.emailNotifications })} className="min-w-[88px]">
-                    {formData.emailNotifications ? t("admin.enabled") : t("admin.disabled")}
-                  </Button>
-                </div>
-              </DashboardCard>
-
-              <div className="space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div>
-                    <h3 className="font-heading text-base font-medium">{t("email.providers")}</h3>
-                    <p className="text-xs text-muted-foreground mt-0.5">{t("email.providersDescription")}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <select
-                      value=""
-                      onChange={(e) => {
-                        if (e.target.value) createProvider(e.target.value as ProviderType);
-                      }}
-                      disabled={!!creatingType}
-                      className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
-                    >
-                      <option value="">+ {t("email.addProvider", "Add Provider")}</option>
-                      {PROVIDER_TYPES.map((pt) => (
-                        <option key={pt.type} value={pt.type}>{t(pt.labelKey)}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                {loadingProviders ? (
-                  <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">
-                    <Loader2 className="mr-2 size-4 animate-spin" />
-                    {t("common.loading")}
-                  </div>
-                ) : providers.length === 0 ? (
-                  <div className="rounded-xl border border-dashed border-border bg-muted/20 p-8 text-center text-sm text-muted-foreground">
-                    {t("email.noProviders")}
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {providers.map((provider) => {
-                      const isExpanded = expandedId === provider.id;
-                      const meta = PROVIDER_TYPES.find((item) => item.type === provider.type);
-                      return (
-                        <div key={provider.id} className="rounded-xl border border-border bg-card">
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4">
-                            <div className="flex items-center gap-3">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="size-8"
-                                onClick={() => setExpandedId(isExpanded ? null : provider.id)}
-                              >
-                                {isExpanded ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
-                              </Button>
-                              <div>
-                                <p className="font-medium text-sm">{provider.name}</p>
-                                <p className="text-xs text-muted-foreground">{meta ? t(meta.labelKey) : provider.type}</p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2 ml-11 sm:ml-0">
-                              <Button
-                                variant={provider.isActive ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => toggleProvider(provider)}
-                                className="min-w-[88px]"
-                              >
-                                <span className="flex items-center gap-1.5">
-                                  <span className={cn("size-1.5 rounded-full", provider.isActive ? "bg-green-500" : "bg-muted-foreground")} />
-                                  {provider.isActive ? t("email.enabled") : t("email.disabled")}
-                                </span>
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => testProvider(provider.id)}
-                                disabled={testingId === provider.id}
-                                className="min-w-[110px]"
-                              >
-                                {testingId === provider.id ? <Loader2 className="mr-1.5 size-3.5 animate-spin" /> : <TestTube className="mr-1.5 size-3.5" />}
-                                {testingId === provider.id ? t("email.testing") : t("email.testConnection")}
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="size-8 text-destructive hover:text-destructive"
-                                onClick={() => {
-                                  if (confirm(t("email.deleteConfirm", `Delete provider "${provider.name}"?`))) {
-                                    deleteProvider(provider.id);
-                                  }
-                                }}
-                              >
-                                <Trash2 className="size-4" />
-                              </Button>
-                            </div>
-                          </div>
-                          {isExpanded && (
-                            <div className="border-t border-border bg-muted/10 p-4 space-y-4">
-                              {renderProviderForm(provider)}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            </div>
+            <EmailSettingsTab adminToken={adminToken} t={t} siteName={formData.siteName} />
           )}
 
           {activeTab === "storage" && (

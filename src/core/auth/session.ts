@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { InvalidSessionError } from "./errors";
 import { getEffectivePermissions, hasPermission, hasAnyPermission, hasAllPermissions, type UserRole, type Permission } from "./permissions";
 import type { UserSession } from "./types";
+import { logger } from "@/core/logger";
 
 export async function getServerSession(request?: Request): Promise<UserSession | null> {
   try {
@@ -12,24 +13,18 @@ export async function getServerSession(request?: Request): Promise<UserSession |
       headers = new Headers(request.headers);
     } else {
       const cookieStore = await cookies();
-      const parts: string[] = [];
-      for (const entry of cookieStore) {
-        const name = entry[0];
-        const cookie = entry[1];
-        const value = typeof cookie === "string" ? cookie : (typeof cookie === "object" && cookie !== null ? (cookie as any).value : undefined);
-        if (name && value) {
-          parts.push(`${name}=${value}`);
-        }
-      }
+      const allCookies = cookieStore.getAll();
       headers = new Headers();
-      if (parts.length > 0) {
-        headers.append("Cookie", parts.join("; "));
+      if (allCookies.length > 0) {
+        const cookieString = allCookies.map((c) => `${c.name}=${c.value}`).join("; ");
+        headers.append("Cookie", cookieString);
       }
     }
 
     const session = await auth.api.getSession({ headers });
     return session as UserSession | null;
-  } catch {
+  } catch (err) {
+    logger.error("getServerSession error", err as Error);
     return null;
   }
 }

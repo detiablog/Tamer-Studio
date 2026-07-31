@@ -41,11 +41,11 @@ export class SmtpProvider implements EmailProvider {
   }
 
   private decryptCredentials(credentials: Record<string, unknown>): SmtpProviderCredentials {
-    const host = typeof credentials.host === "string" ? decrypt(credentials.host) : "";
-    const port = typeof credentials.port === "string" ? parseInt(decrypt(credentials.port), 10) : 587;
-    const secure = typeof credentials.secure === "string" ? decrypt(credentials.secure) === "true" : false;
-    const username = typeof credentials.username === "string" ? decrypt(credentials.username) : undefined;
-    const password = typeof credentials.password === "string" ? decrypt(credentials.password) : undefined;
+    const host = typeof credentials.host === "string" ? credentials.host : "";
+    const port = typeof credentials.port === "string" ? parseInt(credentials.port, 10) : typeof credentials.port === "number" ? credentials.port : 587;
+    const secure = credentials.secure === true || credentials.secure === "true";
+    const username = typeof credentials.username === "string" ? credentials.username : undefined;
+    const password = typeof credentials.password === "string" ? credentials.password : undefined;
 
     return { host, port, secure, username, password };
   }

@@ -29,7 +29,7 @@ export default function ProfilePage() {
   const { data, error, isLoading, mutate } = useSWR("/api/admin/me", fetcher, {
     revalidateOnFocus: false,
     shouldRetryOnError: false,
-    dedupingInterval: 0,
+    dedupingInterval: 5000,
   });
 
   const profile = React.useMemo(() => {

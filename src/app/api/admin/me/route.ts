@@ -5,7 +5,7 @@ import { runMiddleware } from "@/core/middleware/compose";
 import { adminAuthentication } from "@/core/middleware";
 import { AdminService } from "@/core/admin/admin.service";
 import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
-import { successResponse } from "@/app/api/mappers/response";
+import { successResponse, errorResponse } from "@/app/api/mappers/response";
 
 export async function GET(request: NextRequest) {
   const ctx: RequestContext = {
@@ -27,8 +27,8 @@ export async function GET(request: NextRequest) {
     ip: request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0].trim() || undefined,
   };
 
-  const errorResponse = await runMiddleware([adminAuthentication(false)], ctx);
-  if (errorResponse) return errorResponse;
+  const middlewareError = await runMiddleware([adminAuthentication(false)], ctx);
+  if (middlewareError) return middlewareError;
 
   try {
     const session = ctx.state.adminSession;
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json(errorResponse("UNAUTHORIZED", "Unauthorized"), { status: 401 });
   } catch (error) {
     return mapErrorToResponse(error);
   }

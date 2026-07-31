@@ -27,6 +27,18 @@ import {
   Layout,
   Link,
   DollarSign,
+  Activity,
+  Megaphone,
+  Ticket,
+  Cpu,
+  Gauge,
+  GitBranch,
+  Database,
+  Share2,
+  HardDrive,
+  FileBarChart,
+  Rocket,
+  Image,
 } from "lucide-react"
 import { useLocalizationContext } from "@/providers/localization"
 
@@ -50,20 +62,38 @@ const ADMIN_NAV_ITEMS: SidebarNavItem[] = [
   { id: "users", labelKey: "admin.users", label: "Users", icon: Users, href: "/admin/users", group: "management" },
   { id: "organizations", labelKey: "admin.organizations", label: "Organizations", icon: Building2, href: "/admin/organizations", group: "management" },
   { id: "workspaces", labelKey: "admin.workspaces", label: "Workspaces", icon: Briefcase, href: "/admin/workspaces", group: "management" },
+  { id: "workflows", labelKey: "admin.workflows", label: "Workflows", icon: GitBranch, href: "/admin/workflows", group: "management" },
+  { id: "assets-admin", labelKey: "admin.assets", label: "Assets", icon: Database, href: "/admin/assets", group: "management" },
+  { id: "storage-admin", labelKey: "admin.storage", label: "Storage", icon: HardDrive, href: "/admin/storage", group: "management" },
   { id: "subscriptions", labelKey: "admin.subscriptions", label: "Subscriptions", icon: DollarSign, href: "/admin/subscriptions", group: "management" },
+  { id: "payments", labelKey: "admin.payments", label: "Payments", icon: CreditCard, href: "/admin/payments", group: "management" },
+  { id: "invoices", labelKey: "admin.invoices", label: "Invoices", icon: FileText, href: "/admin/payments/invoices", group: "management" },
+  { id: "pricing", labelKey: "admin.pricing", label: "Pricing", icon: DollarSign, href: "/admin/pricing", group: "management" },
   { id: "profile", labelKey: "admin.profile", label: "Profile", icon: UserCog, href: "/admin/profile", group: "management" },
   { id: "analytics", labelKey: "admin.analytics", label: "Analytics", icon: BarChart3, href: "/admin/analytics", group: "analytics" },
+  { id: "performance", labelKey: "admin.performance", label: "Performance", icon: Gauge, href: "/admin/performance", group: "analytics" },
+  { id: "reports", labelKey: "admin.reports", label: "Reports", icon: FileBarChart, href: "/admin/reports", group: "analytics" },
   { id: "audit-logs", labelKey: "admin.auditLogs", label: "Audit Logs", icon: ScrollText, href: "/admin/audit-logs", group: "analytics" },
+  { id: "email-dashboard", labelKey: "email.dashboard", label: "Dashboard", icon: Activity, href: "/admin/email/dashboard", group: "analytics" },
   { id: "email", labelKey: "admin.email", label: "Email", icon: Mail, href: "/admin/email", group: "analytics" },
   { id: "billing", labelKey: "admin.billing", label: "Billing", icon: CreditCard, href: "/admin/billing", group: "settings" },
   { id: "coupons", labelKey: "admin.coupons", label: "Coupons", icon: FileText, href: "/admin/coupons", group: "settings" },
   { id: "feature-flags", labelKey: "admin.featureFlags", label: "Feature Flags", icon: Flag, href: "/admin/feature-flags", group: "settings" },
   { id: "api-keys", labelKey: "admin.apiKeys", label: "API Keys", icon: Key, href: "/admin/api-keys", group: "settings" },
   { id: "ai-providers", labelKey: "admin.aiProviders", label: "AI Providers", icon: Brain, href: "/admin/ai-providers", group: "settings" },
+  { id: "ai-admin", labelKey: "admin.aiAdmin", label: "AI Admin", icon: Brain, href: "/admin/ai", group: "settings" },
+  { id: "ai-runtime", labelKey: "admin.aiRuntime.title", label: "AI Runtime", icon: Cpu, href: "/admin/ai-runtime", group: "analytics" },
+  { id: "ai-image", labelKey: "admin.aiImage", label: "AI Image", icon: Image, href: "/admin/ai-image", group: "analytics" },
+  { id: "monitor", labelKey: "admin.monitor", label: "Monitor", icon: Activity, href: "/admin/monitor", group: "analytics" },
   { id: "jobs", labelKey: "admin.jobs", label: "Jobs", icon: Briefcase, href: "/admin/jobs", group: "settings" },
   { id: "queues", labelKey: "admin.queues", label: "Queues", icon: ListTodo, href: "/admin/queues", group: "settings" },
   { id: "landing-builder", labelKey: "admin.landingBuilder", label: "Landing Builder", icon: Layout, href: "/admin/landing-builder", group: "settings" },
+  { id: "campaigns", labelKey: "admin.campaigns", label: "Campaigns", icon: Megaphone, href: "/admin/campaigns", group: "marketing" },
+  { id: "campaigns-coupons", labelKey: "admin.coupons", label: "Coupons", icon: Ticket, href: "/admin/campaigns/coupons", group: "marketing" },
+  { id: "publishing-admin", labelKey: "admin.publishing", label: "Publishing", icon: Share2, href: "/admin/publishing", group: "management" },
   { id: "settings", labelKey: "admin.settings", label: "Settings", icon: Settings, href: "/admin/settings", group: "settings" },
+  { id: "security", labelKey: "admin.security", label: "Security", icon: Shield, href: "/admin/security", group: "settings" },
+  { id: "devops", labelKey: "admin.devops", label: "DevOps", icon: Rocket, href: "/admin/devops", group: "settings" },
 ];
 
 function SidebarTooltip({ label, children }: { label: string; children: React.ReactNode }) {
@@ -99,10 +129,11 @@ const adminGroupLabels: Record<string, string> = {
   dashboard: "admin.dashboard",
   management: "admin.management",
   analytics: "admin.analytics.label",
+  marketing: "admin.marketing",
   settings: "admin.settings",
 };
 
-const groupOrder = ["dashboard", "management", "analytics", "settings"];
+const groupOrder = ["dashboard", "management", "analytics", "marketing", "settings"];
 
 export function AdminSidebar({ pathname, collapsed, onToggle }: AdminSidebarProps) {
   const currentPath = pathname ?? (typeof window !== "undefined" ? window.location.pathname : "");

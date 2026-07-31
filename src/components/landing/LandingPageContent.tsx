@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { useLandingSections } from "@/hooks/use-landing-sections";
 import { renderLandingSections } from "@/lib/landing-section-renderer";
 import { Header } from "@/components/landing/Header";

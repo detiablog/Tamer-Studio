@@ -31,7 +31,7 @@ export default function AIProvidersPage() {
   const { data, error, isLoading, mutate } = useSWR("/api/admin/ai-providers", fetcher, {
     revalidateOnFocus: false,
     shouldRetryOnError: false,
-    dedupingInterval: 0,
+    dedupingInterval: 5000,
   });
 
   const providers = React.useMemo(() => {

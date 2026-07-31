@@ -1,8 +1,5 @@
 import * as React from "react";
 import { cookies } from "next/headers";
-import { AppShell } from "@/components/ui/AppShell";
-import { PageLayout } from "@/components/ui/PageLayout";
-import { ProjectList } from "@/features/project/ProjectList";
 import { generatePageMetadata } from "@/core/seo";
 import { getTranslation } from "@/lib/localization/translations";
 import type { Metadata } from "next";
@@ -26,12 +23,8 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   const locale = cookieStore.get("tamer_locale")?.value || "en";
   const t = (key: string, fallback?: string) => getTranslation(locale, key, fallback);
   return (
-    <AppShell>
-        <PageLayout title={t("projects.pageTitle", "Projects")} breadcrumb={[{ label: t("projects.pageTitle", "Projects"), href: "/projects" }, { label: id }]}> 
-          <div className="rounded-3xl border border-border bg-muted/20 p-8 text-center text-sm text-muted-foreground">
-            {t("projects.detailComingSoon", "Project detail coming soon.")}
-          </div>
-        </PageLayout>
-    </AppShell>
+    <div className="rounded-3xl border border-border bg-muted/20 p-8 text-center text-sm text-muted-foreground">
+      {t("projects.detailComingSoon", "Project detail coming soon.")}
+    </div>
   );
 }

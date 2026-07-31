@@ -1,7 +1,5 @@
 import * as React from "react";
 import { cookies } from "next/headers";
-import { AppShell } from "@/components/ui/AppShell";
-import { PageLayout } from "@/components/ui/PageLayout";
 import { generatePageMetadata } from "@/core/seo";
 import { getTranslation } from "@/lib/localization/translations";
 import type { Metadata } from "next";
@@ -25,12 +23,8 @@ export default async function WorkspaceDetailPage({ params }: { params: Promise<
   const locale = cookieStore.get("tamer_locale")?.value || "en";
   const t = (key: string, fallback?: string) => getTranslation(locale, key, fallback);
   return (
-    <AppShell>
-        <PageLayout title={t("workspace.pageTitle", "Workspace")} breadcrumb={[{ label: t("workspace.pageTitle", "Workspace"), href: "/workspace" }, { label: id }]}> 
-          <div className="rounded-3xl border border-border bg-muted/20 p-8 text-center text-sm text-muted-foreground">
-            {t("workspace.detailComingSoon", "Workspace detail coming soon.")}
-          </div>
-        </PageLayout>
-    </AppShell>
+    <div className="rounded-3xl border border-border bg-muted/20 p-8 text-center text-sm text-muted-foreground">
+      {t("workspace.detailComingSoon", "Workspace detail coming soon.")}
+    </div>
   );
 }

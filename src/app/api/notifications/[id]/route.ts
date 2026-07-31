@@ -5,7 +5,7 @@ import { runMiddleware } from "@/core/middleware/compose";
 import { userAuthentication, csrfMiddleware } from "@/core/middleware";
 import { NotificationRepository } from "@/core/notifications/notification.repository";
 import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
-import { successResponse } from "@/app/api/mappers/response";
+import { successResponse, errorResponse } from "@/app/api/mappers/response";
 import { z } from "zod";
 
 const repository = new NotificationRepository();
@@ -49,14 +49,14 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     if (!parsed.success) {
       return NextResponse.json(
-        { success: false, error: { code: "VALIDATION_ERROR", message: "Invalid input", details: { fieldErrors: parsed.error.flatten().fieldErrors } } },
+        errorResponse("VALIDATION_ERROR", "Invalid input", { fieldErrors: parsed.error.flatten().fieldErrors }),
         { status: 422 }
       );
     }
 
     const userId = ctx.state.userSession?.userId;
     if (!userId) {
-      return NextResponse.json({ success: false, error: { code: "AUTHENTICATION_ERROR", message: "Unauthorized" } }, { status: 401 });
+      return NextResponse.json(errorResponse("UNAUTHORIZED", "Unauthorized"), { status: 401 });
     }
 
     let notification;
@@ -72,7 +72,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         notification = { id };
         break;
       default:
-        return NextResponse.json({ success: false, error: { code: "VALIDATION_ERROR", message: "Invalid action" } }, { status: 400 });
+        return NextResponse.json(errorResponse("BAD_REQUEST", "Invalid action"), { status: 400 });
     }
 
     return NextResponse.json(successResponse(notification));

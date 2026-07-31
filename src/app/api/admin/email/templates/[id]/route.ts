@@ -140,7 +140,11 @@ export async function DELETE(
       return NextResponse.json({ success: false, error: "Template not found" }, { status: 404 });
     }
 
-    const deleted = await service.deleteTemplate(id);
+    if (existing.isSystem) {
+      await service.deleteTemplate(id);
+    } else {
+      await service.deleteTemplatePermanently(id);
+    }
 
     return NextResponse.json(successResponse({ message: "Template deleted successfully" }));
   } catch (error) {

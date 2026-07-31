@@ -32,7 +32,7 @@ export default function APIKeysPage() {
   const { data, error, isLoading, mutate } = useSWR("/api/admin/api-keys", fetcher, {
     revalidateOnFocus: false,
     shouldRetryOnError: false,
-    dedupingInterval: 0,
+    dedupingInterval: 5000,
   });
 
   const keys = React.useMemo(() => {

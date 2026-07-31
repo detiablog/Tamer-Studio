@@ -39,9 +39,6 @@ export function getTranslation(
 
   if (locale === "en") {
     if (fallback) return fallback;
-    if (process.env.NODE_ENV === "development") {
-      console.warn(`[i18n] Missing translation key "${key}" for locale "en" and no fallback provided`);
-    }
     return fallback ?? "";
   }
 
@@ -49,9 +46,6 @@ export function getTranslation(
   if (enTranslation) return enTranslation;
   if (fallback) return fallback;
 
-  if (process.env.NODE_ENV === "development") {
-    console.warn(`[i18n] Missing translation key "${key}" for locale "${locale}" and fallback "en" and no fallback provided`);
-  }
   return fallback ?? "";
 }
 

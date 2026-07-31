@@ -32,7 +32,7 @@ export default function FeatureFlagsPage() {
   const { data, error, isLoading, mutate } = useSWR("/api/admin/feature-flags", fetcher, {
     revalidateOnFocus: false,
     shouldRetryOnError: false,
-    dedupingInterval: 0,
+    dedupingInterval: 5000,
   });
 
   const flags = React.useMemo(() => {

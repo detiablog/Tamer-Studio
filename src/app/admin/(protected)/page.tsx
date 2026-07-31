@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import useSWR from "swr";
+import { logger } from "@/core/logger";
 import { StatCard } from "@/components/ui/StatCard";
 import { DashboardCard } from "@/components/ui/DashboardCard";
 import { Badge } from "@/components/ui/Badge";
@@ -19,7 +20,7 @@ const fetcher = (url: string) =>
       return r.json();
     })
     .catch((error) => {
-      console.error(`[Fetcher] Failed to fetch ${url}:`, error);
+      logger.error(`[Fetcher] Failed to fetch ${url}`, error instanceof Error ? error : new Error(String(error)));
       throw error;
     });
 
@@ -29,7 +30,7 @@ export default function AdminDashboardPage() {
   const { data, error, isLoading, mutate } = useSWR("/api/admin/stats", fetcher, {
     revalidateOnFocus: false,
     shouldRetryOnError: false,
-    dedupingInterval: 0,
+    dedupingInterval: 5000,
   });
   const [autoRefresh, setAutoRefresh] = React.useState(false);
   const [lastRefresh, setLastRefresh] = React.useState(Date.now());

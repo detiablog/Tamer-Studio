@@ -4,7 +4,7 @@ import { runMiddleware } from "@/core/middleware/compose";
 import { userAuthentication } from "@/core/middleware";
 import { NotificationRepository } from "@/core/notifications/notification.repository";
 import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
-import { successResponse } from "@/app/api/mappers/response";
+import { successResponse, errorResponse } from "@/app/api/mappers/response";
 
 const repository = new NotificationRepository();
 
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
   try {
     const userId = ctx.state.userSession?.userId;
     if (!userId) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(errorResponse("UNAUTHORIZED", "Unauthorized"), { status: 401 });
     }
     const notifications = await repository.getByUser(userId);
     return NextResponse.json(successResponse(notifications));
@@ -77,12 +77,12 @@ export async function PATCH(request: NextRequest) {
     const { id, action } = body;
 
     if (!id || !action) {
-      return NextResponse.json({ success: false, error: "Missing id or action" }, { status: 400 });
+      return NextResponse.json(errorResponse("BAD_REQUEST", "Missing id or action"), { status: 400 });
     }
 
     const userId = ctx.state.userSession?.userId;
     if (!userId) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(errorResponse("UNAUTHORIZED", "Unauthorized"), { status: 401 });
     }
 
     let notification;
@@ -98,7 +98,7 @@ export async function PATCH(request: NextRequest) {
         notification = { id };
         break;
       default:
-        return NextResponse.json({ success: false, error: "Invalid action" }, { status: 400 });
+        return NextResponse.json(errorResponse("BAD_REQUEST", "Invalid action"), { status: 400 });
     }
 
     return NextResponse.json(successResponse(notification));

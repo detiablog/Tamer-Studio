@@ -28,6 +28,9 @@ const DEFAULT_TEMPLATES: Record<string, Omit<EmailTemplate, "id" | "createdAt" |
     text: "Hi {{name}},\n\nWelcome to Tamer Studio! Please verify your email address by clicking this link: {{verificationUrl}}\n\nThis link expires in 24 hours.\n\nNeed help? support@tamer.studio\n\n© ${new Date().getFullYear()} Tamer Studio",
     variables: ["name", "verificationUrl"],
     isActive: true,
+    version: 1,
+    language: "en",
+    isSystem: true,
   },
   "reset-password.request": {
     key: "reset-password.request",
@@ -56,6 +59,9 @@ const DEFAULT_TEMPLATES: Record<string, Omit<EmailTemplate, "id" | "createdAt" |
     text: "Hi {{name}},\n\nWe received a request to reset your password. Click this link to reset it: {{resetUrl}}\n\nThis link expires in 30 minutes.\n\nIf you didn't request this, you can safely ignore this email.\n\nNeed help? support@tamer.studio\n\n© ${new Date().getFullYear()} Tamer Studio",
     variables: ["name", "resetUrl"],
     isActive: true,
+    version: 1,
+    language: "en",
+    isSystem: true,
   },
   "payment-success.invoice": {
     key: "payment-success.invoice",
@@ -110,6 +116,9 @@ const DEFAULT_TEMPLATES: Record<string, Omit<EmailTemplate, "id" | "createdAt" |
     text: "Hi {{name}},\n\nYour payment has been confirmed!\n\nInvoice Number: {{invoiceNumber}}\nTransaction Number: {{transactionNumber}}\nPayment Method: {{paymentMethod}}\nPayment Date: {{paymentDate}}\nPurchased Item: {{purchasedItem}}\nTotal Payment: {{totalPayment}}\n\nView Invoice: {{invoiceUrl}}\nOpen Dashboard: {{dashboardUrl}}\n\n© ${new Date().getFullYear()} Tamer Studio",
     variables: ["name", "invoiceNumber", "transactionNumber", "paymentMethod", "paymentDate", "purchasedItem", "totalPayment", "invoiceUrl", "dashboardUrl"],
     isActive: true,
+    version: 1,
+    language: "en",
+    isSystem: true,
   },
 };
 

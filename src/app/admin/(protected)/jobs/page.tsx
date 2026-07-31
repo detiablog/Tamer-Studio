@@ -32,7 +32,7 @@ export default function JobsPage() {
   const { data, error, isLoading, mutate } = useSWR("/api/admin/jobs", fetcher, {
     revalidateOnFocus: false,
     shouldRetryOnError: false,
-    dedupingInterval: 0,
+    dedupingInterval: 5000,
   });
 
   const jobs = React.useMemo(() => {

@@ -11,6 +11,8 @@ export async function POST(request: NextRequest) {
 
     const signOutResponse = NextResponse.json(successResponse({ message: "Signed out successfully" }));
 
+    signOutResponse.cookies.delete("better-auth.session_token");
+    signOutResponse.cookies.delete("better-auth.session_token_transfer_method");
     signOutResponse.cookies.delete("session");
     signOutResponse.cookies.delete("auth_session");
     signOutResponse.cookies.delete("admin_session");

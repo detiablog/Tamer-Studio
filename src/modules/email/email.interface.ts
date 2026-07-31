@@ -4,9 +4,13 @@ export type RoutingMode = "priority" | "failover" | "round_robin" | "manual";
 
 export type ProviderStatus = "healthy" | "warning" | "offline" | "disabled";
 
-export type EmailStatus = "queued" | "processing" | "sent" | "delivered" | "failed" | "retry" | "bounce";
+export type EmailStatus = "queued" | "processing" | "sent" | "delivered" | "failed" | "retry" | "bounce" | "cancelled" | "scheduled";
 
-export type EmailType = "verification" | "reset_password" | "payment_success";
+export type EmailType = "verification" | "reset_password" | "payment_success" | "welcome" | "credits_purchased" | "subscription" | "affiliate_approval" | "affiliate_rejected" | "invoice" | "contact_form" | "support_reply" | "announcement" | "subscription_expired" | "test";
+
+export type EmailPriority = "low" | "normal" | "high" | "critical";
+
+export type EmailCategory = "authentication" | "billing" | "marketing" | "notification" | "support" | "affiliate" | "system" | "announcement";
 
 export type TokenType = "verification" | "reset_password";
 
@@ -86,6 +90,10 @@ export interface EmailQueueItem {
   providerId?: string;
   providerName?: string;
   latencyMs?: number;
+  templateId?: string;
+  category?: string;
+  scheduledTimezone?: string;
+  attachments?: unknown[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -108,6 +116,13 @@ export interface EmailLog {
   errorCode?: string;
   errorMessage?: string;
   metadata?: Record<string, unknown>;
+  templateId?: string;
+  renderedHtml?: string;
+  renderedText?: string;
+  headers?: Record<string, string>;
+  openedAt?: Date;
+  clickedAt?: Date;
+  category?: string;
   createdAt: Date;
 }
 
@@ -133,6 +148,12 @@ export interface EmailTemplate {
   text?: string;
   variables: string[];
   isActive: boolean;
+  description?: string;
+  language: string;
+  version: number;
+  isSystem: boolean;
+  category?: string;
+  builderBlocks?: unknown[];
   createdAt: Date;
   updatedAt: Date;
   createdBy?: string;

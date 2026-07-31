@@ -27,7 +27,7 @@ export default function AdminWorkspacesPage() {
   const { data, error, isLoading, mutate } = useSWR("/api/admin/workspaces", fetcher, { 
     revalidateOnFocus: false,
     shouldRetryOnError: false,
-    dedupingInterval: 0,
+    dedupingInterval: 5000,
   });
   
   const [workspaces, setWorkspaces] = React.useState<any[]>([]);

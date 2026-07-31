@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  output: "standalone",
+
   reactStrictMode: true,
 
   typedRoutes: true,
@@ -11,7 +13,13 @@ const nextConfig: NextConfig = {
 
   devIndicators: false,
 
-  serverExternalPackages: ["postgres", "redis", "@trigger.dev/sdk/v3"],
+  experimental: {
+    optimizePackageImports: ["lucide-react", "recharts", "@dnd-kit/core", "@dnd-kit/sortable"],
+  },
+
+  serverExternalPackages: ["postgres", "redis", "@trigger.dev/sdk/v3", "nodemailer", "@sendgrid/mail", "@aws-sdk/client-ses", "mailgun.js", "resend", "postmark", "sparkpost", "@getbrevo/brevo"],
+
+  swcMinify: true,
 
   turbopack: {
     resolveAlias: {
@@ -28,6 +36,8 @@ const nextConfig: NextConfig = {
   },
 
   images: {
+    formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 60 * 60 * 24,
     remotePatterns: [
       {
         protocol: "https",

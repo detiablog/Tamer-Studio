@@ -2,6 +2,18 @@
 
 import * as React from "react";
 import useSWR from "swr";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
 import { useLocalizationContext } from "@/providers/localization";
 import { useCurrencyContext } from "@/providers/currency";
 import { cn } from "@/lib/utils";
@@ -10,9 +22,10 @@ import { AdminDataTable } from "@/components/admin/AdminDataTable";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, RefreshCw, Download, TrendingUp, Loader } from "lucide-react";
+import { Search, RefreshCw, Download, TrendingUp, TrendingDown, Loader } from "lucide-react";
 import { toast } from "sonner";
 import { Breadcrumbs } from "@/components/admin/Breadcrumbs";
+import { CHART_COLORS } from "@/components/dashboard/ChartComponents";
 
 const fetcher = (url: string) =>
   fetch(url)
@@ -38,7 +51,19 @@ export default function AnalyticsPage() {
   const { data, error, isLoading, mutate } = useSWR(analyticsUrl, fetcher, {
     revalidateOnFocus: false,
     shouldRetryOnError: false,
-    dedupingInterval: 0,
+    dedupingInterval: 5000,
+  });
+
+  const overviewUrl = `/api/analytics/overview?range=${dateRange}`;
+  const { data: overviewData } = useSWR(overviewUrl, fetcher, {
+    revalidateOnFocus: false,
+    shouldRetryOnError: false,
+  });
+
+  const trendUrl = `/api/analytics/trend?range=${dateRange}`;
+  const { data: trendData } = useSWR(trendUrl, fetcher, {
+    revalidateOnFocus: false,
+    shouldRetryOnError: false,
   });
 
   const entries = React.useMemo(() => {
@@ -55,6 +80,37 @@ export default function AnalyticsPage() {
   const visitorsTotal = entries.reduce((acc: number, a: any) => acc + (a.uniqueVisitors || 0), 0);
   const conversionsTotal = entries.reduce((acc: number, a: any) => acc + (a.conversions || 0), 0);
   const revenueTotal = entries.reduce((acc: number, a: any) => acc + (a.revenue || 0), 0);
+
+  const overview = overviewData?.success ? overviewData.data : null;
+  const trend = trendData?.success ? trendData.data : null;
+
+  const trendDataPoints = React.useMemo(() => {
+    if (trend?.daily) {
+      return trend.daily.map((d: any) => ({
+        name: d.date,
+        events: d.count,
+      }));
+    }
+    return entries.map((e: any) => ({
+      name: e.date,
+      events: e.pageViews || 0,
+    }));
+  }, [trend, entries]);
+
+  const categoryPieData = React.useMemo(() => {
+    if (trend?.categories) {
+      return trend.categories.map((c: any, i: number) => ({
+        name: c.name,
+        value: c.count,
+        fill: CHART_COLORS[i % CHART_COLORS.length],
+      }));
+    }
+    return [
+      { name: t("admin.analytics.pageViews", "Page Views"), value: pageViewsTotal, fill: CHART_COLORS[0] },
+      { name: t("admin.analytics.visitors", "Visitors"), value: visitorsTotal, fill: CHART_COLORS[1] },
+      { name: t("admin.analytics.conversions", "Conversions"), value: conversionsTotal, fill: CHART_COLORS[2] },
+    ].filter((d) => d.value > 0);
+  }, [trend, pageViewsTotal, visitorsTotal, conversionsTotal, t]);
 
   const handleExportCSV = () => {
     const headers = `${t("common.date")},${t("admin.analytics.pageViews")},${t("admin.analytics.visitors")},${t("admin.analytics.bounceRate")},${t("admin.analytics.avgDuration")},${t("admin.analytics.conversions")},${t("admin.analytics.revenue")}\n`;
@@ -91,12 +147,12 @@ export default function AnalyticsPage() {
       ctx.fillRect(0, 0, 800, 400);
       ctx.fillStyle = "#000000";
       ctx.font = "24px sans-serif";
-      ctx.fillText(t("admin.analytics.chartExport", "Analytics Chart Export"), 20, 40);
+      ctx.fillText(t("admin.analytics.label", "Analytics Chart Export"), 20, 40);
       ctx.font = "16px sans-serif";
       ctx.fillText(`${t("admin.analytics.dateRange", "Date Range")}: ${dateRange}`, 20, 80);
-      ctx.fillText(`${t("admin.analytics.totalPageViews", "Total Page Views")}: ${formatNumber(pageViewsTotal)}`, 20, 120);
-      ctx.fillText(`${t("admin.analytics.totalVisitors", "Total Visitors")}: ${formatNumber(visitorsTotal)}`, 20, 150);
-      ctx.fillText(`${t("admin.analytics.totalRevenue", "Total Revenue")}: $${formatNumber(revenueTotal)}`, 20, 180);
+      ctx.fillText(`${t("admin.analytics.pageViews", "Total Page Views")}: ${formatNumber(pageViewsTotal)}`, 20, 120);
+      ctx.fillText(`${t("admin.analytics.uniqueVisitors", "Total Visitors")}: ${formatNumber(visitorsTotal)}`, 20, 150);
+      ctx.fillText(`${t("admin.analytics.revenue", "Total Revenue")}: $${formatNumber(revenueTotal)}`, 20, 180);
       const url = canvas.toDataURL("image/png");
       const link = document.createElement("a");
       link.href = url;
@@ -109,10 +165,10 @@ export default function AnalyticsPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <Breadcrumbs items={[{ label: t("admin.analytics", "Analytics") }]} />
+        <Breadcrumbs items={[{ label: t("admin.analytics.label", "Analytics") }]} />
         <DashboardCard>
           <div className="mb-6">
-            <h1 className="text-3xl font-bold">{t("admin.analytics", "Analytics")}</h1>
+            <h1 className="text-3xl font-bold">{t("admin.analytics.label", "Analytics")}</h1>
             <p className="text-muted-foreground text-sm mt-1">{t("admin.analytics.description", "View platform analytics and insights")}</p>
           </div>
           <div className="grid gap-4 sm:grid-cols-4 mb-6">
@@ -135,10 +191,10 @@ export default function AnalyticsPage() {
   if (error && !data) {
     return (
       <div className="space-y-6">
-        <Breadcrumbs items={[{ label: t("admin.analytics", "Analytics") }]} />
+        <Breadcrumbs items={[{ label: t("admin.analytics.label", "Analytics") }]} />
         <DashboardCard>
           <div className="mb-6">
-            <h1 className="text-3xl font-bold">{t("admin.analytics", "Analytics")}</h1>
+            <h1 className="text-3xl font-bold">{t("admin.analytics.label", "Analytics")}</h1>
             <p className="text-muted-foreground text-sm mt-1">{t("admin.analytics.description", "View platform analytics and insights")}</p>
           </div>
           <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -156,11 +212,11 @@ export default function AnalyticsPage() {
 
   return (
     <div className="space-y-6">
-      <Breadcrumbs items={[{ label: t("admin.analytics", "Analytics") }]} />
+      <Breadcrumbs items={[{ label: t("admin.analytics.label", "Analytics") }]} />
       <DashboardCard>
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">{t("admin.analytics", "Analytics")}</h1>
+            <h1 className="text-3xl font-bold">{t("admin.analytics.label", "Analytics")}</h1>
             <p className="text-muted-foreground text-sm mt-1">{t("admin.analytics.description", "View platform analytics and insights")}</p>
           </div>
           <div className="flex items-center gap-2">
@@ -177,28 +233,81 @@ export default function AnalyticsPage() {
         </div>
 
         <div className="grid gap-4 sm:grid-cols-4 mb-6">
-          <div className="rounded-xl border border-border bg-muted/20 p-4">
-            <p className="text-xs text-muted-foreground">{t("admin.analytics.pageViews", "Page Views")}</p>
-            <p className="mt-2 text-2xl font-semibold">{formatNumber(pageViewsTotal)}</p>
-            <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1 mt-1"><TrendingUp className="size-3" />+12% {t("admin.analytics.thanLastPeriod", "vs last period")}</p>
-          </div>
-          <div className="rounded-xl border border-border bg-muted/20 p-4">
-            <p className="text-xs text-muted-foreground">{t("admin.analytics.uniqueVisitors", "Unique Visitors")}</p>
-            <p className="mt-2 text-2xl font-semibold">{formatNumber(visitorsTotal)}</p>
-            <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1 mt-1"><TrendingUp className="size-3" />+8% {t("admin.analytics.thanLastPeriod", "vs last period")}</p>
-          </div>
-          <div className="rounded-xl border border-border bg-muted/20 p-4">
-            <p className="text-xs text-muted-foreground">{t("admin.analytics.conversions", "Conversions")}</p>
-            <p className="mt-2 text-2xl font-semibold">{formatNumber(conversionsTotal)}</p>
-            <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1 mt-1"><TrendingUp className="size-3" />+5% {t("admin.analytics.thanLastPeriod", "vs last period")}</p>
-          </div>
-          <div className="rounded-xl border border-border bg-muted/20 p-4">
-            <p className="text-xs text-muted-foreground">{t("admin.analytics.revenue", "Revenue")}</p>
-            <p className="mt-2 text-2xl font-semibold">{formatCurrency(revenueTotal)}</p>
-            <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1 mt-1"><TrendingUp className="size-3" />+15% {t("admin.analytics.thanLastPeriod", "vs last period")}</p>
-          </div>
+          {[
+            { label: t("admin.analytics.pageViews", "Page Views"), value: overview?.totalEvents ?? pageViewsTotal, trend: overview?.eventsTodayVsYesterday },
+            { label: t("admin.analytics.visitors", "Unique Visitors"), value: overview?.uniqueUsers ?? visitorsTotal, trend: overview?.uniqueUsersTrend },
+            { label: t("admin.analytics.conversions", "Conversions"), value: overview?.conversions ?? conversionsTotal, trend: overview?.conversionsTrend },
+            { label: t("admin.analytics.revenue", "Revenue"), value: formatCurrency(overview?.revenue ?? revenueTotal), trend: overview?.revenueTrend },
+          ].map((stat) => (
+            <div key={stat.label} className="rounded-xl border border-border bg-muted/20 p-4">
+              <p className="text-xs text-muted-foreground">{stat.label}</p>
+              <p className="mt-2 text-2xl font-semibold">{typeof stat.value === "number" ? formatNumber(stat.value) : stat.value}</p>
+              {stat.trend != null && (
+                <p className={cn("text-xs flex items-center gap-1 mt-1", parseFloat(String(stat.trend)) >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400")}>
+                  {parseFloat(String(stat.trend)) >= 0 ? <TrendingUp className="size-3" /> : <TrendingDown className="size-3" />}
+                  {stat.trend}% {t("admin.analytics.thanLastPeriod", "vs last period")}
+                </p>
+              )}
+            </div>
+          ))}
         </div>
+      </DashboardCard>
 
+      <div className="grid gap-6 lg:grid-cols-2">
+        <DashboardCard title={t("admin.analytics.overview", "Trend Overview")} description={`${t("admin.analytics.dateRange", "Date Range")}: ${dateRange}`}>
+          {trendDataPoints.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <AreaChart data={trendDataPoints} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                <defs>
+                  <linearGradient id="adminTrendGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" className="opacity-50" />
+                <XAxis dataKey="name" style={{ fontSize: "12px" }} />
+                <YAxis style={{ fontSize: "12px" }} />
+                <Tooltip />
+                <Area type="monotone" dataKey="events" stroke="#3b82f6" fill="url(#adminTrendGradient)" name={t("admin.analytics.pageViews", "Page Views")} />
+              </AreaChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-[300px] text-muted-foreground text-sm">
+              {t("admin.analytics.noData", "No data available")}
+            </div>
+          )}
+        </DashboardCard>
+
+        <DashboardCard title={t("admin.analytics.visitors", "Category Distribution")} description={t("admin.analytics.overview", "Overview")}>
+          {categoryPieData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={categoryPieData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name}: ${((percent || 0) * 100).toFixed(0)}%`}
+                  outerRadius={100}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {categoryPieData.map((entry: any, index: number) => (
+                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-[300px] text-muted-foreground text-sm">
+              {t("admin.analytics.noData", "No data available")}
+            </div>
+          )}
+        </DashboardCard>
+      </div>
+
+      <DashboardCard>
         <div className="flex items-center gap-2 pb-4">
           <div className="relative flex-1 min-w-[250px]">
             <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />

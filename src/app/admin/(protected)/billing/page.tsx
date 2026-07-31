@@ -32,7 +32,7 @@ export default function BillingPage() {
   const { data, error, isLoading, mutate } = useSWR("/api/admin/billing", fetcher, {
     revalidateOnFocus: false,
     shouldRetryOnError: false,
-    dedupingInterval: 0,
+    dedupingInterval: 5000,
   });
 
   const invoices = React.useMemo(() => {

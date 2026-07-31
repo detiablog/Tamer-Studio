@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useLocalizationContext } from "@/providers/localization";
+import Link from "next/link";
 
 interface LoginFormData extends LoginSchema {
   remember?: boolean;
@@ -25,6 +26,7 @@ export function LoginForm() {
   const { t } = useLocalizationContext();
   const [submitting, setSubmitting] = React.useState(false);
   const [showPassword, setShowPassword] = React.useState(false);
+  const [unverifiedEmail, setUnverifiedEmail] = React.useState<string | null>(null);
 
   const {
     register,
@@ -51,6 +53,7 @@ export function LoginForm() {
   const onSubmit = async (values: LoginFormData) => {
     try {
       setSubmitting(true);
+      setUnverifiedEmail(null);
 
       if (values.remember) {
         localStorage.setItem("tamer.rememberEmail", values.email);
@@ -70,11 +73,17 @@ export function LoginForm() {
         return;
       }
 
+      if (result.data?.user?.emailVerified === false) {
+        await authClient.signOut();
+        setUnverifiedEmail(values.email);
+        toast.error(t("auth.emailNotVerified") || "Your email has not been verified yet");
+        return;
+      }
+
       toast.success(t("auth.signedIn"));
-      
-      await new Promise(resolve => setTimeout(resolve, 100));
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
       router.replace("/dashboard");
-      
     } catch (err) {
       if (err instanceof Error) {
         logger.error("Unexpected login error", err);
@@ -90,25 +99,23 @@ export function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-      {/* Email Field */}
       <div className="space-y-2">
         <Label htmlFor="email" className="text-sm font-semibold">{t("auth.emailLabel")}</Label>
-         <Input
-           id="email"
-           type="email"
-           placeholder={t("auth.loginForm.emailPlaceholder")}
-           {...register("email")}
-           autoComplete="email"
-           aria-invalid={!!errors.email}
-           disabled={submitting}
-           className="h-10 bg-background/50 border-border focus:border-primary transition"
-         />
+        <Input
+          id="email"
+          type="email"
+          placeholder={t("auth.loginForm.emailPlaceholder")}
+          {...register("email")}
+          autoComplete="email"
+          aria-invalid={!!errors.email}
+          disabled={submitting}
+          className="h-10 bg-background/50 border-border focus:border-primary transition"
+        />
         {errors.email && (
           <p className="text-xs text-destructive font-medium">{errors.email.message}</p>
         )}
       </div>
 
-      {/* Password Field */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label htmlFor="password" className="text-sm font-semibold">{t("auth.passwordLabel")}</Label>
@@ -120,23 +127,23 @@ export function LoginForm() {
           </a>
         </div>
         <div className="relative">
-           <Input
-             id="password"
-             type={showPassword ? "text" : "password"}
-             placeholder={t("auth.loginForm.passwordPlaceholder")}
-             {...register("password")}
-             autoComplete="current-password"
-             aria-invalid={!!errors.password}
-             disabled={submitting}
-             className="h-10 bg-background/50 border-border focus:border-primary transition pr-10"
-           />
-           <button
-             type="button"
-             onClick={() => setShowPassword((v) => !v)}
-             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
-             aria-label={showPassword ? t("auth.loginForm.hidePassword") : t("auth.loginForm.showPassword")}
-             disabled={submitting}
-           >
+          <Input
+            id="password"
+            type={showPassword ? "text" : "password"}
+            placeholder={t("auth.loginForm.passwordPlaceholder")}
+            {...register("password")}
+            autoComplete="current-password"
+            aria-invalid={!!errors.password}
+            disabled={submitting}
+            className="h-10 bg-background/50 border-border focus:border-primary transition pr-10"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((v) => !v)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+            aria-label={showPassword ? t("auth.loginForm.hidePassword") : t("auth.loginForm.showPassword")}
+            disabled={submitting}
+          >
             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>
         </div>
@@ -145,7 +152,20 @@ export function LoginForm() {
         )}
       </div>
 
-      {/* Remember Me */}
+      {unverifiedEmail && (
+        <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-3 space-y-2">
+          <p className="text-sm text-destructive font-medium">
+            {t("auth.emailNotVerified") || "Your email has not been verified yet"}
+          </p>
+          <Link
+            href={`/verify-email?email=${encodeURIComponent(unverifiedEmail)}`}
+            className="text-sm text-primary hover:underline font-medium"
+          >
+            {t("auth.verifyEmail.resendButton") || "Resend Verification"}
+          </Link>
+        </div>
+      )}
+
       <div className="flex items-center gap-2 pt-2">
         <input
           type="checkbox"
@@ -154,7 +174,7 @@ export function LoginForm() {
           className="h-4 w-4 rounded border-border cursor-pointer transition accent-primary"
           disabled={submitting}
         />
-        <label 
+        <label
           htmlFor="remember"
           className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer select-none font-medium"
         >
@@ -169,7 +189,7 @@ export function LoginForm() {
       >
         {submitting ? (
           <>
-            <span className="inline-block animate-spin mr-2">⏳</span>
+            <span className="inline-block animate-spin mr-2">&#8987;</span>
             {t("auth.signingIn")}
           </>
         ) : (

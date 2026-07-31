@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { Socket, io } from "socket.io-client";
+import { logger } from "@/core/logger";
 
 interface UseWebSocketOptions {
   workspaceId?: string;
@@ -25,7 +26,7 @@ export function useWebSocket(options: UseWebSocketOptions) {
     });
 
     socket.on("connect", () => {
-      console.log("WebSocket connected");
+      logger.info("WebSocket connected");
       setConnected(true);
 
       if (options.workspaceId) {
@@ -37,12 +38,12 @@ export function useWebSocket(options: UseWebSocketOptions) {
     });
 
     socket.on("disconnect", () => {
-      console.log("WebSocket disconnected");
+      logger.info("WebSocket disconnected");
       setConnected(false);
     });
 
     socket.on("error", (error) => {
-      console.error("WebSocket error:", error);
+      logger.error("WebSocket error:", error instanceof Error ? error : new Error(String(error)));
     });
 
     socketRef.current = socket;

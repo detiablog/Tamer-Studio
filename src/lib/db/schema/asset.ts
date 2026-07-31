@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, jsonb, index, unique } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, jsonb, index, unique, varchar, integer } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 export const asset = pgTable(
@@ -118,12 +118,50 @@ export const assetLifecycleEvent = pgTable(
   (table) => [index("asset_lifecycle_asset_id_idx").on(table.assetId)]
 );
 
+export const assetFavorite = pgTable("asset_favorite", {
+  id: text("id").primaryKey(),
+  assetId: text("asset_id").notNull().references(() => asset.assetId, { onDelete: "cascade" }),
+  userId: text("user_id").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("asset_favorite_user_idx").on(table.userId),
+  index("asset_favorite_asset_idx").on(table.assetId),
+  unique("asset_favorite_unique").on(table.assetId, table.userId),
+]);
+
+export const assetDownload = pgTable("asset_download", {
+  id: text("id").primaryKey(),
+  assetId: text("asset_id").notNull().references(() => asset.assetId, { onDelete: "cascade" }),
+  userId: text("user_id").notNull(),
+  format: varchar("format", { length: 50 }).default("original").notNull(),
+  fileSize: integer("file_size"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("asset_download_user_idx").on(table.userId),
+  index("asset_download_asset_idx").on(table.assetId),
+]);
+
+export const assetCleanupJob = pgTable("asset_cleanup_job", {
+  id: text("id").primaryKey(),
+  assetId: text("asset_id").notNull().references(() => asset.assetId, { onDelete: "cascade" }),
+  reason: varchar("reason", { length: 100 }).notNull(),
+  scheduledAt: timestamp("scheduled_at").defaultNow().notNull(),
+  executedAt: timestamp("executed_at"),
+  status: varchar("status", { length: 50 }).default("pending").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("asset_cleanup_status_idx").on(table.status),
+  index("asset_cleanup_scheduled_idx").on(table.scheduledAt),
+]);
+
 export const assetRelations = relations(asset, ({ many }) => ({
   versions: many(assetVersion),
   lineage: many(assetLineage, { relationName: "assetLineage" }),
   collections: many(assetCollectionItem),
   tags: many(assetTag),
   lifecycleEvents: many(assetLifecycleEvent),
+  favorites: many(assetFavorite),
+  downloads: many(assetDownload),
 }));
 
 export const assetVersionRelations = relations(assetVersion, ({ one }) => ({
@@ -171,6 +209,27 @@ export const assetTagRelations = relations(assetTag, ({ one }) => ({
 export const assetLifecycleRelations = relations(assetLifecycleEvent, ({ one }) => ({
   asset: one(asset, {
     fields: [assetLifecycleEvent.assetId],
+    references: [asset.assetId],
+  }),
+}));
+
+export const assetFavoriteRelations = relations(assetFavorite, ({ one }) => ({
+  asset: one(asset, {
+    fields: [assetFavorite.assetId],
+    references: [asset.assetId],
+  }),
+}));
+
+export const assetDownloadRelations = relations(assetDownload, ({ one }) => ({
+  asset: one(asset, {
+    fields: [assetDownload.assetId],
+    references: [asset.assetId],
+  }),
+}));
+
+export const assetCleanupJobRelations = relations(assetCleanupJob, ({ one }) => ({
+  asset: one(asset, {
+    fields: [assetCleanupJob.assetId],
     references: [asset.assetId],
   }),
 }));

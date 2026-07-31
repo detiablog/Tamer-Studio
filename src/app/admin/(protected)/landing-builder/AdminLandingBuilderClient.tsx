@@ -38,7 +38,7 @@ export function AdminLandingBuilderClient({ adminToken }: AdminLandingBuilderCli
   const { data, error, isLoading, mutate } = useSWR("/api/landing/sections", fetcher, {
     revalidateOnFocus: false,
     shouldRetryOnError: false,
-    dedupingInterval: 0,
+    dedupingInterval: 5000,
   });
 
   const [editorOpen, setEditorOpen] = React.useState(false);

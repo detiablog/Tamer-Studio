@@ -40,8 +40,8 @@ export default function DashboardHomePage() {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard title={t("dashboard.activeProjects", "Active Projects")} value={stats.activeProjects ?? 0} delta={<span className="text-xs text-muted-foreground">{t("dashboard.delta.thisWeek", "+2 this week")}</span>} />
-        <StatCard title={t("dashboard.mediaAssets", "Media Assets")} value={stats.mediaAssets ?? 0} delta={<span className="text-xs text-muted-foreground">{t("dashboard.delta.newFiles", "+8 new files")}</span>} />
+        <StatCard title={t("dashboard.activeProjects", "Active Projects")} value={stats.activeProjects ?? 0} delta={stats.activeProjectsDelta ? <span className="text-xs text-muted-foreground">+{stats.activeProjectsDelta} {t("dashboard.delta.thisWeek", "this week")}</span> : undefined} />
+        <StatCard title={t("dashboard.mediaAssets", "Media Assets")} value={stats.mediaAssets ?? 0} delta={stats.mediaAssetsDelta ? <span className="text-xs text-muted-foreground">+{stats.mediaAssetsDelta} {t("dashboard.delta.newFiles", "new files")}</span> : undefined} />
         <StatCard title={t("dashboard.runningJobs", "Running Jobs")} value={stats.runningJobs ?? 0} delta={stats.queuedJobs ? <span className="text-xs text-muted-foreground">{stats.queuedJobs} {t("dashboard.delta.queued", "queued")}</span> : undefined} />
         <StatCard title={t("dashboard.aiGenerations", "AI Generations")} value={stats.aiGenerationsTotal ?? 0} delta={stats.aiGenerationsToday ? <span className="text-xs text-muted-foreground">+{stats.aiGenerationsToday} {t("dashboard.delta.today", "today")}</span> : undefined} />
       </div>

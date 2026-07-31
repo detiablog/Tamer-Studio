@@ -15,10 +15,18 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { logger } from "@/core/logger";
 import { useLocalizationContext } from "@/providers/localization";
+import { PasswordStrengthMeter } from "@/features/auth/components/password-strength-meter";
 
 const resetPasswordSchema = z
   .object({
-    password: z.string().min(8, "Password must be at least 8 characters"),
+    password: z
+      .string()
+      .min(12, "Password must be at least 12 characters")
+      .max(128, "Password must not exceed 128 characters")
+      .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+      .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+      .regex(/[0-9]/, "Password must contain at least one number")
+      .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character"),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -38,10 +46,13 @@ function ResetPasswordFormInner({ token }: { token: string }) {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<ResetPasswordFormData>({
     resolver: zodResolver(resetPasswordSchema),
   });
+
+  const password = watch("password");
 
   const onSubmit = async (values: ResetPasswordFormData) => {
     try {
@@ -108,7 +119,8 @@ function ResetPasswordFormInner({ token }: { token: string }) {
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
-            {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
+            {errors.password && <p className="text-sm text-destructive">{t("auth.validation.password", errors.password.message)}</p>}
+            <PasswordStrengthMeter password={password || ""} />
           </div>
 
           <div className="space-y-2">
@@ -134,7 +146,7 @@ function ResetPasswordFormInner({ token }: { token: string }) {
               </button>
             </div>
             {errors.confirmPassword && (
-              <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
+              <p className="text-sm text-destructive">{t("auth.validation.confirmPassword", errors.confirmPassword.message)}</p>
             )}
           </div>
 

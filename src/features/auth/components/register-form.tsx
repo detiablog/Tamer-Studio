@@ -4,13 +4,13 @@ import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Eye, EyeOff, CheckCircle2 } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
-import { authClient } from "@/core/auth/client";
 import { registerSchema, type RegisterSchema } from "@/features/auth/schemas/register.schema";
-import { hasAuthError } from "@/features/auth/types";
 import { logger } from "@/core/logger";
+import { PasswordStrengthMeter } from "@/features/auth/components/password-strength-meter";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,38 +22,46 @@ export function RegisterForm() {
   const router = useRouter();
   const [submitting, setSubmitting] = React.useState(false);
   const [showPassword, setShowPassword] = React.useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     watch,
-  } = useForm<RegisterSchema>({ resolver: zodResolver(registerSchema) });
+  } = useForm<RegisterSchema>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      termsAccepted: undefined as unknown as true,
+    },
+  });
 
   const password = watch("password");
-  const hasLengthRequirement = password?.length >= 8;
-  const hasUpperCase = /[A-Z]/.test(password || "");
-  const hasNumber = /[0-9]/.test(password || "");
 
   const onSubmit = async (values: RegisterSchema) => {
     try {
       setSubmitting(true);
-      const result = await authClient.signUp.email({
-        name: values.name,
-        email: values.email,
-        password: values.password,
-        callbackURL: "/verify-email",
+
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: values.name,
+          email: values.email,
+          password: values.password,
+        }),
       });
 
-      if (hasAuthError(result) && result.error?.message) {
-        logger.error("Registration failed", new Error(result.error.message));
-        toast.error(result.error.message || t("auth.invalidCredentials"));
-        return;
-      }
+      const data = await res.json().catch(() => ({}));
 
-      if (hasAuthError(result)) {
-        logger.error("Registration failed with unknown auth error", new Error(result.error?.message ?? "Unknown auth error"));
-        toast.error(t("common.genericError"));
+      if (!res.ok) {
+        const errorMessage = data?.error?.message || data?.message || t("common.genericError");
+        logger.error("Registration failed", new Error(errorMessage));
+        toast.error(errorMessage);
         return;
       }
 
@@ -73,101 +81,133 @@ export function RegisterForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-      {/* Name Field */}
       <div className="space-y-2">
         <Label htmlFor="name" className="text-sm font-semibold">{t("auth.nameLabel")}</Label>
-         <Input 
-           id="name" 
-           type="text" 
-           placeholder={t("auth.registerForm.namePlaceholder")} 
-           {...register("name")} 
-           autoComplete="name" 
-           aria-invalid={!!errors.name}
-           disabled={submitting}
-           className="h-10 bg-background/50 border-border focus:border-primary transition"
-         />
+        <Input
+          id="name"
+          type="text"
+          placeholder={t("auth.registerForm.namePlaceholder")}
+          {...register("name")}
+          autoComplete="name"
+          aria-invalid={!!errors.name}
+          disabled={submitting}
+          className="h-10 bg-background/50 border-border focus:border-primary transition"
+        />
         {errors.name && (
           <p className="text-xs text-destructive font-medium">{errors.name.message}</p>
         )}
       </div>
 
-      {/* Email Field */}
       <div className="space-y-2">
         <Label htmlFor="email" className="text-sm font-semibold">{t("auth.emailLabel")}</Label>
-         <Input 
-           id="email" 
-           type="email" 
-           placeholder={t("auth.registerForm.emailPlaceholder")} 
-           {...register("email")} 
-           autoComplete="email" 
-           aria-invalid={!!errors.email}
-           disabled={submitting}
-           className="h-10 bg-background/50 border-border focus:border-primary transition"
-         />
+        <Input
+          id="email"
+          type="email"
+          placeholder={t("auth.registerForm.emailPlaceholder")}
+          {...register("email")}
+          autoComplete="email"
+          aria-invalid={!!errors.email}
+          disabled={submitting}
+          className="h-10 bg-background/50 border-border focus:border-primary transition"
+        />
         {errors.email && (
           <p className="text-xs text-destructive font-medium">{errors.email.message}</p>
         )}
       </div>
 
-      {/* Password Field */}
       <div className="space-y-2">
         <Label htmlFor="password" className="text-sm font-semibold">{t("auth.passwordLabel")}</Label>
         <div className="relative">
-           <Input
-             id="password"
-             type={showPassword ? "text" : "password"}
-             placeholder={t("auth.registerForm.passwordPlaceholder")}
-             {...register("password")}
-             autoComplete="new-password"
-             aria-invalid={!!errors.password}
-             disabled={submitting}
-             className="h-10 bg-background/50 border-border focus:border-primary transition pr-10"
-           />
-           <button
-             type="button"
-             onClick={() => setShowPassword((v) => !v)}
-             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
-             aria-label={showPassword ? t("auth.registerForm.hidePassword") : t("auth.registerForm.showPassword")}
-             disabled={submitting}
-           >
+          <Input
+            id="password"
+            type={showPassword ? "text" : "password"}
+            placeholder={t("auth.registerForm.passwordPlaceholder")}
+            {...register("password")}
+            autoComplete="new-password"
+            aria-invalid={!!errors.password}
+            disabled={submitting}
+            className="h-10 bg-background/50 border-border focus:border-primary transition pr-10"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((v) => !v)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+            aria-label={showPassword ? t("auth.registerForm.hidePassword") : t("auth.registerForm.showPassword")}
+            disabled={submitting}
+          >
             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>
         </div>
         {errors.password && (
           <p className="text-xs text-destructive font-medium">{errors.password.message}</p>
         )}
-
-        {/* Password Requirements */}
-        <div className="space-y-1.5 mt-3 p-3 rounded-lg bg-muted/50 border border-border/50">
-          <div className="flex items-center gap-2 text-xs">
-            <CheckCircle2 className={`h-3.5 w-3.5 ${hasLengthRequirement ? "text-green-500" : "text-muted-foreground"}`} />
-             <span className={hasLengthRequirement ? "text-foreground" : "text-muted-foreground"}>
-               {t("auth.registerForm.passwordRequirements.length")}
-             </span>
-          </div>
-          <div className="flex items-center gap-2 text-xs">
-            <CheckCircle2 className={`h-3.5 w-3.5 ${hasUpperCase ? "text-green-500" : "text-muted-foreground"}`} />
-             <span className={hasUpperCase ? "text-foreground" : "text-muted-foreground"}>
-               {t("auth.registerForm.passwordRequirements.uppercase")}
-             </span>
-          </div>
-          <div className="flex items-center gap-2 text-xs">
-            <CheckCircle2 className={`h-3.5 w-3.5 ${hasNumber ? "text-green-500" : "text-muted-foreground"}`} />
-             <span className={hasNumber ? "text-foreground" : "text-muted-foreground"}>
-               {t("auth.registerForm.passwordRequirements.number")}
-             </span>
-          </div>
-        </div>
+        <PasswordStrengthMeter password={password || ""} />
       </div>
 
-      <Button 
-        className="w-full h-10 text-sm font-semibold bg-gradient-to-r from-primary to-primary/80 hover:shadow-lg transition" 
-        type="submit" 
+      <div className="space-y-2">
+        <Label htmlFor="confirmPassword" className="text-sm font-semibold">{t("auth.registerForm.confirmPasswordLabel") || "Confirm Password"}</Label>
+        <div className="relative">
+          <Input
+            id="confirmPassword"
+            type={showConfirmPassword ? "text" : "password"}
+            placeholder={t("auth.registerForm.confirmPasswordPlaceholder") || "Confirm your password"}
+            {...register("confirmPassword")}
+            autoComplete="new-password"
+            aria-invalid={!!errors.confirmPassword}
+            disabled={submitting}
+            className="h-10 bg-background/50 border-border focus:border-primary transition pr-10"
+          />
+          <button
+            type="button"
+            onClick={() => setShowConfirmPassword((v) => !v)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+            aria-label={showConfirmPassword ? t("auth.registerForm.hidePassword") : t("auth.registerForm.showPassword")}
+            disabled={submitting}
+          >
+            {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </button>
+        </div>
+        {errors.confirmPassword && (
+          <p className="text-xs text-destructive font-medium">{errors.confirmPassword.message}</p>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <div className="flex items-start gap-2">
+          <input
+            type="checkbox"
+            id="termsAccepted"
+            {...register("termsAccepted")}
+            className="mt-0.5 h-4 w-4 rounded border-border cursor-pointer transition accent-primary"
+            disabled={submitting}
+          />
+          <label
+            htmlFor="termsAccepted"
+            className="text-sm text-muted-foreground leading-tight cursor-pointer select-none"
+          >
+            {t("auth.registerForm.agreeToTerms") || "I agree to the"}{" "}
+            <Link href="/legal/terms" className="text-primary hover:underline font-medium" target="_blank">
+              {t("auth.termsOfService") || "Terms of Service"}
+            </Link>
+            {" "}{t("auth.registerForm.and") || "and"}{" "}
+            <Link href="/legal/privacy" className="text-primary hover:underline font-medium" target="_blank">
+              {t("auth.privacyPolicy") || "Privacy Policy"}
+            </Link>
+          </label>
+        </div>
+        {errors.termsAccepted && (
+          <p className="text-xs text-destructive font-medium">{errors.termsAccepted.message}</p>
+        )}
+      </div>
+
+      <Button
+        className="w-full h-10 text-sm font-semibold bg-gradient-to-r from-primary to-primary/80 hover:shadow-lg transition"
+        type="submit"
         disabled={submitting}
       >
         {submitting ? (
           <>
-            <span className="inline-block animate-spin mr-2">⏳</span>
+            <span className="inline-block animate-spin mr-2">&#8987;</span>
             {t("auth.creatingAccount")}
           </>
         ) : (

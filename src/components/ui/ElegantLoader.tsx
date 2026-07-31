@@ -1,7 +1,5 @@
 'use client';
 
-import React from 'react';
-
 /**
  * Elegant Loading Component for Tamer Studio
  * - Smooth animations

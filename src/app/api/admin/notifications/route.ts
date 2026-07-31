@@ -5,7 +5,7 @@ import { runMiddleware } from "@/core/middleware/compose";
 import { adminAuthentication, requireAdminPermission } from "@/core/middleware";
 import { NotificationRepository } from "@/core/notifications/notification.repository";
 import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
-import { successResponse, paginatedResponse } from "@/app/api/mappers/response";
+import { successResponse, paginatedResponse, errorResponse } from "@/app/api/mappers/response";
 import { z } from "zod";
 
 const repository = new NotificationRepository();
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
   try {
     const session = ctx.state.adminSession;
     if (!session?.adminId) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(errorResponse("UNAUTHORIZED", "Unauthorized"), { status: 401 });
     }
 
     const searchParams = request.nextUrl.searchParams;
@@ -104,19 +104,19 @@ export async function PATCH(request: NextRequest) {
   try {
     const session = ctx.state.adminSession;
     if (!session?.adminId) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(errorResponse("UNAUTHORIZED", "Unauthorized"), { status: 401 });
     }
 
     const body = await request.json().catch(() => ({}));
     const { action, id } = body;
 
     if (!id || !action) {
-      return NextResponse.json({ success: false, error: "Missing id or action" }, { status: 400 });
+      return NextResponse.json(errorResponse("BAD_REQUEST", "Missing id or action"), { status: 400 });
     }
 
     const allowedActions = ["read", "archive", "delete"];
     if (!allowedActions.includes(action)) {
-      return NextResponse.json({ success: false, error: "Invalid action" }, { status: 400 });
+      return NextResponse.json(errorResponse("BAD_REQUEST", "Invalid action"), { status: 400 });
     }
 
     let notification;
@@ -132,7 +132,7 @@ export async function PATCH(request: NextRequest) {
         notification = { id };
         break;
       default:
-        return NextResponse.json({ success: false, error: "Invalid action" }, { status: 400 });
+        return NextResponse.json(errorResponse("BAD_REQUEST", "Invalid action"), { status: 400 });
     }
 
     return NextResponse.json(successResponse(notification));

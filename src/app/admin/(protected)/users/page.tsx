@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Search, Filter, UserPlus, Loader, X, Trash2, Edit } from "lucide-react";
+import { Search, Filter, UserPlus, Loader, X, Trash2, Edit, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { Breadcrumbs } from "@/components/admin/Breadcrumbs";
 import { useLocalizationContext } from "@/providers/localization";
@@ -28,7 +28,7 @@ export default function AdminUsersPage() {
   const { data, error, isLoading, mutate } = useSWR("/api/admin/users", fetcher, { 
     revalidateOnFocus: false,
     shouldRetryOnError: false,
-    dedupingInterval: 0,
+    dedupingInterval: 5000,
   });
   
   const [search, setSearch] = React.useState("");
@@ -199,6 +199,28 @@ export default function AdminUsersPage() {
     }
   };
 
+  const handleForceVerify = async (userId: string, userName: string) => {
+    if (!confirm(t("admin.confirmForceVerify", `Force verify "{{name}}"?`).replace("{{name}}", userName))) return;
+
+    try {
+      const response = await fetch(`/api/admin/users/${userId}/force-verify`, {
+        method: "POST",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: t("admin.failedToForceVerify", "Failed to force verify user") }));
+        toast.error(errorData.error || t("admin.failedToForceVerify", "Failed to force verify user"));
+        return;
+      }
+
+      toast.success(t("admin.userForceVerified", "User force-verified successfully!"));
+      mutate();
+    } catch (error) {
+      toast.error(t("admin.errorForceVerifying", "Error force verifying user"));
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Breadcrumbs items={[{ label: t("admin.users", "Users") }]} />
@@ -306,11 +328,26 @@ export default function AdminUsersPage() {
                   )},
                   { key: "role", header: t("admin.role", "Role"), align: "center", render: (u: any) => <Badge tone={u.role.toLowerCase() === "admin" ? "info" : "muted"}>{t(`admin.role${u.role.charAt(0).toUpperCase() + u.role.slice(1).toLowerCase()}`, u.role)}</Badge> },
                   { key: "status", header: t("admin.status", "Status"), align: "center", render: (u: any) => <Badge tone={u.status.toLowerCase() === "active" ? "success" : u.status.toLowerCase() === "pending" ? "warning" : "muted"}>{t(`admin.${u.status.toLowerCase()}`, u.status)}</Badge> },
-                  { key: "emailVerified", header: t("admin.emailVerified", "Email Verified"), align: "center", render: (u: any) => <Badge tone={u.emailVerified ? "success" : "warning"}>{u.emailVerified ? t("common.yes", "Yes") : t("common.no", "No")}</Badge> },
+                  { key: "verificationStatus", header: t("admin.verificationStatus", "Verification Status"), align: "center", render: (u: any) => {
+                    if (u.emailVerified) return <Badge tone="success">{t("auth.verificationSuccess", "Verified")}</Badge>;
+                    if (u.status === "pending_verification") return <Badge tone="warning">{t("admin.pending", "Pending")}</Badge>;
+                    return <Badge tone="error">{t("admin.unverified", "Unverified")}</Badge>;
+                  }},
                   { key: "joined", header: t("admin.joined", "Joined"), render: (u: any) => <span className="text-sm">{u.joined}</span> },
                   { key: "lastActive", header: t("admin.lastActive", "Last Active"), render: (u: any) => <span className="text-sm">{u.lastActive}</span> },
                   { key: "actions", header: "", align: "right", render: (u: any) => (
                     <div className="flex items-center gap-1 justify-end">
+                      {!u.emailVerified && (
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="size-8 text-emerald-600 hover:text-emerald-600"
+                          onClick={() => handleForceVerify(u.id, u.name)}
+                          title={t("admin.forceVerify", "Force Verify")}
+                        >
+                          <ShieldCheck className="size-4" />
+                        </Button>
+                      )}
                       <Button 
                         variant="ghost" 
                         size="icon" 

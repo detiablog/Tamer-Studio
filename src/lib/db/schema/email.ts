@@ -89,6 +89,10 @@ export const emailQueue = pgTable(
     providerId: text("provider_id").references(() => emailProvider.id),
     providerName: text("provider_name"),
     latencyMs: integer("latency_ms"),
+    templateId: text("template_id").references(() => emailTemplate.id),
+    category: text("category"),
+    scheduledTimezone: text("scheduled_timezone"),
+    attachments: jsonb("attachments").$type<unknown[]>().notNull().default([]),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()
@@ -102,6 +106,7 @@ export const emailQueue = pgTable(
     index("email_queue_provider_idx").on(table.providerId),
     index("email_queue_created_idx").on(table.createdAt),
     index("email_queue_scheduled_idx").on(table.scheduledAt),
+    index("email_queue_template_idx").on(table.templateId),
   ]
 );
 
@@ -125,6 +130,13 @@ export const emailLog = pgTable(
     errorCode: text("error_code"),
     errorMessage: text("error_message"),
     metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull().default({}),
+    templateId: text("template_id").references(() => emailTemplate.id),
+    renderedHtml: text("rendered_html"),
+    renderedText: text("rendered_text"),
+    headers: jsonb("headers").$type<Record<string, string>>().notNull().default({}),
+    openedAt: timestamp("opened_at"),
+    clickedAt: timestamp("clicked_at"),
+    category: text("category"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (table) => [
@@ -133,6 +145,7 @@ export const emailLog = pgTable(
     index("email_log_provider_idx").on(table.providerId),
     index("email_log_created_idx").on(table.createdAt),
     index("email_log_to_idx").on(table.to),
+    index("email_log_template_idx").on(table.templateId),
   ]
 );
 
@@ -170,6 +183,12 @@ export const emailTemplate = pgTable(
     text: text("text"),
     variables: jsonb("variables").$type<string[]>().notNull().default([]),
     isActive: boolean("is_active").default(true).notNull(),
+    description: text("description"),
+    language: text("language").default("en").notNull(),
+    version: integer("version").default(1).notNull(),
+    isSystem: boolean("is_system").default(false).notNull(),
+    category: text("category"),
+    builderBlocks: jsonb("builder_blocks").$type<unknown[]>(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()
@@ -182,6 +201,42 @@ export const emailTemplate = pgTable(
     unique("email_template_key_unique").on(table.key),
     index("email_template_type_idx").on(table.type),
     index("email_template_active_idx").on(table.isActive),
+    index("email_template_category_idx").on(table.category),
+  ]
+);
+
+export const emailTemplateVersion = pgTable(
+  "email_template_version",
+  {
+    id: text("id").primaryKey(),
+    templateId: text("template_id").notNull().references(() => emailTemplate.id, { onDelete: "cascade" }),
+    version: integer("version").notNull(),
+    subject: text("subject").notNull(),
+    html: text("html").notNull(),
+    text: text("text"),
+    variables: jsonb("variables").$type<string[]>().notNull().default([]),
+    createdBy: text("created_by"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("email_template_version_template_idx").on(table.templateId),
+    unique("email_template_version_unique").on(table.templateId, table.version),
+  ]
+);
+
+export const emailAttachment = pgTable(
+  "email_attachment",
+  {
+    id: text("id").primaryKey(),
+    queueId: text("queue_id").references(() => emailQueue.id, { onDelete: "cascade" }),
+    filename: text("filename").notNull(),
+    contentType: text("content_type").notNull(),
+    size: integer("size").notNull(),
+    path: text("path").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("email_attachment_queue_idx").on(table.queueId),
   ]
 );
 
@@ -222,11 +277,16 @@ export const emailProviderHealthRelations = relations(emailProviderHealth, ({ on
   }),
 }));
 
-export const emailQueueRelations = relations(emailQueue, ({ one }) => ({
+export const emailQueueRelations = relations(emailQueue, ({ one, many }) => ({
   provider: one(emailProvider, {
     fields: [emailQueue.providerId],
     references: [emailProvider.id],
   }),
+  template: one(emailTemplate, {
+    fields: [emailQueue.templateId],
+    references: [emailTemplate.id],
+  }),
+  attachments: many(emailAttachment),
 }));
 
 export const emailLogRelations = relations(emailLog, ({ one }) => ({
@@ -236,6 +296,30 @@ export const emailLogRelations = relations(emailLog, ({ one }) => ({
   }),
   queue: one(emailQueue, {
     fields: [emailLog.queueId],
+    references: [emailQueue.id],
+  }),
+  template: one(emailTemplate, {
+    fields: [emailLog.templateId],
+    references: [emailTemplate.id],
+  }),
+}));
+
+export const emailTemplateRelations = relations(emailTemplate, ({ many }) => ({
+  queueItems: many(emailQueue),
+  logs: many(emailLog),
+  versions: many(emailTemplateVersion),
+}));
+
+export const emailTemplateVersionRelations = relations(emailTemplateVersion, ({ one }) => ({
+  template: one(emailTemplate, {
+    fields: [emailTemplateVersion.templateId],
+    references: [emailTemplate.id],
+  }),
+}));
+
+export const emailAttachmentRelations = relations(emailAttachment, ({ one }) => ({
+  queue: one(emailQueue, {
+    fields: [emailAttachment.queueId],
     references: [emailQueue.id],
   }),
 }));

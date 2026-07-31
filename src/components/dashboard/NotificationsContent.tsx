@@ -11,10 +11,12 @@ import {
   XCircle,
   Trash2,
 } from "lucide-react";
+import { useLocalizationContext } from "@/providers/localization";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 export function NotificationsContent({ onMarkedAllRead }: { onMarkedAllRead?: (fn: () => void) => void } = {}) {
+  const { t } = useLocalizationContext();
   const { data, error, mutate } = useSWR("/api/notifications", fetcher);
   const [filter, setFilter] = React.useState<"all" | "unread">("all");
 
@@ -54,19 +56,19 @@ export function NotificationsContent({ onMarkedAllRead }: { onMarkedAllRead?: (f
           size="sm"
           onClick={() => setFilter("all")}
         >
-          All
+          {t("common.all", "All")}
         </Button>
         <Button
           variant={filter === "unread" ? "default" : "ghost"}
           size="sm"
           onClick={() => setFilter("unread")}
         >
-          Unread
+          {t("notifications.unread", "Unread")}
           {unreadCount > 0 && <span className="ml-2 rounded-full bg-sky-500 px-2 py-0.5 text-xs font-medium text-white">{unreadCount}</span>}
         </Button>
       </div>
 
-      <DashboardCard title={`Notifications (${filtered.length})`} description={filter === "unread" ? "Showing unread notifications only" : "All recent notifications"}>
+      <DashboardCard title={`Notifications (${filtered.length})`} description={filter === "unread" ? t("notifications.showingUnread", "Showing unread notifications only") : t("notifications.allRecent", "All recent notifications")}>
         <div className="space-y-3">
           {filtered.map((notification: any) => (
             <div

@@ -12,6 +12,14 @@ function withSecurityHeaders(response: NextResponse): NextResponse {
   for (const [key, value] of Object.entries(headers)) {
     response.headers.set(key, value);
   }
+  response.headers.set("X-DNS-Prefetch-Control", "on");
+  const existingPermissions = headers["Permissions-Policy"] || "";
+  if (!existingPermissions.includes("interest-cohort")) {
+    response.headers.set(
+      "Permissions-Policy",
+      existingPermissions ? existingPermissions.replace(/interest-cohort=\(\),?\s*/g, "").replace(/,\s*$/, "").trim() + ", interest-cohort=()" : "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+    );
+  }
   return response;
 }
 
@@ -29,8 +37,8 @@ function stripCredentialsFromUrl(request: NextRequest): NextRequest | null {
   return request;
 }
 
-const AUTH_ROUTES = ["/login", "/register", "/forgot-password", "/reset-password", "/verify-email"];
-const PUBLIC_ROUTES = ["/", "/about", "/contact", "/docs", "/pricing", "/legal/privacy", "/legal/terms"];
+const AUTH_ROUTES = ["/login", "/register", "/forgot-password", "/reset-password", "/verify-email", "/2fa"];
+const PUBLIC_ROUTES = ["/", "/about", "/contact", "/docs", "/pricing", "/legal/privacy", "/legal/terms", "/blog", "/roadmap", "/careers", "/support", "/legal/cookie"];
 const ADMIN_ROUTES = ["/admin"];
 const ADMIN_LOGIN_ROUTE = "/admin/login";
 
@@ -40,7 +48,7 @@ function setLocalizationCookies(request: NextRequest, response: NextResponse) {
     if (!request.cookies.get("tamer_country")?.value) {
       response.cookies.set("tamer_country", country, {
         httpOnly: true,
-        secure: false,
+        secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
         maxAge: 60 * 60 * 24 * 365,
         path: "/",
@@ -165,7 +173,7 @@ export async function proxy(request: NextRequest) {
     const session = request.cookies.get("better-auth.session_token") || request.cookies.get("session");
     if (session) {
       const tokenValue = session.value;
-      if (tokenValue.length >= 32 && /^[a-zA-Z0-9_-]+$/.test(tokenValue)) {
+      if (tokenValue.length >= 32) {
         const response = withSecurityHeaders(NextResponse.redirect(new URL("/dashboard", request.url)));
         metrics.increment("api.request", { method, route: pathname, status: "redirect" });
         return response;
@@ -178,7 +186,7 @@ export async function proxy(request: NextRequest) {
   const session = request.cookies.get("better-auth.session_token") || request.cookies.get("session");
   if (session) {
     const userTokenValue = session.value;
-    if (userTokenValue.length < 32 || !/^[a-zA-Z0-9_-]+$/.test(userTokenValue)) {
+    if (userTokenValue.length < 32) {
       const response = withSecurityHeaders(NextResponse.redirect(new URL("/login", request.url)));
       metrics.increment("api.request", { method, route: pathname, status: "redirect" });
       return response;

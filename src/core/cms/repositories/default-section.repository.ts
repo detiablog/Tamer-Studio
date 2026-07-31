@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { cmsSection } from "@/lib/db/schema/cms";
 import { eq, and } from "drizzle-orm";
 import { randomUUID } from "crypto";
+import { logger } from "@/core/logger";
 import type { CMSSectionRepository } from "./section.repository";
 import type { CMSSection } from "../cms.types";
 
@@ -77,7 +78,7 @@ export class DefaultCMSSectionRepository implements CMSSectionRepository {
 
   private mapRow(row: typeof cmsSection.$inferSelect): CMSSection {
     const cfg = row.config ?? {};
-    console.log('[mapRow] config type:', typeof cfg, 'value:', JSON.stringify(cfg)?.substring(0, 100));
+    logger.debug("[mapRow] config type:", { type: typeof cfg });
     return {
       id: row.id,
       pageId: row.pageId,

@@ -53,7 +53,7 @@ export default function SubscriptionsPage() {
   const { data, error, isLoading, mutate } = useSWR("/api/admin/subscriptions", fetcher, {
     revalidateOnFocus: false,
     shouldRetryOnError: false,
-    dedupingInterval: 0,
+    dedupingInterval: 5000,
   });
 
   const subscriptions = React.useMemo(() => {

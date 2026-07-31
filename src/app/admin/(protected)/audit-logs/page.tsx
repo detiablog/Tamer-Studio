@@ -29,7 +29,7 @@ export default function AuditLogsPage() {
   const { data, error, isLoading, mutate } = useSWR("/api/admin/audit-logs", fetcher, {
     revalidateOnFocus: false,
     shouldRetryOnError: false,
-    dedupingInterval: 0,
+    dedupingInterval: 5000,
   });
 
   const logs = React.useMemo(() => {

@@ -16,6 +16,13 @@ import { FAQ } from '@/components/landing/FAQ';
 import { CTASection } from '@/components/landing/CTASection';
 import { Footer } from '@/components/landing/Footer';
 import { SocialProof } from '@/components/landing/SocialProof';
+import { AnnouncementBar } from '@/components/landing/AnnouncementBar';
+import { CountdownTimer } from '@/components/landing/CountdownTimer';
+import { NewsletterSection } from '@/components/landing/NewsletterSection';
+import { BlogPreview } from '@/components/landing/BlogPreview';
+import { PartnerLogos } from '@/components/landing/PartnerLogos';
+import { RoadmapSection } from '@/components/landing/RoadmapSection';
+import { DownloadApp } from '@/components/landing/DownloadApp';
 
 export interface SectionRendererProps {
   section: {
@@ -48,6 +55,13 @@ const SECTION_COMPONENTS: Record<string, React.ComponentType<SectionRendererProp
   cta: CTASection,
   footer: Footer,
   'social-proof': SocialProof,
+  'announcement-bar': AnnouncementBar,
+  countdown: CountdownTimer,
+  newsletter: NewsletterSection,
+  blog: BlogPreview,
+  partners: PartnerLogos,
+  roadmap: RoadmapSection,
+  'download-app': DownloadApp,
 };
 
 export function getSectionComponent(key: string): React.ComponentType<SectionRendererProps> | null {

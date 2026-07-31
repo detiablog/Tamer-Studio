@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { setCookiePreferences } from "@/lib/preferences";
 import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
-import { successResponse } from "@/app/api/mappers/response";
+import { successResponse, errorResponse } from "@/app/api/mappers/response";
 import { z } from "zod";
 
 const UpdatePreferencesSchema = z.object({
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     const parsed = UpdatePreferencesSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json({ success: false, error: "Invalid input" }, { status: 422 });
+      return NextResponse.json(errorResponse("VALIDATION_ERROR", "Invalid input"), { status: 422 });
     }
 
     setCookiePreferences({

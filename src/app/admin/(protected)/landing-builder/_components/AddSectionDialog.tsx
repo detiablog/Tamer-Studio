@@ -24,6 +24,13 @@ const AVAILABLE_SECTIONS = [
   { key: "footer", label: "Footer", description: "Site footer", icon: "📄" },
   { key: "custom-html", label: "Custom HTML", description: "Embed custom HTML", icon: "🔧" },
   { key: "custom-section", label: "Custom Section", description: "Empty custom section", icon: "📝" },
+  { key: "announcement-bar", label: "Announcement Bar", description: "Dismissible announcement banner", icon: "📢" },
+  { key: "countdown", label: "Countdown Timer", description: "Countdown to target date", icon: "⏰" },
+  { key: "newsletter", label: "Newsletter", description: "Email subscription form", icon: "📬" },
+  { key: "blog", label: "Blog Preview", description: "Latest blog posts grid", icon: "📰" },
+  { key: "partners", label: "Partners", description: "Partner logo grid", icon: "🤝" },
+  { key: "roadmap", label: "Roadmap", description: "Timeline roadmap display", icon: "🗺️" },
+  { key: "download-app", label: "Download App", description: "App download section", icon: "📱" },
 ];
 
 type AddSectionDialogProps = {

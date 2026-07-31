@@ -124,7 +124,7 @@ export class EmailAdminService {
     return emailAdminRepository.deleteProvider(id);
   }
 
-  async getTemplates(filters?: { type?: string; isActive?: boolean }) {
+  async getTemplates(filters?: { type?: string; isActive?: boolean; category?: string; isSystem?: boolean }) {
     const templates = await emailAdminRepository.findTemplates(filters);
     return templates.map((t) => ({
       id: t.id,
@@ -136,6 +136,11 @@ export class EmailAdminService {
       text: t.text,
       variables: t.variables,
       isActive: t.isActive,
+      isSystem: t.isSystem,
+      description: t.description,
+      language: t.language,
+      category: t.category,
+      version: t.version,
       createdBy: t.createdBy,
       updatedBy: t.updatedBy,
       createdAt: t.createdAt,
@@ -156,6 +161,11 @@ export class EmailAdminService {
       text: template.text,
       variables: template.variables,
       isActive: template.isActive,
+      isSystem: template.isSystem,
+      description: template.description,
+      language: template.language,
+      category: template.category,
+      version: template.version,
       createdBy: template.createdBy,
       updatedBy: template.updatedBy,
       createdAt: template.createdAt,
@@ -223,6 +233,61 @@ export class EmailAdminService {
 
   async deleteTemplate(id: string) {
     return emailAdminRepository.deactivateTemplate(id);
+  }
+
+  async duplicateTemplate(id: string) {
+    const template = await emailAdminRepository.findTemplateById(id);
+    if (!template) return undefined;
+
+    const newId = generateId("tmpl");
+    const newKey = `${template.key}-copy-${Date.now()}`;
+
+    return emailAdminRepository.createTemplate({
+      id: newId,
+      key: newKey,
+      name: `${template.name} (Copy)`,
+      type: template.type,
+      subject: template.subject,
+      html: template.html,
+      text: template.text,
+      variables: template.variables,
+      isActive: true,
+      isSystem: false,
+      description: template.description || null,
+      language: template.language || "en",
+      category: template.category || null,
+      version: 1,
+      createdBy: "admin",
+      updatedBy: "admin",
+    });
+  }
+
+  async deleteTemplatePermanently(id: string) {
+    const template = await emailAdminRepository.findTemplateById(id);
+    if (!template) return false;
+    if (template.isSystem) return false;
+    return emailAdminRepository.hardDeleteTemplate(id);
+  }
+
+  async validateTemplateVariables(html: string, subject: string) {
+    const { validateTemplateVariables } = await import("@/lib/email/templates");
+    return validateTemplateVariables(html, subject);
+  }
+
+  async cancelQueue(ids: string[]) {
+    return emailAdminRepository.cancelQueueItems(ids);
+  }
+
+  async deleteQueue(ids: string[]) {
+    return emailAdminRepository.deleteQueueItems(ids);
+  }
+
+  async bulkRetryQueue(ids: string[]) {
+    return emailAdminRepository.retryQueueItems(ids);
+  }
+
+  async getLogDetails(id: string) {
+    return emailAdminRepository.findLogById(id);
   }
 
   async getLogs(filters?: { page?: number; limit?: number; status?: string; type?: string; providerId?: string; to?: string; dateFrom?: Date; dateTo?: Date; search?: string }) {
@@ -498,22 +563,56 @@ export class EmailAdminService {
     try {
       if (provider.type === "smtp") {
         const { createTransport } = await import("nodemailer");
+
+        let smtpConfig: Record<string, unknown> = {};
+        if (provider.credentialsEncrypted) {
+          try {
+            const decrypted = decrypt(provider.credentialsEncrypted);
+            smtpConfig = JSON.parse(decrypted);
+          } catch {
+            smtpConfig = {};
+          }
+        }
+
+        const smtpHost = smtpConfig.host || provider.domain || "smtp.example.com";
+        const smtpPort = Number(smtpConfig.port) || 587;
+        const smtpSecure = smtpConfig.secure === true || smtpConfig.secure === "true";
         const transport = createTransport({
-          host: provider.domain || "smtp.example.com",
-          port: provider.config?.port as number || 587,
-          secure: (provider.config?.secure as boolean) || false,
-          auth: provider.config?.auth as Record<string, string>,
+          host: String(smtpHost),
+          port: smtpPort,
+          secure: smtpSecure,
+          auth: smtpConfig.username
+            ? { user: String(smtpConfig.username), pass: String(smtpConfig.password || "") }
+            : undefined,
+          connectionTimeout: (provider.timeout || 30) * 1000,
         });
+        const verifyStart = Date.now();
         await new Promise((resolve, reject) => {
           transport.verify((err: unknown) => {
             if (err) reject(err);
             else resolve(true);
           });
         });
+        const verifyTime = Date.now() - verifyStart;
         success = true;
-        response = { verified: true, provider: provider.type };
+        response = {
+          verified: true,
+          provider: provider.type,
+          host: smtpHost,
+          port: smtpPort,
+          encryption: smtpSecure ? "SSL/TLS" : "None",
+          responseTime: verifyTime,
+          message: "Connection verified successfully",
+        };
       } else if (provider.type === "sendgrid") {
-        const apiKey = provider.config?.apiKey as string;
+        let apiKey = provider.config?.apiKey as string;
+        if (!apiKey && provider.credentialsEncrypted) {
+          try {
+            const decrypted = decrypt(provider.credentialsEncrypted);
+            const creds = JSON.parse(decrypted);
+            apiKey = creds.apiKey;
+          } catch { /* ignore */ }
+        }
         if (!apiKey) throw new Error("Missing API key");
         const res = await fetch("https://api.sendgrid.com/v3/user/profile", {
           headers: { Authorization: `Bearer ${apiKey}` },
@@ -652,5 +751,9 @@ export class EmailAdminService {
         error,
       },
     };
+  }
+
+  async getDashboardData() {
+    return emailAdminRepository.getDashboardData();
   }
 }

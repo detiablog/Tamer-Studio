@@ -2,8 +2,6 @@
 
 import * as React from "react";
 import useSWR from "swr";
-import { AppShell } from "@/components/ui/AppShell";
-import { PageLayout } from "@/components/ui/PageLayout";
 import { StatCard } from "@/components/ui/StatCard";
 import { DashboardCard } from "@/components/ui/DashboardCard";
 import { ProjectList } from "@/features/project/ProjectList";
@@ -25,43 +23,41 @@ export default function ProjectsPage() {
     : "0%";
 
   return (
-    <AppShell>
-      <PageLayout 
-        title={t("projects.pageTitle", "Projects")} 
-        description={t("projects.description", "Organize and manage your production projects.")} 
-        breadcrumb={[{ label: t("projects.pageTitle", "Projects") }]} 
-        actions={<ProjectsActions />}
-      >
-        <div className="grid gap-6">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <StatCard title={t("projects.totalProjects", "Total Projects")} value={isLoading ? "—" : totalProjects} delta={t("projects.thisWorkspace", "This workspace")} />
-            <StatCard title={t("projects.inProduction", "In Production")} value={isLoading ? "—" : inProduction} delta={t("projects.activeNow", "Active now")} />
-            <StatCard title={t("projects.archived", "Archived")} value={isLoading ? "—" : archived} delta={t("projects.last30Days", "Last 30 days")} />
-            <StatCard title={t("projects.avgCompletion", "Avg. Completion")} value={isLoading ? "—" : avgCompletion} delta={t("projects.overall", "Overall")} />
-          </div>
-
-          <div className="grid gap-6 lg:grid-cols-3">
-            <div className="lg:col-span-2">
-              <DashboardCard title={t("projects.allProjects", "All Projects")} description={t("projects.allProjectsDesc", "Manage and organize your projects")}>
-                <ProjectList />
-              </DashboardCard>
-            </div>
-            <div className="space-y-6">
-              <DashboardCard title={t("projects.popularTags", "Popular Tags")}>
-                <div className="flex flex-wrap gap-2">
-                  {workspaces.length === 0 ? (
-                    <p className="text-xs text-muted-foreground">{t("projects.noTagsYet", "No tags yet")}</p>
-                  ) : (
-                    ["affiliate", "video", "social", "product", "tutorial", "review", "promo", "launch"].map((tag) => (
-                      <span key={tag} className="cursor-pointer rounded-full bg-muted/60 px-2 py-0.5 text-xs font-medium text-muted-foreground hover:bg-muted">#{tag}</span>
-                    ))
-                  )}
-                </div>
-              </DashboardCard>
-            </div>
-          </div>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">{t("projects.pageTitle", "Projects")}</h2>
+          <p className="text-sm text-muted-foreground">{t("projects.description", "Organize and manage your production projects.")}</p>
         </div>
-      </PageLayout>
-    </AppShell>
+        <ProjectsActions />
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard title={t("projects.totalProjects", "Total Projects")} value={isLoading ? "—" : totalProjects} delta={t("projects.thisWorkspace", "This workspace")} />
+        <StatCard title={t("projects.inProduction", "In Production")} value={isLoading ? "—" : inProduction} delta={t("projects.activeNow", "Active now")} />
+        <StatCard title={t("projects.archived", "Archived")} value={isLoading ? "—" : archived} delta={t("projects.last30Days", "Last 30 days")} />
+        <StatCard title={t("projects.avgCompletion", "Avg. Completion")} value={isLoading ? "—" : avgCompletion} delta={t("projects.overall", "Overall")} />
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <DashboardCard title={t("projects.allProjects", "All Projects")} description={t("projects.allProjectsDesc", "Manage and organize your projects")}>
+            <ProjectList />
+          </DashboardCard>
+        </div>
+        <div className="space-y-6">
+          <DashboardCard title={t("projects.popularTags", "Popular Tags")}>
+            <div className="flex flex-wrap gap-2">
+              {workspaces.length === 0 ? (
+                <p className="text-xs text-muted-foreground">{t("projects.noTagsYet", "No tags yet")}</p>
+              ) : (
+                ["affiliate", "video", "social", "product", "tutorial", "review", "promo", "launch"].map((tag) => (
+                  <span key={tag} className="cursor-pointer rounded-full bg-muted/60 px-2 py-0.5 text-xs font-medium text-muted-foreground hover:bg-muted">#{tag}</span>
+                ))
+              )}
+            </div>
+          </DashboardCard>
+        </div>
+      </div>
+    </div>
   );
 }
