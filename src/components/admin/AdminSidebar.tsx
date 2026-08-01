@@ -89,6 +89,7 @@ const ADMIN_NAV_ITEMS: SidebarNavItem[] = [
   { id: "api-keys", labelKey: "admin.apiKeys", label: "API Keys", icon: Key, href: "/admin/api-keys", group: "settings" },
   { id: "ai-providers", labelKey: "admin.aiProviders", label: "AI Providers", icon: Brain, href: "/admin/ai-providers", group: "settings" },
   { id: "ai-admin", labelKey: "admin.aiAdmin", label: "AI Admin", icon: Brain, href: "/admin/ai", group: "settings" },
+  { id: "prompts-admin", labelKey: "admin.prompts", label: "Prompt Intelligence", icon: Brain, href: "/admin/prompts", group: "analytics" },
   { id: "ai-runtime", labelKey: "admin.aiRuntime.title", label: "AI Runtime", icon: Cpu, href: "/admin/ai-runtime", group: "analytics" },
   { id: "ai-image", labelKey: "admin.aiImage", label: "AI Image", icon: Image, href: "/admin/ai-image", group: "analytics" },
   { id: "ai-video", labelKey: "admin.aiVideo", label: "AI Video", icon: Video, href: "/admin/ai-video", group: "analytics" },

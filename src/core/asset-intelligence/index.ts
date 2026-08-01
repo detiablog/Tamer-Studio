@@ -1,0 +1,11 @@
+export { metadataService, MetadataService } from "./metadata.service";
+export { classificationService, ClassificationService } from "./classification.service";
+export { taggingService, TaggingService } from "./tagging.service";
+export { recognitionService, RecognitionService } from "./recognition.service";
+export { duplicateService, DuplicateService } from "./duplicate.service";
+export { assetQualityScoreService, AssetQualityScoreService } from "./quality-score.service";
+export { relationshipService, RelationshipService } from "./relationship.service";
+export { collectionService, CollectionService } from "./collection.service";
+export { searchService, SearchService } from "./search.service";
+export { recommendationService, RecommendationService } from "./recommendation.service";
+export { assetSettingsService, AssetSettingsService } from "./settings.service";

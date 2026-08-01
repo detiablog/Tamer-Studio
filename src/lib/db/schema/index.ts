@@ -67,3 +67,8 @@ export * from "./conversion-optimizer";
 export * from "./creative-memory";
 export * from "./orchestrator";
 export * from "./automation";
+export * from "./ai-gateway";
+export * from "./prompt-intelligence";
+export * from "./quality-assurance";
+export * from "./asset-intelligence";
+export * from "./learning-engine";
