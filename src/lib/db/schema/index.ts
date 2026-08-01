@@ -48,3 +48,6 @@ export * from "./performance";
 export * from "./security";
 export * from "./devops";
 export * from "./image-studio";
+export * from "./video-studio";
+export * from "./affiliate-studio";
+export * from "./drama-studio";

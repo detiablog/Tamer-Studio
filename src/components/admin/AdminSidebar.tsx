@@ -39,6 +39,8 @@ import {
   FileBarChart,
   Rocket,
   Image,
+  Video,
+  Film,
 } from "lucide-react"
 import { useLocalizationContext } from "@/providers/localization"
 
@@ -84,7 +86,10 @@ const ADMIN_NAV_ITEMS: SidebarNavItem[] = [
   { id: "ai-admin", labelKey: "admin.aiAdmin", label: "AI Admin", icon: Brain, href: "/admin/ai", group: "settings" },
   { id: "ai-runtime", labelKey: "admin.aiRuntime.title", label: "AI Runtime", icon: Cpu, href: "/admin/ai-runtime", group: "analytics" },
   { id: "ai-image", labelKey: "admin.aiImage", label: "AI Image", icon: Image, href: "/admin/ai-image", group: "analytics" },
+  { id: "ai-video", labelKey: "admin.aiVideo", label: "AI Video", icon: Video, href: "/admin/ai-video", group: "analytics" },
   { id: "monitor", labelKey: "admin.monitor", label: "Monitor", icon: Activity, href: "/admin/monitor", group: "analytics" },
+  { id: "affiliate-studio", labelKey: "admin.affiliateStudio", label: "Affiliate Studio", icon: Megaphone, href: "/admin/affiliate-studio", group: "analytics" },
+  { id: "drama", labelKey: "admin.drama", label: "AI Drama", icon: Film, href: "/admin/drama", group: "analytics" },
   { id: "jobs", labelKey: "admin.jobs", label: "Jobs", icon: Briefcase, href: "/admin/jobs", group: "settings" },
   { id: "queues", labelKey: "admin.queues", label: "Queues", icon: ListTodo, href: "/admin/queues", group: "settings" },
   { id: "landing-builder", labelKey: "admin.landingBuilder", label: "Landing Builder", icon: Layout, href: "/admin/landing-builder", group: "settings" },
