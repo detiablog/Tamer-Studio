@@ -1,4 +1,4 @@
-export type UserRole = "guest" | "user" | "workspace_admin" | "organization_admin" | "system_admin" | "super_admin";
+export type UserRole = "guest" | "user" | "workspace_admin" | "system_admin" | "super_admin";
 
 export type Permission =
   | "dashboard:read"
@@ -29,7 +29,6 @@ export type Permission =
   | "admin:read"
   | "admin:write"
   | "admin:users"
-  | "admin:organizations"
   | "admin:workspaces"
   | "admin:ai_providers"
   | "admin:jobs"
@@ -46,7 +45,6 @@ export const ROLE_HIERARCHY: Record<UserRole, number> = {
   guest: 0,
   user: 1,
   workspace_admin: 2,
-  organization_admin: 3,
   system_admin: 4,
   super_admin: 5,
 };
@@ -102,39 +100,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "billing:admin",
   ],
 
-  organization_admin: [
-    "dashboard:read",
-    "workspace:read",
-    "workspace:write",
-    "workspace:admin",
-    "project:read",
-    "project:write",
-    "project:admin",
-    "media:read",
-    "media:write",
-    "media:admin",
-    "production:read",
-    "production:write",
-    "production:admin",
-    "ai:read",
-    "ai:write",
-    "ai:admin",
-    "publishing:read",
-    "publishing:write",
-    "publishing:admin",
-    "settings:read",
-    "settings:write",
-    "settings:admin",
-    "billing:read",
-    "billing:write",
-    "billing:admin",
-    "admin:read",
-    "admin:write",
-    "admin:users",
-    "admin:organizations",
-    "admin:workspaces",
-  ],
-
   system_admin: [
     "dashboard:read",
     "workspace:read",
@@ -164,50 +129,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "admin:read",
     "admin:write",
     "admin:users",
-    "admin:organizations",
-    "admin:workspaces",
-    "admin:ai_providers",
-    "admin:jobs",
-    "admin:queues",
-    "admin:billing",
-    "admin:subscriptions",
-    "admin:coupons",
-    "admin:analytics",
-    "admin:audit_logs",
-    "admin:feature_flags",
-    "admin:system",
-  ],
-
-  super_admin: [
-    "dashboard:read",
-    "workspace:read",
-    "workspace:write",
-    "workspace:admin",
-    "project:read",
-    "project:write",
-    "project:admin",
-    "media:read",
-    "media:write",
-    "media:admin",
-    "production:read",
-    "production:write",
-    "production:admin",
-    "ai:read",
-    "ai:write",
-    "ai:admin",
-    "publishing:read",
-    "publishing:write",
-    "publishing:admin",
-    "settings:read",
-    "settings:write",
-    "settings:admin",
-    "billing:read",
-    "billing:write",
-    "billing:admin",
-    "admin:read",
-    "admin:write",
-    "admin:users",
-    "admin:organizations",
     "admin:workspaces",
     "admin:ai_providers",
     "admin:jobs",

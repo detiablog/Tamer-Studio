@@ -1,4 +1,4 @@
-import type { Invitation, InviteInput, AcceptInvitationInput, MembershipResult, WorkspaceMember, OrganizationMember } from "./membership.types";
+import type { Invitation, InviteInput, AcceptInvitationInput, MembershipResult, WorkspaceMember } from "./membership.types";
 import { MembershipRepository } from "./membership.repository";
 import { logAction } from "@/core/audit";
 
@@ -6,11 +6,11 @@ export class MembershipService {
   private repository = new MembershipRepository();
 
   async inviteToWorkspace(input: InviteInput): Promise<Invitation> {
-    if (!input.workspaceId && !input.organizationId) {
-      throw new Error("Must specify workspace or organization");
+    if (!input.workspaceId) {
+      throw new Error("Must specify workspace");
     }
     const result = await this.repository.inviteToWorkspace(input);
-    logAction("membership.invited", undefined, undefined, { invitationId: result.id, email: input.email, workspaceId: input.workspaceId, organizationId: input.organizationId });
+    logAction("membership.invited", undefined, undefined, { invitationId: result.id, email: input.email, workspaceId: input.workspaceId });
     return result;
   }
 
@@ -27,17 +27,8 @@ export class MembershipService {
     logAction("membership.removed", undefined, undefined, { workspaceId, userId });
   }
 
-  async removeOrganizationMember(organizationId: string, userId: string): Promise<void> {
-    await this.repository.removeOrganizationMember(organizationId, userId);
-    logAction("membership.removed", undefined, undefined, { organizationId, userId });
-  }
-
   async getWorkspaceMembers(workspaceId: string): Promise<WorkspaceMember[]> {
     return this.repository.getWorkspaceMembers(workspaceId);
-  }
-
-  async getOrganizationMembers(organizationId: string): Promise<OrganizationMember[]> {
-    return this.repository.getOrganizationMembers(organizationId);
   }
 
   async getPendingInvitations(email: string): Promise<Invitation[]> {

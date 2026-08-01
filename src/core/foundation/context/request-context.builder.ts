@@ -94,11 +94,6 @@ export class RequestContextBuilder {
     return this;
   }
 
-  withOrganizationId(organizationId: string): this {
-    this.securityState.organizationId = organizationId;
-    return this;
-  }
-
   withSubscriptionId(subscriptionId: string): this {
     this.securityState.subscriptionId = subscriptionId;
     return this;

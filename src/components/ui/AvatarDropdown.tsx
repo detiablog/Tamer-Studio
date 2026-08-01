@@ -57,7 +57,6 @@ export function AvatarDropdown() {
 
   const roleLabels: Record<string, { label: string; icon: typeof Shield }> = {
     workspace_admin: { label: t("roles.workspaceAdmin"), icon: Shield },
-    organization_admin: { label: t("roles.orgAdmin"), icon: Shield },
     system_admin: { label: t("roles.systemAdmin"), icon: Shield },
     super_admin: { label: t("roles.superAdmin"), icon: Crown },
   }

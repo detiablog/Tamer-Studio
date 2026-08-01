@@ -21,11 +21,6 @@ export class WorkspaceRepository {
     return rows.map(this.mapWorkspace);
   }
 
-  async getWorkspacesByOrganization(organizationId: string): Promise<Workspace[]> {
-    const rows = await db.select().from(workspace).where(eq(workspace.organizationId, organizationId)).orderBy(desc(workspace.createdAt));
-    return rows.map(this.mapWorkspace);
-  }
-
   async createWorkspace(input: CreateWorkspaceInput): Promise<Workspace> {
     const id = `ws_${randomUUID()}`;
     const now = new Date();
@@ -35,7 +30,6 @@ export class WorkspaceRepository {
       slug: input.slug,
       type: input.type,
       ownerId: input.ownerId,
-      organizationId: input.organizationId ?? null,
       settings: input.settings ?? {},
       limits: input.limits ?? {},
       status: "active",
@@ -48,7 +42,6 @@ export class WorkspaceRepository {
       slug: input.slug,
       type: input.type,
       ownerId: input.ownerId,
-      organizationId: input.organizationId ?? undefined,
       settings: ws.settings,
       limits: ws.limits,
       status: ws.status,
@@ -108,7 +101,6 @@ export class WorkspaceRepository {
       slug: row.slug,
       type: row.type as Workspace["type"],
       ownerId: row.ownerId,
-      organizationId: row.organizationId,
       settings: row.settings as Record<string, unknown>,
       limits: row.limits as Record<string, unknown>,
       status: row.status as Workspace["status"],

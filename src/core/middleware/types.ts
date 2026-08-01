@@ -27,7 +27,6 @@ export interface SecurityState {
     role: string;
   };
   workspaceId?: string;
-  organizationId?: string;
   subscriptionId?: string;
   authError?: {
     status: number;

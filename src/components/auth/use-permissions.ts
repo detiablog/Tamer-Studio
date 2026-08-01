@@ -25,10 +25,9 @@ export function usePermissions() {
     isGuest: userRole === "guest",
     isUser: userRole === "user",
     isWorkspaceAdmin: userRole === "workspace_admin" || permissions.includes("workspace:admin"),
-    isOrganizationAdmin: userRole === "organization_admin" || permissions.includes("admin:organizations"),
     isSystemAdmin: userRole === "system_admin" || permissions.includes("admin:system"),
     isSuperAdmin: userRole === "super_admin",
-    isAdmin: ["workspace_admin", "organization_admin", "system_admin", "super_admin"].includes(userRole),
+    isAdmin: ["workspace_admin", "system_admin", "super_admin"].includes(userRole),
   };
 }
 
@@ -37,7 +36,6 @@ function permissionForRole(role: UserRole): Permission {
     guest: "dashboard:read",
     user: "dashboard:read",
     workspace_admin: "workspace:admin",
-    organization_admin: "admin:organizations",
     system_admin: "admin:system",
     super_admin: "admin:system",
   };

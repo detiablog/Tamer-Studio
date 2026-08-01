@@ -1,0 +1,25 @@
+@media (max-width: 640px) {
+  .mobile-nav-padding { padding-bottom: 4rem; }
+  .mobile-full-width { width: 100%; }
+  .mobile-stack { flex-direction: column; }
+  .mobile-hide { display: none; }
+  .mobile-show { display: block; }
+  .mobile-compact { padding: 0.75rem; }
+  .mobile-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .mobile-center { text-align: center; }
+  .touch-target { min-height: 44px; min-width: 44px; }
+}
+
+@media (min-width: 641px) {
+  .mobile-hide { display: block; }
+  .mobile-show { display: none; }
+}
+
+@supports (padding: env(safe-area-inset-bottom)) {
+  .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom); }
+  .safe-area-top { padding-top: env(safe-area-inset-top); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}

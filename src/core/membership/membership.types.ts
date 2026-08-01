@@ -9,20 +9,10 @@ export interface WorkspaceMember {
   leftAt: Date | null;
 }
 
-export interface OrganizationMember {
-  id: string;
-  organizationId: string;
-  userId: string;
-  roleId: string | null;
-  status: "active" | "pending" | "removed";
-  joinedAt: Date;
-}
-
 export interface Invitation {
   id: string;
   email: string;
   workspaceId: string | null;
-  organizationId: string | null;
   roleId: string | null;
   token: string;
   invitedBy: string;
@@ -35,7 +25,6 @@ export interface Invitation {
 export interface InviteInput {
   email: string;
   workspaceId?: string | null;
-  organizationId?: string | null;
   roleId?: string | null;
   invitedBy: string;
   expiresInHours?: number;
@@ -48,7 +37,7 @@ export interface AcceptInvitationInput {
 
 export interface MembershipResult {
   success: boolean;
-  member?: WorkspaceMember | OrganizationMember;
+  member?: WorkspaceMember;
   invitation?: Invitation;
   error?: string;
 }

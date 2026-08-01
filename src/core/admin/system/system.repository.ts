@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { sql } from "drizzle-orm";
-import { user, organization, workspace, aiProvider, job, queue, coupon, subscription } from "@/lib/db/schema";
+import { user, workspace, aiProvider, job, queue, coupon, subscription } from "@/lib/db/schema";
 import { ilike, or, eq } from "drizzle-orm";
 
 export interface SearchResult {
@@ -27,14 +27,6 @@ export class SystemRepository {
       .select({ id: user.id, label: user.name, description: user.email })
       .from(user)
       .where(or(ilike(user.name, pattern), ilike(user.email, pattern)))
-      .limit(limit);
-  }
-
-  async searchOrganizations(pattern: string, limit = 5) {
-    return db
-      .select({ id: organization.id, label: organization.name })
-      .from(organization)
-      .where(ilike(organization.name, pattern))
       .limit(limit);
   }
 

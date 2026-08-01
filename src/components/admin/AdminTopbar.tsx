@@ -27,7 +27,6 @@ export function AdminTopbar({ onMenuClick }: { onMenuClick?: () => void }) {
     const q = query.toLowerCase();
     const routes: Record<string, string> = {
       users: "/admin/users",
-      organizations: "/admin/organizations",
       workspaces: "/admin/workspaces",
       jobs: "/admin/jobs",
       queues: "/admin/queues",
@@ -61,7 +60,7 @@ export function AdminTopbar({ onMenuClick }: { onMenuClick?: () => void }) {
       )}
 
       <div className="flex-1">
-        <SearchInput placeholder={t("admin.searchPlaceholder", "Search users, organizations, jobs, queues...")} onSearch={handleSearch} />
+        <SearchInput placeholder={t("admin.searchPlaceholder", "Search users, jobs, queues...")} onSearch={handleSearch} />
       </div>
 
       <div className="flex items-center gap-2">

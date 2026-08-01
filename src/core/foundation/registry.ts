@@ -33,7 +33,6 @@ export function initializeServices(): void {
   ServiceRegistry.register("identity", () => new (require("../identity").IdentityService)(), "singleton");
   ServiceRegistry.register("userService", () => new (require("../users").UserService)(), "singleton");
   ServiceRegistry.register("workspaceService", () => new (require("../workspace").WorkspaceService)(), "singleton");
-  ServiceRegistry.register("organizationService", () => new (require("../organization").OrganizationService)(), "singleton");
   ServiceRegistry.register("roleService", () => new (require("../roles").RoleService)(), "singleton");
   ServiceRegistry.register("permissionService", () => new (require("../permissions").PermissionService)(), "singleton");
   ServiceRegistry.register("membershipService", () => new (require("../membership").MembershipService)(), "singleton");

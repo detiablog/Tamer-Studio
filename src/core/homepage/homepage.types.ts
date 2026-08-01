@@ -84,7 +84,6 @@ export interface HomepageContext {
   permissions: string[];
   featureFlags: string[];
   workspace: string | null;
-  organization: string | null;
   isPreview: boolean;
   previewMode?: PreviewMode;
   device: "desktop" | "tablet" | "mobile";

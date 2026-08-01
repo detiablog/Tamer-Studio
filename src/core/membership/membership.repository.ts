@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
-import { invitation, workspaceMember, organizationMember } from "@/lib/db/schema/identity";
+import { invitation, workspaceMember } from "@/lib/db/schema/identity";
 import { eq, and, desc } from "drizzle-orm";
-import type { Invitation, InviteInput, AcceptInvitationInput, MembershipResult, WorkspaceMember, OrganizationMember } from "./membership.types";
+import type { Invitation, InviteInput, AcceptInvitationInput, MembershipResult, WorkspaceMember } from "./membership.types";
 import { randomUUID } from "crypto";
 
 export class MembershipRepository {
@@ -24,20 +24,9 @@ export class MembershipRepository {
     return this.mapWorkspaceMember(rows[0]);
   }
 
-  async getOrganizationMember(organizationId: string, userId: string): Promise<OrganizationMember | undefined> {
-    const rows = await db.select().from(organizationMember).where(and(eq(organizationMember.organizationId, organizationId), eq(organizationMember.userId, userId))).limit(1);
-    if (rows.length === 0) return undefined;
-    return this.mapOrganizationMember(rows[0]);
-  }
-
   async getWorkspaceMembers(workspaceId: string): Promise<WorkspaceMember[]> {
     const rows = await db.select().from(workspaceMember).where(eq(workspaceMember.workspaceId, workspaceId)).orderBy(workspaceMember.joinedAt);
     return rows.map(this.mapWorkspaceMember);
-  }
-
-  async getOrganizationMembers(organizationId: string): Promise<OrganizationMember[]> {
-    const rows = await db.select().from(organizationMember).where(eq(organizationMember.organizationId, organizationId)).orderBy(organizationMember.joinedAt);
-    return rows.map(this.mapOrganizationMember);
   }
 
   async inviteToWorkspace(input: InviteInput): Promise<Invitation> {
@@ -48,7 +37,6 @@ export class MembershipRepository {
       id,
       email: input.email,
       workspaceId: input.workspaceId ?? null,
-      organizationId: input.organizationId ?? null,
       roleId: input.roleId ?? null,
       token,
       invitedBy: input.invitedBy,
@@ -61,7 +49,6 @@ export class MembershipRepository {
       id,
       email: input.email,
       workspaceId: input.workspaceId ?? undefined,
-      organizationId: input.organizationId ?? undefined,
       roleId: input.roleId ?? undefined,
       token,
       invitedBy: input.invitedBy,
@@ -95,16 +82,6 @@ export class MembershipRepository {
         leftAt: undefined,
       });
     }
-    if (inv.organizationId) {
-      await db.insert(organizationMember).values({
-        id: `om_${randomUUID()}`,
-        organizationId: inv.organizationId,
-        userId: input.userId,
-        roleId: inv.roleId ?? undefined,
-        status: "active",
-        joinedAt: now,
-      });
-    }
     return { success: true, invitation: inv };
   }
 
@@ -113,16 +90,11 @@ export class MembershipRepository {
     await db.update(workspaceMember).set({ status: "removed", leftAt: now }).where(and(eq(workspaceMember.workspaceId, workspaceId), eq(workspaceMember.userId, userId)));
   }
 
-  async removeOrganizationMember(organizationId: string, userId: string): Promise<void> {
-    await db.update(organizationMember).set({ status: "removed" }).where(and(eq(organizationMember.organizationId, organizationId), eq(organizationMember.userId, userId)));
-  }
-
   private mapInvitation(row: typeof invitation.$inferSelect): Invitation {
     return {
       id: row.id,
       email: row.email,
       workspaceId: row.workspaceId,
-      organizationId: row.organizationId,
       roleId: row.roleId,
       token: row.token,
       invitedBy: row.invitedBy,
@@ -143,17 +115,6 @@ export class MembershipRepository {
       joinedAt: row.joinedAt,
       invitedBy: row.invitedBy,
       leftAt: row.leftAt,
-    };
-  }
-
-  private mapOrganizationMember(row: typeof organizationMember.$inferSelect): OrganizationMember {
-    return {
-      id: row.id,
-      organizationId: row.organizationId,
-      userId: row.userId,
-      roleId: row.roleId,
-      status: row.status as OrganizationMember["status"],
-      joinedAt: row.joinedAt,
     };
   }
 }

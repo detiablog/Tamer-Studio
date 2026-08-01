@@ -9,7 +9,6 @@ import {
   PanelLeft,
   LayoutDashboard,
   Users,
-  Building2,
   CreditCard,
   BarChart3,
   ScrollText,
@@ -42,6 +41,10 @@ import {
   Video,
   Film,
   Bot,
+  BookOpen,
+  CalendarDays,
+  TrendingUp,
+  Target,
 } from "lucide-react"
 import { useLocalizationContext } from "@/providers/localization"
 
@@ -63,7 +66,6 @@ interface SidebarNavItem {
 const ADMIN_NAV_ITEMS: SidebarNavItem[] = [
   { id: "dashboard", labelKey: "admin.dashboard", label: "Dashboard", icon: LayoutDashboard, href: "/admin", group: "dashboard" },
   { id: "users", labelKey: "admin.users", label: "Users", icon: Users, href: "/admin/users", group: "management" },
-  { id: "organizations", labelKey: "admin.organizations", label: "Organizations", icon: Building2, href: "/admin/organizations", group: "management" },
   { id: "workspaces", labelKey: "admin.workspaces", label: "Workspaces", icon: Briefcase, href: "/admin/workspaces", group: "management" },
   { id: "workflows", labelKey: "admin.workflows", label: "Workflows", icon: GitBranch, href: "/admin/workflows", group: "management" },
   { id: "assets-admin", labelKey: "admin.assets", label: "Assets", icon: Database, href: "/admin/assets", group: "management" },
@@ -73,6 +75,8 @@ const ADMIN_NAV_ITEMS: SidebarNavItem[] = [
   { id: "invoices", labelKey: "admin.invoices", label: "Invoices", icon: FileText, href: "/admin/payments/invoices", group: "management" },
   { id: "pricing", labelKey: "admin.pricing", label: "Pricing", icon: DollarSign, href: "/admin/pricing", group: "management" },
   { id: "profile", labelKey: "admin.profile", label: "Profile", icon: UserCog, href: "/admin/profile", group: "management" },
+  { id: "optimizer-admin", labelKey: "admin.optimizer", label: "Optimizer", icon: Target, href: "/admin/optimizer", group: "analytics" },
+  { id: "memory-admin", labelKey: "admin.memory", label: "Memory", icon: Brain, href: "/admin/memory", group: "analytics" },
   { id: "analytics", labelKey: "admin.analytics", label: "Analytics", icon: BarChart3, href: "/admin/analytics", group: "analytics" },
   { id: "performance", labelKey: "admin.performance", label: "Performance", icon: Gauge, href: "/admin/performance", group: "analytics" },
   { id: "reports", labelKey: "admin.reports", label: "Reports", icon: FileBarChart, href: "/admin/reports", group: "analytics" },
@@ -91,6 +95,9 @@ const ADMIN_NAV_ITEMS: SidebarNavItem[] = [
   { id: "monitor", labelKey: "admin.monitor", label: "Monitor", icon: Activity, href: "/admin/monitor", group: "analytics" },
   { id: "affiliate-studio", labelKey: "admin.affiliateStudio", label: "Affiliate Studio", icon: Megaphone, href: "/admin/affiliate-studio", group: "analytics" },
   { id: "drama", labelKey: "admin.drama", label: "AI Drama", icon: Film, href: "/admin/drama", group: "analytics" },
+  { id: "story-admin", labelKey: "admin.story", label: "Story Engine", icon: BookOpen, href: "/admin/story", group: "analytics" },
+  { id: "calendar-admin", labelKey: "admin.calendar", label: "Calendar", icon: CalendarDays, href: "/admin/calendar", group: "analytics" },
+  { id: "trends-admin", labelKey: "admin.trends", label: "Trends", icon: TrendingUp, href: "/admin/trends", group: "analytics" },
   { id: "agents-admin", labelKey: "admin.agents", label: "Agents", icon: Bot, href: "/admin/agents", group: "analytics" },
   { id: "jobs", labelKey: "admin.jobs", label: "Jobs", icon: Briefcase, href: "/admin/jobs", group: "settings" },
   { id: "queues", labelKey: "admin.queues", label: "Queues", icon: ListTodo, href: "/admin/queues", group: "settings" },

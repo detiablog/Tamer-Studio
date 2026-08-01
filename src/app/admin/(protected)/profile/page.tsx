@@ -37,7 +37,7 @@ export default function ProfilePage() {
     return null;
   }, [data]);
 
-  const [formData, setFormData] = React.useState({ name: "", email: "", role: "", organization: "" });
+  const [formData, setFormData] = React.useState({ name: "", email: "", role: "" });
 
   React.useEffect(() => {
     if (profile) {
@@ -45,7 +45,6 @@ export default function ProfilePage() {
         name: profile.name || "",
         email: profile.email || "",
         role: profile.role || "admin",
-        organization: profile.organization || "Tamer Studio",
       });
     }
   }, [profile]);
@@ -56,7 +55,7 @@ export default function ProfilePage() {
       const res = await fetch("/api/admin/me", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: formData.name, email: formData.email, organization: formData.organization }),
+        body: JSON.stringify({ name: formData.name, email: formData.email }),
       });
       if (!res.ok) throw new Error("Failed to update profile");
       toast.success(t("admin.profile.updated", "Profile updated"));
@@ -132,7 +131,6 @@ export default function ProfilePage() {
           <div><Label>{t("admin.profile.fullName", "Full Name")}</Label><Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="mt-1" /></div>
           <div><Label>{t("common.email", "Email")}</Label><Input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="mt-1" /></div>
           <div><Label>{t("admin.profile.role", "Role")}</Label><Input value={formData.role} readOnly className="mt-1 bg-muted/50" /></div>
-          <div><Label>{t("admin.profile.organization", "Organization")}</Label><Input value={formData.organization} onChange={(e) => setFormData({ ...formData, organization: e.target.value })} className="mt-1" /></div>
         </div>
 
         <div className="flex gap-2 pt-6 border-t border-border mt-6">

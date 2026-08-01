@@ -102,28 +102,6 @@ export const rolePermission = pgTable(
   ]
 );
 
-export const organization = pgTable(
-  "organization",
-  {
-    id: text("id").primaryKey(),
-    name: text("name").notNull(),
-    slug: text("slug").notNull(),
-    ownerId: text("owner_id").notNull().references(() => user.id),
-    settings: jsonb("settings").$type<Record<string, unknown>>().notNull().default({}),
-    status: text("status").notNull().default("active"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at")
-      .defaultNow()
-      .$onUpdate(() => new Date())
-      .notNull(),
-  },
-  (table) => [
-    index("organization_ownerId_idx").on(table.ownerId),
-    index("organization_slug_idx").on(table.slug),
-    index("organization_status_idx").on(table.status),
-  ]
-);
-
 export const workspace = pgTable(
   "workspace",
   {
@@ -133,7 +111,6 @@ export const workspace = pgTable(
     description: text("description"),
     type: text("type").notNull().default("personal"),
     ownerId: text("owner_id").notNull().references(() => user.id),
-    organizationId: text("organization_id").references(() => organization.id),
     settings: jsonb("settings").$type<Record<string, unknown>>().notNull().default({}),
     limits: jsonb("limits").$type<Record<string, unknown>>().notNull().default({}),
     status: text("status").notNull().default("active"),
@@ -145,7 +122,6 @@ export const workspace = pgTable(
   },
   (table) => [
     index("workspace_ownerId_idx").on(table.ownerId),
-    index("workspace_organizationId_idx").on(table.organizationId),
     index("workspace_slug_idx").on(table.slug),
     index("workspace_status_idx").on(table.status),
   ]
@@ -171,31 +147,12 @@ export const workspaceMember = pgTable(
   ]
 );
 
-export const organizationMember = pgTable(
-  "organization_member",
-  {
-    id: text("id").primaryKey(),
-    organizationId: text("organization_id").notNull().references(() => organization.id, { onDelete: "cascade" }),
-    userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
-    roleId: text("role_id").references(() => role.id),
-    status: text("status").notNull().default("active"),
-    joinedAt: timestamp("joined_at").defaultNow().notNull(),
-  },
-  (table) => [
-    unique("organization_member_unique").on(table.organizationId, table.userId),
-    index("organization_member_organizationId_idx").on(table.organizationId),
-    index("organization_member_userId_idx").on(table.userId),
-    index("organization_member_status_idx").on(table.status),
-  ]
-);
-
 export const invitation = pgTable(
   "invitation",
   {
     id: text("id").primaryKey(),
     email: text("email").notNull(),
     workspaceId: text("workspace_id").references(() => workspace.id, { onDelete: "cascade" }),
-    organizationId: text("organization_id").references(() => organization.id, { onDelete: "cascade" }),
     roleId: text("role_id").references(() => role.id),
     token: text("token").notNull(),
     invitedBy: text("invited_by").notNull().references(() => user.id),
@@ -206,7 +163,6 @@ export const invitation = pgTable(
   },
   (table) => [
     index("invitation_workspaceId_idx").on(table.workspaceId),
-    index("invitation_organizationId_idx").on(table.organizationId),
     index("invitation_email_idx").on(table.email),
     index("invitation_status_idx").on(table.status),
     index("invitation_token_idx").on(table.token),
@@ -279,22 +235,9 @@ export const workspaceRelations = relations(workspace, ({ one, many }) => ({
     fields: [workspace.ownerId],
     references: [user.id],
   }),
-  organization: one(organization, {
-    fields: [workspace.organizationId],
-    references: [organization.id],
-  }),
   members: many(workspaceMember),
   apiKeys: many(apiKey),
   transfers: many(workspaceTransfer),
-}));
-
-export const organizationRelations = relations(organization, ({ one, many }) => ({
-  owner: one(user, {
-    fields: [organization.ownerId],
-    references: [user.id],
-  }),
-  workspaces: many(workspace),
-  members: many(organizationMember),
 }));
 
 export const workspaceMemberRelations = relations(workspaceMember, ({ one }) => ({
@@ -317,29 +260,10 @@ export const workspaceMemberRelations = relations(workspaceMember, ({ one }) => 
   }),
 }));
 
-export const organizationMemberRelations = relations(organizationMember, ({ one }) => ({
-  organization: one(organization, {
-    fields: [organizationMember.organizationId],
-    references: [organization.id],
-  }),
-  user: one(user, {
-    fields: [organizationMember.userId],
-    references: [user.id],
-  }),
-  role: one(role, {
-    fields: [organizationMember.roleId],
-    references: [role.id],
-  }),
-}));
-
 export const invitationRelations = relations(invitation, ({ one }) => ({
   workspace: one(workspace, {
     fields: [invitation.workspaceId],
     references: [workspace.id],
-  }),
-  organization: one(organization, {
-    fields: [invitation.organizationId],
-    references: [organization.id],
   }),
   role: one(role, {
     fields: [invitation.roleId],
@@ -353,7 +277,6 @@ export const invitationRelations = relations(invitation, ({ one }) => ({
 
 export const roleRelations = relations(role, ({ many }) => ({
   workspaceMembers: many(workspaceMember),
-  organizationMembers: many(organizationMember),
   invitations: many(invitation),
   rolePermissions: many(rolePermission),
 }));

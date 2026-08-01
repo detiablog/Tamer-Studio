@@ -2,9 +2,8 @@ export interface Workspace {
   id: string;
   name: string;
   slug: string;
-  type: "personal" | "team";
+  type: "personal";
   ownerId: string;
-  organizationId: string | null;
   settings: Record<string, unknown>;
   limits: Record<string, unknown>;
   status: "active" | "suspended" | "deleted";
@@ -15,9 +14,8 @@ export interface Workspace {
 export interface CreateWorkspaceInput {
   name: string;
   slug: string;
-  type: "personal" | "team";
+  type: "personal";
   ownerId: string;
-  organizationId?: string | null;
   settings?: Record<string, unknown>;
   limits?: Record<string, unknown>;
 }

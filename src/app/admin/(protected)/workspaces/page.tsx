@@ -177,7 +177,7 @@ export default function AdminWorkspacesPage() {
       <DashboardCard>
         <div className="mb-6">
           <h1 className="text-3xl font-bold">{t("admin.workspaces", "Workspaces")}</h1>
-          <p className="text-muted-foreground text-sm mt-1">{t("admin.manageWorkspaces", "Manage organization workspaces")}</p>
+          <p className="text-muted-foreground text-sm mt-1">{t("admin.manageWorkspaces", "Manage workspaces")}</p>
         </div>
 
         <div className="flex items-center gap-2 pb-4 flex-wrap">

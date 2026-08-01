@@ -4,6 +4,8 @@ import { getProviderAdapter, getAvailableProviders, getAllModels, type AIProvide
 import { WalletService } from "@/core/wallet/service";
 import { DefaultCreditEngine } from "@/core/credits/credits";
 import { DefaultAuditRepository } from "@/core/audit/audit.repository";
+import { contextBuilderService } from "@/core/creative-memory/context-builder.service";
+import { learningEngineService } from "@/core/creative-memory/learning-engine.service";
 
 export interface AIExecutionRequest {
   provider: string;
@@ -91,10 +93,22 @@ export async function executeAIRequest(request: AIExecutionRequest): Promise<AIE
   );
 
   try {
+    let systemPrompt = request.options?.systemPrompt || "";
+
+    try {
+      const context = await contextBuilderService.buildPromptContext(request.userId, request.provider);
+      const contextSummary = contextBuilderService.getContextSummary(context);
+      if (contextSummary) {
+        systemPrompt = `[Creative Memory Context]\n${contextSummary}\n\n${systemPrompt}`;
+      }
+    } catch (e) {
+      logger.warn("Failed to load creative memory context", { userId: request.userId, provider: request.provider });
+    }
+
     const result = await adapter.execute({
       prompt: request.prompt,
       model: request.model,
-      systemPrompt: request.options?.systemPrompt,
+      systemPrompt,
       maxTokens: request.options?.maxTokens,
       temperature: request.options?.temperature,
     });
@@ -161,6 +175,12 @@ export async function executeAIRequest(request: AIExecutionRequest): Promise<AIE
       durationMs: result.duration,
     });
 
+    learningEngineService.recordPromptUsage(request.userId, {
+      prompt: request.prompt,
+      moduleType: request.provider,
+      wasSuccessful: true,
+    }).catch(() => {});
+
     return aiResult;
   } catch (error) {
     await walletService.debit(
@@ -191,6 +211,12 @@ export async function executeAIRequest(request: AIExecutionRequest): Promise<AIE
       provider: request.provider,
       model: request.model,
     });
+
+    learningEngineService.recordPromptUsage(request.userId, {
+      prompt: request.prompt,
+      moduleType: request.provider,
+      wasSuccessful: false,
+    }).catch(() => {});
 
     throw error;
   }

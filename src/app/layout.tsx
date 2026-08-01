@@ -12,6 +12,8 @@ import { getSEORuntime } from "@/core/seo";
 import { bootstrapNavigation } from "@/core/navigation";
 import { initializeEventHub } from "@/core/events/event-hub";
 import Script from "next/script";
+import { PWAInstallPrompt } from "@/components/pwa/PWAInstallPrompt";
+import { MobileNav } from "@/components/ui/MobileNav";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -70,17 +72,27 @@ export const metadata = {
   },
   robots: { index: true, follow: true },
   metadataBase: new URL(SITE_URL),
+  other: {
+    "theme-color": "#6366f1",
+    "apple-mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-status-bar-style": "black-translucent",
+    "apple-mobile-web-app-title": "Tamer Studio",
+  },
 }
 
 export const viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#0f172a",
+  themeColor: "#6366f1",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={cn("font-sans", geist.variable)} suppressHydrationWarning>
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+      </head>
       <body>
           <ThemeProvider>
             <LocalizationProvider>
@@ -93,7 +105,16 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                     __html: JSON.stringify(orgSchema),
                   }}
                 />
+                <Script
+                  id="sw-register"
+                  strategy="afterInteractive"
+                  dangerouslySetInnerHTML={{
+                    __html: `if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js'); }); }`,
+                  }}
+                />
                 {children}
+                <MobileNav />
+                <PWAInstallPrompt />
                 <Toaster />
               </CurrencyProvider>
             </LocalizationProvider>

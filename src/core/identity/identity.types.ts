@@ -19,13 +19,6 @@ export interface IdentityContext {
     slug: string;
     type: string;
     role: string | null;
-    organizationId: string | null;
-  }>;
-  organizations: Array<{
-    id: string;
-    name: string;
-    slug: string;
-    role: string | null;
   }>;
   permissions: string[];
   roles: string[];

@@ -1,7 +1,6 @@
 export const ADMIN_ROUTE_PERMISSIONS: Record<string, string> = {
   "/admin": "admin:read",
   "/admin/users": "admin:users",
-  "/admin/organizations": "admin:organizations",
   "/admin/workspaces": "admin:workspaces",
   "/admin/ai-providers": "admin:ai_providers",
   "/admin/jobs": "admin:jobs",
@@ -27,7 +26,6 @@ export const ADMIN_ROUTE_PERMISSIONS: Record<string, string> = {
 const ADMIN_PERMISSIONS = [
   "admin:read",
   "admin:users",
-  "admin:organizations",
   "admin:workspaces",
   "admin:ai_providers",
   "admin:jobs",
@@ -47,8 +45,6 @@ const ADMIN_PERMISSIONS = [
   "workspaces.write",
   "users.read",
   "users.write",
-  "organizations.read",
-  "organizations.write",
   "billing.write",
   "notifications.read",
   "notifications.write",

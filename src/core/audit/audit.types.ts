@@ -41,8 +41,6 @@ export type AuditAction =
   | "role.updated"
   | "role.deleted"
   | "role.permissions.updated"
-  | "organization.created"
-  | "organization.updated"
   | "workspace.created"
   | "workspace.updated"
   | "workspace.transferred"
@@ -154,7 +152,6 @@ export type AuditAction =
   | "media.updated"
   | "user.created"
   | "user.email.verified"
-  | "organization.deleted"
   | "cms.block.created";
 
 export interface AuditQuery {

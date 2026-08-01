@@ -18,7 +18,6 @@ export interface DashboardRepository {
     total: number;
     active: number;
     suspended: number;
-    teamCount: number;
     personalCount: number;
   }>;
   getAIUsageStats(): Promise<{
@@ -109,7 +108,6 @@ export class DefaultDashboardRepository implements DashboardRepository {
     total: number;
     active: number;
     suspended: number;
-    teamCount: number;
     personalCount: number;
   }> {
     const [totalResult, statusResult, typeResult] = await Promise.all([
@@ -119,7 +117,6 @@ export class DefaultDashboardRepository implements DashboardRepository {
         suspended: sql<number>`coalesce(sum(case when ${workspace.status} = 'suspended' then 1 else 0 end), 0)`,
       }).from(workspace),
       db.select({
-        team: sql<number>`coalesce(sum(case when ${workspace.type} = 'team' then 1 else 0 end), 0)`,
         personal: sql<number>`coalesce(sum(case when ${workspace.type} = 'personal' then 1 else 0 end), 0)`,
       }).from(workspace),
     ]);
@@ -128,7 +125,6 @@ export class DefaultDashboardRepository implements DashboardRepository {
       total: totalResult[0]?.total ?? 0,
       active: statusResult[0]?.active ?? 0,
       suspended: statusResult[0]?.suspended ?? 0,
-      teamCount: typeResult[0]?.team ?? 0,
       personalCount: typeResult[0]?.personal ?? 0,
     };
   }

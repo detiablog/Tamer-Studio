@@ -11,9 +11,8 @@ import { z } from "zod";
 const CreateWorkspaceSchema = z.object({
   name: z.string().min(1, "Name is required").max(255),
   slug: z.string().min(1, "Slug is required").max(255),
-  type: z.string().default("personal") as z.ZodType<"personal" | "team">,
+  type: z.string().default("personal") as z.ZodType<"personal">,
   ownerId: z.string().min(1, "Owner ID is required"),
-  organizationId: z.string().optional(),
   settings: z.record(z.string(), z.unknown()).optional(),
   limits: z.record(z.string(), z.unknown()).optional(),
 });
@@ -90,7 +89,6 @@ export async function POST(request: NextRequest) {
       slug: parsed.data.slug,
       type: parsed.data.type,
       ownerId: parsed.data.ownerId,
-      organizationId: parsed.data.organizationId,
       settings: parsed.data.settings,
       limits: parsed.data.limits,
     });

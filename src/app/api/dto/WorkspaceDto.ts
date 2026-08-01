@@ -6,7 +6,6 @@ export const CreateWorkspaceRequestSchema = z.object({
   description: z.string().optional(),
   type: z.string().default("personal"),
   ownerId: z.string().min(1, "Owner ID is required"),
-  organizationId: z.string().optional(),
   settings: z.record(z.string(), z.unknown()).optional(),
   limits: z.record(z.string(), z.unknown()).optional(),
 });
@@ -30,7 +29,6 @@ export const WorkspaceResponseSchema = z.object({
   description: z.string().optional(),
   type: z.string(),
   ownerId: z.string(),
-  organizationId: z.string().optional(),
   settings: z.record(z.string(), z.unknown()).optional(),
   limits: z.record(z.string(), z.unknown()).optional(),
   status: z.string(),
