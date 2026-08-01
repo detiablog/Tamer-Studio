@@ -41,6 +41,7 @@ import {
   Image,
   Video,
   Film,
+  Bot,
 } from "lucide-react"
 import { useLocalizationContext } from "@/providers/localization"
 
@@ -90,6 +91,7 @@ const ADMIN_NAV_ITEMS: SidebarNavItem[] = [
   { id: "monitor", labelKey: "admin.monitor", label: "Monitor", icon: Activity, href: "/admin/monitor", group: "analytics" },
   { id: "affiliate-studio", labelKey: "admin.affiliateStudio", label: "Affiliate Studio", icon: Megaphone, href: "/admin/affiliate-studio", group: "analytics" },
   { id: "drama", labelKey: "admin.drama", label: "AI Drama", icon: Film, href: "/admin/drama", group: "analytics" },
+  { id: "agents-admin", labelKey: "admin.agents", label: "Agents", icon: Bot, href: "/admin/agents", group: "analytics" },
   { id: "jobs", labelKey: "admin.jobs", label: "Jobs", icon: Briefcase, href: "/admin/jobs", group: "settings" },
   { id: "queues", labelKey: "admin.queues", label: "Queues", icon: ListTodo, href: "/admin/queues", group: "settings" },
   { id: "landing-builder", labelKey: "admin.landingBuilder", label: "Landing Builder", icon: Layout, href: "/admin/landing-builder", group: "settings" },

@@ -51,3 +51,11 @@ export * from "./image-studio";
 export * from "./video-studio";
 export * from "./affiliate-studio";
 export * from "./drama-studio";
+export * from "./agent-platform";
+export {
+  apiRequestLog,
+  apiWebhook,
+  apiWebhookDelivery,
+  apiWebhookRelations,
+  apiWebhookDeliveryRelations,
+} from "./api-platform";

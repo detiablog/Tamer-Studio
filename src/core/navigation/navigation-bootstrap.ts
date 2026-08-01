@@ -194,6 +194,18 @@ const sidebarItems: RegisterNavigationInput[] = [
     order: 16,
     group: "growth",
   },
+  {
+    id: "sidebar.developer",
+    module: "dashboard",
+    position: "sidebar",
+    type: "page",
+    title: "Developer",
+    titleKey: "sidebar.developer",
+    route: "/developer",
+    icon: "Code",
+    order: 17,
+    group: "manage",
+  },
 ];
 
 const adminSidebarItems: RegisterNavigationInput[] = [

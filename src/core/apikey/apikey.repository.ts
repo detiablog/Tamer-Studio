@@ -84,6 +84,20 @@ export class ApiKeyRepository {
     return { ...existing, keyHash, keyPrefix, rawKey };
   }
 
+  async updateApiKey(apiKeyId: string, data: { name?: string; scopes?: string[]; expiresInDays?: number | null }): Promise<ApiKey> {
+    const existing = await this.getApiKey(apiKeyId);
+    if (!existing) throw new Error("API key not found");
+    const updateData: Record<string, unknown> = { updatedAt: new Date() };
+    if (data.name !== undefined) updateData.name = data.name;
+    if (data.scopes !== undefined) updateData.scopes = data.scopes;
+    if (data.expiresInDays !== undefined) {
+      updateData.expiresAt = data.expiresInDays ? new Date(Date.now() + data.expiresInDays * 24 * 60 * 60 * 1000) : null;
+    }
+    await db.update(apiKey).set(updateData).where(eq(apiKey.id, apiKeyId));
+    const updated = await this.getApiKey(apiKeyId);
+    return updated!;
+  }
+
   async recordUsage(apiKeyId: string): Promise<void> {
     const existing = await this.getApiKey(apiKeyId);
     if (!existing) return;

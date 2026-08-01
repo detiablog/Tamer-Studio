@@ -1,4 +1,4 @@
-import type { ApiKey, CreateApiKeyInput, RotateApiKeyInput, ApiKeyValidationResult } from "./apikey.types";
+import type { ApiKey, CreateApiKeyInput, RotateApiKeyInput, UpdateApiKeyInput, ApiKeyValidationResult } from "./apikey.types";
 import { ApiKeyRepository } from "./apikey.repository";
 import { logAction } from "@/core/audit";
 
@@ -24,6 +24,14 @@ export class ApiKeyService {
 
   async getUserApiKeys(userId: string): Promise<ApiKey[]> {
     return this.repository.getUserApiKeys(userId);
+  }
+
+  async getApiKeyById(apiKeyId: string): Promise<ApiKey | undefined> {
+    return this.repository.getApiKey(apiKeyId);
+  }
+
+  async updateApiKey(apiKeyId: string, data: { name?: string; scopes?: string[]; expiresInDays?: number | null }): Promise<ApiKey> {
+    return this.repository.updateApiKey(apiKeyId, data);
   }
 
   async getWorkspaceApiKeys(workspaceId: string): Promise<ApiKey[]> {

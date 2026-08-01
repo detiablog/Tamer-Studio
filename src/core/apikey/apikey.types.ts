@@ -26,6 +26,13 @@ export interface RotateApiKeyInput {
   apiKeyId: string;
 }
 
+export interface UpdateApiKeyInput {
+  apiKeyId: string;
+  name?: string;
+  scopes?: string[];
+  expiresInDays?: number | null;
+}
+
 export interface ApiKeyValidationResult {
   valid: boolean;
   apiKey?: ApiKey;
