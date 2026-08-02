@@ -45,6 +45,8 @@ import {
   CalendarDays,
   TrendingUp,
   Target,
+  Stethoscope,
+  Lightbulb,
 } from "lucide-react"
 import { useLocalizationContext } from "@/providers/localization"
 
@@ -94,6 +96,8 @@ const ADMIN_NAV_ITEMS: SidebarNavItem[] = [
   { id: "ai-image", labelKey: "admin.aiImage", label: "AI Image", icon: Image, href: "/admin/ai-image", group: "analytics" },
   { id: "ai-video", labelKey: "admin.aiVideo", label: "AI Video", icon: Video, href: "/admin/ai-video", group: "analytics" },
   { id: "monitor", labelKey: "admin.monitor", label: "Monitor", icon: Activity, href: "/admin/monitor", group: "analytics" },
+  { id: "hypercare", labelKey: "hypercare.title", label: "Hypercare", icon: Stethoscope, href: "/admin/hypercare", group: "analytics" },
+  { id: "product-intelligence", labelKey: "pi.title", label: "Product Intelligence", icon: Lightbulb, href: "/admin/product-intelligence", group: "analytics" },
   { id: "affiliate-studio", labelKey: "admin.affiliateStudio", label: "Affiliate Studio", icon: Megaphone, href: "/admin/affiliate-studio", group: "analytics" },
   { id: "drama", labelKey: "admin.drama", label: "AI Drama", icon: Film, href: "/admin/drama", group: "analytics" },
   { id: "story-admin", labelKey: "admin.story", label: "Story Engine", icon: BookOpen, href: "/admin/story", group: "analytics" },

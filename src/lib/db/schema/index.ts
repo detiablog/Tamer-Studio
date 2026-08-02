@@ -54,11 +54,6 @@ export * from "./ai-admin";
 export * from "./monitoring";
 export * from "./bi";
 export * from "./performance";
-export {
-  securityIncident,
-  securityRateLimit,
-  securityAuditLog,
-} from "./security";
 export * from "./devops";
 export * from "./image-studio";
 export * from "./video-studio";
@@ -112,3 +107,5 @@ export * from "./security";
 export * from "./scaling";
 export * from "./beta";
 export * from "./launch";
+export * from "./hypercare";
+export * from "./product-intelligence";

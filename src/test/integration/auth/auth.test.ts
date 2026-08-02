@@ -22,7 +22,7 @@ describe('integration: auth', () => {
 
   it('validates register schema in integration context', async () => {
     const { registerSchema } = await import('@/features/auth/schemas/register.schema');
-    const result = registerSchema.safeParse({ name: 'Integration User', email: 'integ@test.com', password: 'securepass123' });
+    const result = registerSchema.safeParse({ name: 'Integration User', email: 'integ@test.com', password: 'SecureP@ssw0rd', confirmPassword: 'SecureP@ssw0rd', termsAccepted: true });
     expect(result.success).toBe(true);
   });
 

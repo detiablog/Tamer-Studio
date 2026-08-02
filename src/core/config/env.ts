@@ -1,7 +1,6 @@
 export const REQUIRED_ENV_VARS = {
   DATABASE_URL: "DATABASE_URL",
   BETTER_AUTH_SECRET: "BETTER_AUTH_SECRET",
-  AUTH_SECRET: "AUTH_SECRET",
 } as const;
 
 export type RequiredEnvVar = keyof typeof REQUIRED_ENV_VARS;

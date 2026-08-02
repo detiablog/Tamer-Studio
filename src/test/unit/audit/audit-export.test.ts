@@ -1,15 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { exportAuditLog } from "@/core/audit/audit.service";
 
-vi.mock("@/core/audit/audit.repository", () => ({
-  queryAuditLog: vi.fn(),
-  getAuditTimeline: vi.fn(),
-  searchAuditLog: vi.fn(),
-  exportAuditLog: vi.fn(),
-  getAuditEntries: vi.fn(),
+const { mockExportAuditLog } = vi.hoisted(() => ({
+  mockExportAuditLog: vi.fn(),
 }));
 
-import { exportAuditLog as repoExportAuditLog } from "@/core/audit/audit.repository";
+vi.mock("@/core/audit/audit.repository", () => ({
+  DefaultAuditRepository: vi.fn().mockImplementation(function (this: Record<string, unknown>) {
+    this.exportAuditLog = mockExportAuditLog;
+  }),
+}));
+
+import { exportAuditLog } from "@/core/audit/audit.service";
 
 describe("Audit Export", () => {
   beforeEach(() => {
@@ -17,7 +18,7 @@ describe("Audit Export", () => {
   });
 
   it("exports audit log as CSV", async () => {
-    (repoExportAuditLog as ReturnType<typeof vi.fn>).mockResolvedValue(
+    mockExportAuditLog.mockResolvedValue(
       "id,action,actorId,actorType,resourceType,resourceId,metadata,ipAddress,userAgent,createdAt\naudit-1,user.login,user-1,user,user,user-1,{},{},,,2024-01-01T00:00:00.000Z"
     );
 
@@ -28,7 +29,7 @@ describe("Audit Export", () => {
   });
 
   it("exports empty log with headers only", async () => {
-    (repoExportAuditLog as ReturnType<typeof vi.fn>).mockResolvedValue(
+    mockExportAuditLog.mockResolvedValue(
       "id,action,actorId,actorType,resourceType,resourceId,metadata,ipAddress,userAgent,createdAt"
     );
 

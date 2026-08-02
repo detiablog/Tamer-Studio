@@ -1,15 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { searchAuditLog } from "@/core/audit/audit.service";
 
-vi.mock("@/core/audit/audit.repository", () => ({
-  queryAuditLog: vi.fn(),
-  getAuditTimeline: vi.fn(),
-  searchAuditLog: vi.fn(),
-  exportAuditLog: vi.fn(),
-  getAuditEntries: vi.fn(),
+const { mockSearchAuditLog } = vi.hoisted(() => ({
+  mockSearchAuditLog: vi.fn(),
 }));
 
-import { searchAuditLog as repoSearchAuditLog } from "@/core/audit/audit.repository";
+vi.mock("@/core/audit/audit.repository", () => ({
+  DefaultAuditRepository: vi.fn().mockImplementation(function (this: Record<string, unknown>) {
+    this.searchAuditLog = mockSearchAuditLog;
+  }),
+}));
+
+import { searchAuditLog } from "@/core/audit/audit.service";
 
 describe("Audit Search", () => {
   beforeEach(() => {
@@ -25,15 +26,15 @@ describe("Audit Search", () => {
       },
     ];
 
-    (repoSearchAuditLog as ReturnType<typeof vi.fn>).mockResolvedValue(mockEntries);
+    mockSearchAuditLog.mockResolvedValue(mockEntries);
 
     const results = await searchAuditLog("user");
     expect(results).toEqual(mockEntries);
-    expect(repoSearchAuditLog).toHaveBeenCalledWith("user");
+    expect(mockSearchAuditLog).toHaveBeenCalledWith("user");
   });
 
   it("returns empty array when no matches", async () => {
-    (repoSearchAuditLog as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    mockSearchAuditLog.mockResolvedValue([]);
 
     const results = await searchAuditLog("nonexistent");
     expect(results).toEqual([]);

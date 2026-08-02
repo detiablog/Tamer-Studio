@@ -1,23 +1,35 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("@upstash/redis", () => {
-  return {
-    Redis: vi.fn().mockImplementation(() => ({
-      get: vi.fn().mockResolvedValue(null),
-      set: vi.fn().mockResolvedValue("OK"),
-      del: vi.fn().mockResolvedValue(1),
-      keys: vi.fn().mockResolvedValue([]),
-      exists: vi.fn().mockResolvedValue(0),
-      smembers: vi.fn().mockResolvedValue([]),
-      srem: vi.fn().mockResolvedValue(1),
-      pipeline: vi.fn().mockReturnValue({
-        sadd: vi.fn().mockReturnThis(),
-        expire: vi.fn().mockReturnThis(),
-        del: vi.fn().mockReturnThis(),
-        exec: vi.fn().mockResolvedValue([]),
+  const MockRedis = vi.fn().mockImplementation(function (this: Record<string, unknown>) {
+    const store = new Map<string, unknown>();
+    const tagStore = new Map<string, Set<string>>();
+    this.get = vi.fn().mockImplementation((key: string) => Promise.resolve(store.get(key) ?? null));
+    this.set = vi.fn().mockImplementation((key: string, value: unknown) => { store.set(key, value); return Promise.resolve("OK"); });
+    this.del = vi.fn().mockImplementation((...keys: string[]) => { keys.forEach(k => store.delete(k)); return Promise.resolve(1); });
+    this.keys = vi.fn().mockImplementation((pattern: string) => {
+      const prefix = pattern.replace("*", "");
+      return Promise.resolve([...store.keys()].filter(k => k.startsWith(prefix)));
+    });
+    this.exists = vi.fn().mockImplementation((key: string) => Promise.resolve(store.has(key) ? 1 : 0));
+    this.smembers = vi.fn().mockImplementation((key: string) => Promise.resolve([...(tagStore.get(key) ?? [])]));
+    this.srem = vi.fn().mockImplementation((key: string, value: string) => {
+      const s = tagStore.get(key);
+      if (s) s.delete(value);
+      return Promise.resolve(1);
+    });
+    this.pipeline = vi.fn().mockReturnValue({
+      sadd: vi.fn().mockImplementation((key: string, value: string) => {
+        if (!tagStore.has(key)) tagStore.set(key, new Set());
+        tagStore.get(key)!.add(value);
+        return { sadd: vi.fn().mockReturnThis(), expire: vi.fn().mockReturnThis(), del: vi.fn().mockReturnThis(), exec: vi.fn().mockResolvedValue([]) };
       }),
-    })),
-  };
+      expire: vi.fn().mockReturnThis(),
+      del: vi.fn().mockReturnThis(),
+      exec: vi.fn().mockResolvedValue([]),
+    });
+  });
+  return { Redis: MockRedis };
 });
 
 import { RedisCache } from "@/core/cache/redis-cache";

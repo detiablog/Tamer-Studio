@@ -1,15 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getAuditTimeline } from "@/core/audit/audit.service";
 
-vi.mock("@/core/audit/audit.repository", () => ({
-  queryAuditLog: vi.fn(),
-  getAuditTimeline: vi.fn(),
-  searchAuditLog: vi.fn(),
-  exportAuditLog: vi.fn(),
-  getAuditEntries: vi.fn(),
+const { mockGetAuditTimeline } = vi.hoisted(() => ({
+  mockGetAuditTimeline: vi.fn(),
 }));
 
-import { getAuditTimeline as repoGetAuditTimeline } from "@/core/audit/audit.repository";
+vi.mock("@/core/audit/audit.repository", () => ({
+  DefaultAuditRepository: vi.fn().mockImplementation(function (this: Record<string, unknown>) {
+    this.getAuditTimeline = mockGetAuditTimeline;
+  }),
+}));
+
+import { getAuditTimeline } from "@/core/audit/audit.service";
 
 describe("Audit Timeline", () => {
   beforeEach(() => {
@@ -27,15 +28,15 @@ describe("Audit Timeline", () => {
       },
     ];
 
-    (repoGetAuditTimeline as ReturnType<typeof vi.fn>).mockResolvedValue(mockEntries);
+    mockGetAuditTimeline.mockResolvedValue(mockEntries);
 
     const results = await getAuditTimeline("user", "user-1");
     expect(results).toEqual(mockEntries);
-    expect(repoGetAuditTimeline).toHaveBeenCalledWith("user", "user-1");
+    expect(mockGetAuditTimeline).toHaveBeenCalledWith("user", "user-1");
   });
 
   it("returns empty array when timeline has no entries", async () => {
-    (repoGetAuditTimeline as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    mockGetAuditTimeline.mockResolvedValue([]);
 
     const results = await getAuditTimeline("workspace", "ws-1");
     expect(results).toEqual([]);

@@ -19,7 +19,7 @@ describe('config', () => {
     delete process.env.DATABASE_URL;
     delete process.env.BETTER_AUTH_SECRET;
     delete process.env.ADMIN_MASTER_KEY;
-    expect(() => validateEnv()).toThrow('Missing required environment variables: DATABASE_URL, BETTER_AUTH_SECRET, ADMIN_MASTER_KEY');
+    expect(() => validateEnv()).toThrow('Missing required environment variables: DATABASE_URL, BETTER_AUTH_SECRET');
   });
 
   it('reads env var value via getEnv', () => {
@@ -41,7 +41,7 @@ describe('config', () => {
   it('loads config with required env vars present', async () => {
     process.env.DATABASE_URL = 'postgresql://user:pass@localhost:5432/test';
     process.env.BETTER_AUTH_SECRET = 'secret123';
-    process.env.ADMIN_MASTER_KEY = 'master123';
+    process.env.ADMIN_MASTER_KEY_HASH = 'master123';
     vi.stubEnv('NODE_ENV', 'development');
     vi.resetModules();
     const { loadConfig } = await import('@/core/config/config');

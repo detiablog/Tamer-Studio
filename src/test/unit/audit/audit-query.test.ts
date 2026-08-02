@@ -1,15 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { queryAuditLog } from "@/core/audit/audit.service";
 
-vi.mock("@/core/audit/audit.repository", () => ({
-  queryAuditLog: vi.fn(),
-  getAuditTimeline: vi.fn(),
-  searchAuditLog: vi.fn(),
-  exportAuditLog: vi.fn(),
-  getAuditEntries: vi.fn(),
+const { mockQueryAuditLog } = vi.hoisted(() => ({
+  mockQueryAuditLog: vi.fn(),
 }));
 
-import { queryAuditLog as repoQueryAuditLog } from "@/core/audit/audit.repository";
+vi.mock("@/core/audit/audit.repository", () => ({
+  DefaultAuditRepository: vi.fn().mockImplementation(function (this: Record<string, unknown>) {
+    this.queryAuditLog = mockQueryAuditLog;
+  }),
+}));
+
+import { queryAuditLog } from "@/core/audit/audit.service";
 
 describe("Audit Query", () => {
   beforeEach(() => {
@@ -29,15 +30,15 @@ describe("Audit Query", () => {
       },
     ];
 
-    (repoQueryAuditLog as ReturnType<typeof vi.fn>).mockResolvedValue(mockEntries);
+    mockQueryAuditLog.mockResolvedValue(mockEntries);
 
     const results = await queryAuditLog({ action: "user.login" });
     expect(results).toEqual(mockEntries);
-    expect(repoQueryAuditLog).toHaveBeenCalledWith({ action: "user.login" });
+    expect(mockQueryAuditLog).toHaveBeenCalledWith({ action: "user.login" });
   });
 
   it("passes date range filters", async () => {
-    (repoQueryAuditLog as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    mockQueryAuditLog.mockResolvedValue([]);
 
     await queryAuditLog({
       action: "user.login",
@@ -45,7 +46,7 @@ describe("Audit Query", () => {
       endDate: new Date("2024-01-31"),
     });
 
-    expect(repoQueryAuditLog).toHaveBeenCalledWith({
+    expect(mockQueryAuditLog).toHaveBeenCalledWith({
       action: "user.login",
       startDate: new Date("2024-01-01"),
       endDate: new Date("2024-01-31"),
@@ -53,10 +54,10 @@ describe("Audit Query", () => {
   });
 
   it("passes pagination options", async () => {
-    (repoQueryAuditLog as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    mockQueryAuditLog.mockResolvedValue([]);
 
     await queryAuditLog({ limit: 10, offset: 5 });
 
-    expect(repoQueryAuditLog).toHaveBeenCalledWith({ limit: 10, offset: 5 });
+    expect(mockQueryAuditLog).toHaveBeenCalledWith({ limit: 10, offset: 5 });
   });
 });
