@@ -43,7 +43,7 @@ export async function GET(
     if (!buffer) {
       return NextResponse.json(errorResponse("NOT_FOUND", "File content not found"), { status: 404 });
     }
-    return new NextResponse(buffer, {
+    return new NextResponse(new Uint8Array(buffer), {
       headers: {
         "Content-Type": file.mimeType,
         "Content-Disposition": `attachment; filename="${file.originalName}"`,

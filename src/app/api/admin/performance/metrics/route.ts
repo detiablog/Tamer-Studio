@@ -38,12 +38,9 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get("category");
     const limit = Math.min(Number(searchParams.get("limit") || "50"), 200);
 
-    let query = db.select().from(performanceMetric).orderBy(desc(performanceMetric.recordedAt)).limit(limit);
-    if (category) {
-      query = db.select().from(performanceMetric).where(eq(performanceMetric.category, category)).orderBy(desc(performanceMetric.recordedAt)).limit(limit);
-    }
-
-    const metrics = await query;
+    const metrics = category
+      ? await db.select().from(performanceMetric).where(eq(performanceMetric.category, category)).orderBy(desc(performanceMetric.recordedAt)).limit(limit)
+      : await db.select().from(performanceMetric).orderBy(desc(performanceMetric.recordedAt)).limit(limit);
     return NextResponse.json(successResponse({ metrics }));
   } catch (error) {
     return mapErrorToResponse(error);

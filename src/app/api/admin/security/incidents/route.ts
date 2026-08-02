@@ -4,7 +4,7 @@ import type { RequestContext } from "@/core/middleware/types";
 import { runMiddleware } from "@/core/middleware/compose";
 import { adminAuthentication } from "@/core/middleware";
 import { db } from "@/lib/db";
-import { securityIncident } from "@/lib/db/schema/security";
+import { secIncident } from "@/lib/db/schema/security";
 import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
 import { successResponse } from "@/app/api/mappers/response";
 import { desc, eq, and } from "drizzle-orm";
@@ -14,8 +14,8 @@ const CreateIncidentSchema = z.object({
   title: z.string().min(1),
   description: z.string().optional(),
   severity: z.string().optional(),
-  affectedUsers: z.number().optional(),
-  affectedServices: z.array(z.string()).optional(),
+  category: z.string().optional(),
+  affectedSystems: z.array(z.string()).optional(),
   assignedTo: z.string().optional(),
 });
 
@@ -48,20 +48,20 @@ export async function GET(request: NextRequest) {
 
     const status = searchParams.get("status");
     if (status) {
-      conditions.push(eq(securityIncident.status, status));
+      conditions.push(eq(secIncident.status, status));
     }
 
     const severity = searchParams.get("severity");
     if (severity) {
-      conditions.push(eq(securityIncident.severity, severity));
+      conditions.push(eq(secIncident.severity, severity));
     }
 
     const limit = parseInt(searchParams.get("limit") || "100");
     const offset = parseInt(searchParams.get("offset") || "0");
 
     const query = conditions.length > 0
-      ? db.select().from(securityIncident).where(and(...conditions)).orderBy(desc(securityIncident.createdAt)).limit(limit).offset(offset)
-      : db.select().from(securityIncident).orderBy(desc(securityIncident.createdAt)).limit(limit).offset(offset);
+      ? db.select().from(secIncident).where(and(...conditions)).orderBy(desc(secIncident.createdAt)).limit(limit).offset(offset)
+      : db.select().from(secIncident).orderBy(desc(secIncident.createdAt)).limit(limit).offset(offset);
 
     const incidents = await query;
     return NextResponse.json(successResponse(incidents));
@@ -107,22 +107,15 @@ export async function POST(request: NextRequest) {
     const session = ctx.state.adminSession;
     const id = crypto.randomUUID();
 
-    const [incident] = await db.insert(securityIncident).values({
+    const [incident] = await db.insert(secIncident).values({
       id,
       title: parsed.data.title,
       description: parsed.data.description,
       severity: parsed.data.severity || "medium",
       status: "open",
-      affectedUsers: parsed.data.affectedUsers || 0,
-      affectedServices: parsed.data.affectedServices || [],
-      assignedTo: parsed.data.assignedTo,
-      createdBy: session?.adminId || "system",
-      timeline: [{
-        timestamp: new Date().toISOString(),
-        action: "created",
-        note: "Incident created",
-        admin: session?.adminId || "system",
-      }],
+      category: parsed.data.category || "security",
+      affectedSystems: parsed.data.affectedSystems || [],
+      assignedTo: parsed.data.assignedTo || session?.adminId,
     }).returning();
 
     return NextResponse.json(successResponse(incident));

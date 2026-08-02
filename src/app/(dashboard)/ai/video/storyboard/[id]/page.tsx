@@ -1,4 +1,4 @@
-import { StoryboardEditorPageClient } from "./pageClient";
+import StoryboardEditorPageClient from "./pageClient";
 
 export default function StoryboardEditorPage() {
   return <StoryboardEditorPageClient />;

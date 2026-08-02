@@ -135,16 +135,17 @@ export default function StoryboardEditorPageClient() {
         <div className="col-span-3 space-y-2">
           <h3 className="font-heading font-semibold text-sm mb-3">{t("videoStudio.storyboard")}</h3>
           {storyboard.scenes.map((scene, idx) => (
-            <DashboardCard key={scene.id}
+            <div key={scene.id}
               className={cn("cursor-pointer transition-colors", selectedScene === scene.id && "border-primary")}
               onClick={() => setSelectedScene(scene.id)}>
+            <DashboardCard>
               <div className="flex items-center gap-3">
                 <GripVertical className="size-4 text-muted-foreground/50 shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{scene.title || `Scene ${idx + 1}`}</p>
                   <div className="flex items-center gap-2 mt-1">
-                    <Badge variant="outline" className="text-xs">{scene.duration}s</Badge>
-                    <Badge variant={scene.status === "completed" ? "default" : "secondary"} className="text-xs">{scene.status}</Badge>
+                    <Badge tone="default">{scene.duration}s</Badge>
+                    <Badge tone={scene.status === "completed" ? "default" : "muted"}>{scene.status}</Badge>
                   </div>
                 </div>
                 <Button variant="ghost" size="sm" className="shrink-0" onClick={(e) => { e.stopPropagation(); handleDeleteScene(scene.id); }}>
@@ -152,6 +153,7 @@ export default function StoryboardEditorPageClient() {
                 </Button>
               </div>
             </DashboardCard>
+            </div>
           ))}
         </div>
 
@@ -265,10 +267,11 @@ export default function StoryboardEditorPageClient() {
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {["Static", "Pan Left", "Pan Right", "Zoom In", "Zoom Out", "Tracking"].map((m) => (
-                    <Badge key={m} variant={currentScene.cameraMotion === m ? "default" : "outline"}
-                      className="cursor-pointer" onClick={() => handleUpdateScene(currentScene.id, { cameraMotion: m })}>
+                    <div key={m} className="cursor-pointer" onClick={() => handleUpdateScene(currentScene.id, { cameraMotion: m })}>
+                    <Badge tone={currentScene.cameraMotion === m ? "default" : "muted"}>
                       {m}
                     </Badge>
+                    </div>
                   ))}
                 </div>
               </DashboardCard>
@@ -280,15 +283,16 @@ export default function StoryboardEditorPageClient() {
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {["None", "Blur", "Fade", "Glow", "Vintage", "Cinematic"].map((fx) => (
-                    <Badge key={fx} variant={currentScene.effects.includes(fx) ? "default" : "outline"}
-                      className="cursor-pointer" onClick={() => {
+                    <div key={fx} className="cursor-pointer" onClick={() => {
                         const effects = currentScene.effects.includes(fx)
                           ? currentScene.effects.filter((e) => e !== fx)
                           : [...currentScene.effects, fx];
                         handleUpdateScene(currentScene.id, { effects });
                       }}>
+                    <Badge tone={currentScene.effects.includes(fx) ? "default" : "muted"}>
                       {fx}
                     </Badge>
+                    </div>
                   ))}
                 </div>
               </DashboardCard>

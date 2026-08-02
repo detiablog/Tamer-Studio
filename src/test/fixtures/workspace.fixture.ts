@@ -7,7 +7,6 @@ export function createWorkspaceFixture(overrides?: Partial<Workspace>): Workspac
     slug: 'test-workspace',
     type: 'personal',
     ownerId: 'user_001',
-    organizationId: null,
     settings: {},
     limits: {},
     status: 'active',

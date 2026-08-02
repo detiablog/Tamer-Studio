@@ -16,7 +16,7 @@ const UpdateSubscriptionSchema = z.object({
   cancelAtPeriodEnd: z.boolean().optional(),
   currentPeriodStart: z.string().datetime().optional(),
   currentPeriodEnd: z.string().datetime().optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export async function GET(

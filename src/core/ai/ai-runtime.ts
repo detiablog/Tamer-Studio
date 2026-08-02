@@ -150,7 +150,7 @@ export async function executeAIRequest(request: AIExecutionRequest): Promise<AIE
     };
 
     await auditRepo.createAuditEntry({
-      action: "ai.execution.completed",
+      action: "ai.generation.completed",
       actorId: request.userId,
       actorType: "user",
       resourceType: "ai_execution",
@@ -193,7 +193,7 @@ export async function executeAIRequest(request: AIExecutionRequest): Promise<AIE
     );
 
     await auditRepo.createAuditEntry({
-      action: "ai.execution.failed",
+      action: "ai.generation.failed",
       actorId: request.userId,
       actorType: "user",
       resourceType: "ai_execution",

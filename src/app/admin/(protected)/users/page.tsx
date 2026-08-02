@@ -109,7 +109,7 @@ export default function AdminUsersPage() {
       }
 
       toast.success(t("admin.userCreatedSuccess", "User created successfully!"));
-      setFormData({ name: "", email: "", password: "", role: "user", status: "active" });
+      setFormData({ name: "", email: "", password: "", role: "user", status: "active", emailVerified: false });
       setAddUserOpen(false);
       mutate();
     } catch (error) {
@@ -331,7 +331,7 @@ export default function AdminUsersPage() {
                   { key: "verificationStatus", header: t("admin.verificationStatus", "Verification Status"), align: "center", render: (u: any) => {
                     if (u.emailVerified) return <Badge tone="success">{t("auth.verificationSuccess", "Verified")}</Badge>;
                     if (u.status === "pending_verification") return <Badge tone="warning">{t("admin.pending", "Pending")}</Badge>;
-                    return <Badge tone="error">{t("admin.unverified", "Unverified")}</Badge>;
+                    return <Badge tone="warning">{t("admin.unverified", "Unverified")}</Badge>;
                   }},
                   { key: "joined", header: t("admin.joined", "Joined"), render: (u: any) => <span className="text-sm">{u.joined}</span> },
                   { key: "lastActive", header: t("admin.lastActive", "Last Active"), render: (u: any) => <span className="text-sm">{u.lastActive}</span> },

@@ -118,7 +118,7 @@ export function SectionList({
   const handleUndo = (section: LandingSection) => {
     toast.success(`Restored "${section.title || section.sectionKey}"`);
     setUndoStack((prev) => prev.filter((item) => item.section.id !== section.id));
-    onRefresh();
+    onRefresh?.();
   };
 
   const filteredSections = React.useMemo(() => {

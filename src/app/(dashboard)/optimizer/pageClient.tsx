@@ -183,7 +183,7 @@ export function OptimizerPageClient() {
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
                               <span className="font-medium text-sm">{rec.title}</span>
-                              <Badge tone={rec.priority === "high" ? "error" : rec.priority === "medium" ? "warning" : "info"}>
+                              <Badge tone={rec.priority === "high" ? "warning" : rec.priority === "medium" ? "warning" : "info"}>
                                 {t(`conversionOptimizer.${rec.priority}`, rec.priority)}
                               </Badge>
                             </div>
@@ -262,7 +262,7 @@ export function OptimizerPageClient() {
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                           <span className="font-semibold">{rec.title}</span>
-                          <Badge tone={rec.priority === "high" ? "error" : rec.priority === "medium" ? "warning" : "info"}>
+                          <Badge tone={rec.priority === "high" ? "warning" : rec.priority === "medium" ? "warning" : "info"}>
                             {t(`conversionOptimizer.${rec.priority}`, rec.priority)}
                           </Badge>
                           <Badge tone="info">{rec.type}</Badge>

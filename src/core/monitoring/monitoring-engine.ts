@@ -157,8 +157,8 @@ export class MonitoringEngine {
       ]);
       const healthResults = await this.runFullHealthCheck();
       return {
-        alerts: Number(totalAlerts?.count ?? 0), activeAlerts: Number(activeAlerts?.count ?? 0),
-        openIncidents: Number(openIncidents?.count ?? 0), resolvedIncidents: Number(resolvedIncidents?.count ?? 0),
+        alerts: Number(totalAlerts[0]?.count ?? 0), activeAlerts: Number(activeAlerts[0]?.count ?? 0),
+        openIncidents: Number(openIncidents[0]?.count ?? 0), resolvedIncidents: Number(resolvedIncidents[0]?.count ?? 0),
         health: healthResults,
       };
     }, 60000);

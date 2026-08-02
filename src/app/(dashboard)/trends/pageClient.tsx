@@ -255,7 +255,7 @@ export function TrendAnalyzerPageClient() {
         {keywords.length > 0 ? (
           <div className="flex flex-wrap gap-2">
             {keywords.slice(0, 20).map((kw: any) => (
-              <Badge key={kw.id} tone="outline">
+              <Badge key={kw.id} tone="default">
                 {kw.keyword}
                 <span className="ml-1 text-xs text-muted-foreground">({kw.popularity})</span>
               </Badge>
@@ -301,7 +301,7 @@ export function TrendAnalyzerPageClient() {
                 <div className="flex items-center gap-2 mt-1">
                   <Badge tone="info">{topic.category}</Badge>
                   {(topic.platforms ?? []).map((p: string) => (
-                    <Badge key={p} tone="outline">{p}</Badge>
+                    <Badge key={p} tone="default">{p}</Badge>
                   ))}
                 </div>
               </div>
@@ -374,7 +374,7 @@ export function TrendAnalyzerPageClient() {
                 </div>
                 <div className="text-right">
                   <p className="text-xs text-muted-foreground">{t("trendAnalyzer.keywordCompetition", "Competition")}</p>
-                  <Badge tone={kw.competition === "high" ? "destructive" : kw.competition === "medium" ? "warning" : "success"}>
+                  <Badge tone={kw.competition === "high" ? "warning" : kw.competition === "medium" ? "warning" : "success"}>
                     {kw.competition}
                   </Badge>
                 </div>

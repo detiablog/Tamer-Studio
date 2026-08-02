@@ -197,7 +197,7 @@ export function OptimizerAdminPageClient() {
                   columns={[
                     { key: "name", header: t("common.name", "Name"), sortable: true, render: (item: any) => <span className="text-sm font-medium">{item.name}</span> },
                     { key: "type", header: t("common.description", "Type"), sortable: true, render: (item: any) => <Badge tone="info">{item.type}</Badge> },
-                    { key: "priority", header: t("conversionOptimizer.priority", "Priority"), sortable: true, render: (item: any) => <Badge tone={item.priority === "high" ? "error" : item.priority === "medium" ? "warning" : "info"}>{t(`conversionOptimizer.${item.priority}`, item.priority)}</Badge> },
+                    { key: "priority", header: t("conversionOptimizer.priority", "Priority"), sortable: true, render: (item: any) => <Badge tone={item.priority === "high" ? "warning" : item.priority === "medium" ? "warning" : "info"}>{t(`conversionOptimizer.${item.priority}`, item.priority)}</Badge> },
                     { key: "status", header: t("common.status", "Status"), sortable: true, render: (item: any) => <Badge tone={item.enabled ? "success" : "default"}>{item.enabled ? t("common.ok", "Enabled") : t("common.cancel", "Disabled")}</Badge> },
                     { key: "actions", header: t("common.actions", "Actions"), render: (item: any) => (
                       <div className="flex items-center gap-1">

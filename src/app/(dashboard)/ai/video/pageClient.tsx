@@ -145,7 +145,8 @@ export default function VideoStudioPageClient() {
       {activeTab === "home" && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <DashboardCard className="cursor-pointer hover:border-primary/50 transition-colors" onClick={() => window.location.href = "/ai/video/generate"}>
+            <div className="cursor-pointer" onClick={() => window.location.href = "/ai/video/generate"}>
+            <DashboardCard>
               <div className="flex items-center gap-4">
                 <div className="rounded-lg bg-primary/10 p-3"><Play className="size-6 text-primary" /></div>
                 <div>
@@ -154,7 +155,9 @@ export default function VideoStudioPageClient() {
                 </div>
               </div>
             </DashboardCard>
-            <DashboardCard className="cursor-pointer hover:border-primary/50 transition-colors" onClick={() => setActiveTab("history")}>
+            </div>
+            <div className="cursor-pointer" onClick={() => setActiveTab("history")}>
+            <DashboardCard>
               <div className="flex items-center gap-4">
                 <div className="rounded-lg bg-muted p-3"><History className="size-6 text-muted-foreground" /></div>
                 <div>
@@ -163,6 +166,7 @@ export default function VideoStudioPageClient() {
                 </div>
               </div>
             </DashboardCard>
+            </div>
           </div>
 
           <div className="flex items-center justify-between">
@@ -178,7 +182,7 @@ export default function VideoStudioPageClient() {
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {generations.map((gen) => (
-                <DashboardCard key={gen.id} className="overflow-hidden">
+                <DashboardCard key={gen.id}>
                   <div className="aspect-video bg-muted/30 flex items-center justify-center">
                     {gen.outputUrl ? (
                       <Play className="size-8 text-muted-foreground/30" />
@@ -189,7 +193,7 @@ export default function VideoStudioPageClient() {
                   <div className="p-3">
                     <p className="text-sm font-medium truncate">{gen.prompt}</p>
                     <div className="flex items-center justify-between mt-2">
-                      <Badge variant={gen.status === "completed" ? "default" : "secondary"}>{gen.status}</Badge>
+                      <Badge tone={gen.status === "completed" ? "default" : "muted"}>{gen.status}</Badge>
                       {gen.isFavorite && <Heart className="size-4 text-red-500 fill-red-500" />}
                     </div>
                   </div>
@@ -216,7 +220,7 @@ export default function VideoStudioPageClient() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {projects.map((proj) => (
-                <DashboardCard key={proj.id} className="overflow-hidden">
+                <DashboardCard key={proj.id}>
                   <div className="aspect-video bg-muted/30 flex items-center justify-center">
                     {proj.coverUrl ? (
                       <Image className="size-8 text-muted-foreground/30" />
@@ -251,14 +255,16 @@ export default function VideoStudioPageClient() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {storyboards.map((sb) => (
-                <DashboardCard key={sb.id} className="cursor-pointer hover:border-primary/50 transition-colors"
+                <div key={sb.id} className="cursor-pointer"
                   onClick={() => window.location.href = `/ai/video/storyboard/${sb.id}`}>
+                <DashboardCard>
                   <h3 className="font-heading font-semibold">{sb.name}</h3>
                   <div className="flex items-center gap-2 mt-2">
-                    <Badge variant="outline">{sb.sceneCount} scenes</Badge>
-                    <Badge variant={sb.status === "completed" ? "default" : "secondary"}>{sb.status}</Badge>
+                    <Badge tone="default">{sb.sceneCount} scenes</Badge>
+                    <Badge tone={sb.status === "completed" ? "default" : "muted"}>{sb.status}</Badge>
                   </div>
                 </DashboardCard>
+                </div>
               ))}
             </div>
           )}
@@ -283,7 +289,7 @@ export default function VideoStudioPageClient() {
               <tbody>{generations.map((gen) => (
                 <tr key={gen.id} className="border-b border-border/50 hover:bg-muted/20">
                   <td className="px-4 py-3 max-w-[300px] truncate">{gen.prompt}</td>
-                  <td className="px-4 py-3"><Badge variant={gen.status === "completed" ? "default" : "secondary"}>{gen.status}</Badge></td>
+                  <td className="px-4 py-3"><Badge tone={gen.status === "completed" ? "default" : "muted"}>{gen.status}</Badge></td>
                   <td className="px-4 py-3">{gen.duration}s</td>
                   <td className="px-4 py-3">{gen.creditsUsed}</td>
                   <td className="px-4 py-3 text-muted-foreground">{new Date(gen.createdAt).toLocaleDateString()}</td>
@@ -297,7 +303,7 @@ export default function VideoStudioPageClient() {
       {activeTab === "templates" && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {templates.map((tpl) => (
-            <DashboardCard key={tpl.id} className="cursor-pointer hover:border-primary/50 transition-colors">
+            <DashboardCard key={tpl.id}>
               <div className="text-2xl mb-2">🎬</div>
               <h3 className="font-medium text-sm">{tpl.name}</h3>
               <p className="text-xs text-muted-foreground mt-1">{tpl.category}</p>
@@ -305,7 +311,7 @@ export default function VideoStudioPageClient() {
             </DashboardCard>
           ))}
           {templates.length === 0 && (
-            <DashboardCard className="col-span-full"><div className="py-12 text-center text-muted-foreground">{t("videoStudio.noTemplates")}</div></DashboardCard>
+            <DashboardCard><div className="py-12 text-center text-muted-foreground">{t("videoStudio.noTemplates")}</div></DashboardCard>
           )}
         </div>
       )}
@@ -313,14 +319,14 @@ export default function VideoStudioPageClient() {
       {activeTab === "effects" && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {effects.map((fx) => (
-            <DashboardCard key={fx.id} className="cursor-pointer hover:border-primary/50 transition-colors">
+            <DashboardCard key={fx.id}>
               <div className="text-2xl mb-2">✨</div>
               <h3 className="font-medium text-sm">{fx.name}</h3>
               <p className="text-xs text-muted-foreground mt-1">{fx.category}</p>
             </DashboardCard>
           ))}
           {effects.length === 0 && (
-            <DashboardCard className="col-span-full"><div className="py-12 text-center text-muted-foreground">{t("videoStudio.noTemplates")}</div></DashboardCard>
+            <DashboardCard><div className="py-12 text-center text-muted-foreground">{t("videoStudio.noTemplates")}</div></DashboardCard>
           )}
         </div>
       )}
@@ -328,14 +334,14 @@ export default function VideoStudioPageClient() {
       {activeTab === "transitions" && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {transitions.map((tr) => (
-            <DashboardCard key={tr.id} className="cursor-pointer hover:border-primary/50 transition-colors">
+            <DashboardCard key={tr.id}>
               <div className="text-2xl mb-2">🔀</div>
               <h3 className="font-medium text-sm">{tr.name}</h3>
               <p className="text-xs text-muted-foreground mt-1">{tr.category}</p>
             </DashboardCard>
           ))}
           {transitions.length === 0 && (
-            <DashboardCard className="col-span-full"><div className="py-12 text-center text-muted-foreground">{t("videoStudio.noTemplates")}</div></DashboardCard>
+            <DashboardCard><div className="py-12 text-center text-muted-foreground">{t("videoStudio.noTemplates")}</div></DashboardCard>
           )}
         </div>
       )}

@@ -21,7 +21,16 @@ export * from "./cms";
 export * from "./localization";
 export * from "./media";
 export * from "./commerce-plans";
-export * from "./campaigns";
+export {
+  campaign,
+  campaignStat,
+  couponRedemption,
+  voucherClaim,
+  campaignRelations,
+  couponRedemptionRelations,
+  voucherClaimRelations,
+  campaignStatRelations,
+} from "./campaigns";
 export * from "./pricing";
 export {
   payment,
@@ -45,7 +54,11 @@ export * from "./ai-admin";
 export * from "./monitoring";
 export * from "./bi";
 export * from "./performance";
-export * from "./security";
+export {
+  securityIncident,
+  securityRateLimit,
+  securityAuditLog,
+} from "./security";
 export * from "./devops";
 export * from "./image-studio";
 export * from "./video-studio";
@@ -70,5 +83,30 @@ export * from "./automation";
 export * from "./ai-gateway";
 export * from "./prompt-intelligence";
 export * from "./quality-assurance";
-export * from "./asset-intelligence";
+export {
+  assetMetadata,
+  assetTagAssignment,
+  assetCategory,
+  assetClassification,
+  assetRecognition,
+  assetDuplicate,
+  assetRelationship,
+  assetQualityScore,
+  assetSearchIndex,
+  assetSettings,
+  assetMetadataRelations,
+  assetTagAssignmentRelations,
+  assetCategoryRelations,
+  assetClassificationRelations,
+  assetRecognitionRelations,
+  assetDuplicateRelations,
+  assetRelationshipRelations,
+  assetQualityScoreRelations,
+  assetSearchIndexRelations,
+  assetSettingsRelations,
+} from "./asset-intelligence";
 export * from "./learning-engine";
+export * from "./operations";
+export * from "./observability";
+export * from "./security";
+export * from "./scaling";

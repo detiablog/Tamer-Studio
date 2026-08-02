@@ -4,7 +4,7 @@ import type { RequestContext } from "@/core/middleware/types";
 import { runMiddleware } from "@/core/middleware/compose";
 import { adminAuthentication } from "@/core/middleware";
 import { db } from "@/lib/db";
-import { securityEvent } from "@/lib/db/schema/security";
+import { secEvent } from "@/lib/db/schema/security";
 import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
 import { successResponse } from "@/app/api/mappers/response";
 import { desc, eq, and, ilike, gte, lte } from "drizzle-orm";
@@ -38,35 +38,35 @@ export async function GET(request: NextRequest) {
 
     const eventType = searchParams.get("eventType");
     if (eventType) {
-      conditions.push(eq(securityEvent.eventType, eventType));
+      conditions.push(eq(secEvent.eventType, eventType));
     }
 
     const severity = searchParams.get("severity");
     if (severity) {
-      conditions.push(eq(securityEvent.severity, severity));
+      conditions.push(eq(secEvent.severity, severity));
     }
 
     const search = searchParams.get("search");
     if (search) {
-      conditions.push(ilike(securityEvent.description, `%${search}%`));
+      conditions.push(ilike(secEvent.eventType, `%${search}%`));
     }
 
     const from = searchParams.get("from");
     if (from) {
-      conditions.push(gte(securityEvent.createdAt, new Date(from)));
+      conditions.push(gte(secEvent.createdAt, new Date(from)));
     }
 
     const to = searchParams.get("to");
     if (to) {
-      conditions.push(lte(securityEvent.createdAt, new Date(to)));
+      conditions.push(lte(secEvent.createdAt, new Date(to)));
     }
 
     const limit = parseInt(searchParams.get("limit") || "100");
     const offset = parseInt(searchParams.get("offset") || "0");
 
     const query = conditions.length > 0
-      ? db.select().from(securityEvent).where(and(...conditions)).orderBy(desc(securityEvent.createdAt)).limit(limit).offset(offset)
-      : db.select().from(securityEvent).orderBy(desc(securityEvent.createdAt)).limit(limit).offset(offset);
+      ? db.select().from(secEvent).where(and(...conditions)).orderBy(desc(secEvent.createdAt)).limit(limit).offset(offset)
+      : db.select().from(secEvent).orderBy(desc(secEvent.createdAt)).limit(limit).offset(offset);
 
     const events = await query;
     return NextResponse.json(successResponse(events));

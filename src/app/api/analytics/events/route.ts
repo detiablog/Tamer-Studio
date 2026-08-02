@@ -91,8 +91,6 @@ export async function POST(request: NextRequest) {
       country: body.country,
       language: body.language,
       device: body.device,
-      ipAddress: ip,
-      userAgent,
     });
     return NextResponse.json(successResponse({ tracked: true }), { status: 201 });
   } catch (error) {

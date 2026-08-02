@@ -178,14 +178,14 @@ export default function GeneratePageClient() {
           ) : (
             <div className="space-y-3">
               {results.map((result) => (
-                <DashboardCard key={result.id} className="overflow-hidden">
+                <DashboardCard key={result.id}>
                   <div className="aspect-square bg-muted/30 flex items-center justify-center">
                     <div className="text-4xl">🎨</div>
                   </div>
                   <div className="p-3">
                     <p className="text-xs text-muted-foreground line-clamp-2">{result.prompt}</p>
                     <div className="flex gap-2 mt-2">
-                      <Badge variant={result.status === "completed" ? "default" : "secondary"}>{result.status}</Badge>
+                      <Badge tone={result.status === "completed" ? "default" : "muted"}>{result.status}</Badge>
                       <div className="flex gap-1 ml-auto">
                         <Button variant="ghost" size="icon" className="size-7"><Heart className="size-3.5" /></Button>
                         <Button variant="ghost" size="icon" className="size-7"><Download className="size-3.5" /></Button>

@@ -1,4 +1,4 @@
-import { AgentsAdminPageClient } from "./pageClient";
+import AgentsAdminPageClient from "./pageClient";
 
 export default function AgentsAdminPage() {
   return <AgentsAdminPageClient />;

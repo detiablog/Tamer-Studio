@@ -57,7 +57,7 @@ export async function PUT(
     }
 
     const service = new UserService();
-    const adminSessionToken = ctx.state.adminSession?.token;
+    const adminSessionToken = ctx.state.adminSession?.id;
     const user = await service.updateUser(id, {
       name: parsed.data.name,
       email: parsed.data.email,

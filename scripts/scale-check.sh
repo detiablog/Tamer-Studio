@@ -1,0 +1,10 @@
+#!/bin/bash
+echo "=== Tamer Studio Scaling Status ==="
+echo ""
+echo "Docker Containers:"
+docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" 2>/dev/null || echo "Docker not available"
+echo ""
+echo "System Resources:"
+echo "CPU: $(nproc 2>/dev/null || echo N/A) cores"
+echo "Memory: $(free -h 2>/dev/null | awk '/^Mem:/ {print $2}' || echo N/A)"
+echo "Disk: $(df -h / 2>/dev/null | awk 'NR==2 {print $2}' || echo N/A)"

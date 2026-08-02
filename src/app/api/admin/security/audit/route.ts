@@ -4,7 +4,7 @@ import type { RequestContext } from "@/core/middleware/types";
 import { runMiddleware } from "@/core/middleware/compose";
 import { adminAuthentication } from "@/core/middleware";
 import { db } from "@/lib/db";
-import { securityAuditLog } from "@/lib/db/schema/security";
+import { secEvent } from "@/lib/db/schema/security";
 import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
 import { successResponse } from "@/app/api/mappers/response";
 import { desc, eq, and, ilike, gte, lte } from "drizzle-orm";
@@ -38,40 +38,40 @@ export async function GET(request: NextRequest) {
 
     const action = searchParams.get("action");
     if (action) {
-      conditions.push(ilike(securityAuditLog.action, `%${action}%`));
+      conditions.push(ilike(secEvent.action, `%${action}%`));
     }
 
     const entityType = searchParams.get("entityType");
     if (entityType) {
-      conditions.push(eq(securityAuditLog.entityType, entityType));
+      conditions.push(eq(secEvent.category, entityType));
     }
 
     const userId = searchParams.get("userId");
     if (userId) {
-      conditions.push(eq(securityAuditLog.userId, userId));
+      conditions.push(eq(secEvent.userId, userId));
     }
 
     const search = searchParams.get("search");
     if (search) {
-      conditions.push(ilike(securityAuditLog.action, `%${search}%`));
+      conditions.push(ilike(secEvent.action, `%${search}%`));
     }
 
     const from = searchParams.get("from");
     if (from) {
-      conditions.push(gte(securityAuditLog.createdAt, new Date(from)));
+      conditions.push(gte(secEvent.createdAt, new Date(from)));
     }
 
     const to = searchParams.get("to");
     if (to) {
-      conditions.push(lte(securityAuditLog.createdAt, new Date(to)));
+      conditions.push(lte(secEvent.createdAt, new Date(to)));
     }
 
     const limit = parseInt(searchParams.get("limit") || "100");
     const offset = parseInt(searchParams.get("offset") || "0");
 
     const query = conditions.length > 0
-      ? db.select().from(securityAuditLog).where(and(...conditions)).orderBy(desc(securityAuditLog.createdAt)).limit(limit).offset(offset)
-      : db.select().from(securityAuditLog).orderBy(desc(securityAuditLog.createdAt)).limit(limit).offset(offset);
+      ? db.select().from(secEvent).where(and(...conditions)).orderBy(desc(secEvent.createdAt)).limit(limit).offset(offset)
+      : db.select().from(secEvent).orderBy(desc(secEvent.createdAt)).limit(limit).offset(offset);
 
     const logs = await query;
     return NextResponse.json(successResponse(logs));

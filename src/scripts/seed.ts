@@ -5,10 +5,8 @@ import {
   role, 
   permission, 
   rolePermission,
-  organization, 
   workspace, 
   workspaceMember,
-  organizationMember,
   apiKey,
   featureFlag,
   featureFlagHistory,
@@ -77,7 +75,6 @@ async function seed() {
     // Clear existing data
     console.log("Clearing existing data...");
     await db.delete(workspaceMember).execute();
-    await db.delete(organizationMember).execute();
     await db.delete(invitation).execute();
     await db.delete(workspaceTransfer).execute();
     await db.delete(apiKey).execute();
@@ -88,7 +85,6 @@ async function seed() {
     await db.delete(permission).execute();
     await db.delete(role).execute();
     await db.delete(workspace).execute();
-    await db.delete(organization).execute();
     await db.delete(user).execute();
     await db.delete(featureFlagHistory).execute();
     await db.delete(featureFlag).execute();
@@ -256,17 +252,6 @@ async function seed() {
     ]);
 
     // Seed Organization
-    console.log("Seeding organizations...");
-    const orgId = `org_${randomUUID()}`;
-    await db.insert(organization).values({
-      id: orgId,
-      name: "Acme Studio",
-      slug: "acme-studio",
-      ownerId: userId1,
-      settings: { plan: "Pro", maxUsers: 10 },
-      status: "active",
-    });
-
     // Seed Workspace
     console.log("Seeding workspaces...");
     const workspaceId = `ws_${randomUUID()}`;
@@ -277,7 +262,6 @@ async function seed() {
       description: "Main workspace",
       type: "personal",
       ownerId: userId1,
-      organizationId: orgId,
       settings: { theme: "dark", notifications: true },
       limits: { maxProjects: 100, maxStorage: "10GB" },
       status: "active",

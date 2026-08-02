@@ -293,7 +293,7 @@ export function AdminStoragePageClient() {
                     render: (item: any) => {
                       const pct = item.quotaBytes ? ((item.storageUsed ?? 0) / item.quotaBytes) * 100 : 0;
                       return (
-                        <Badge tone={pct > 90 ? "danger" : pct > 70 ? "warning" : "success"}>
+                        <Badge tone={pct > 90 ? "warning" : pct > 70 ? "warning" : "success"}>
                           {pct > 0 ? `${pct.toFixed(0)}%` : "—"}
                         </Badge>
                       );

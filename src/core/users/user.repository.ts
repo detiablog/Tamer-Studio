@@ -215,11 +215,10 @@ export class UserRepository {
           body: JSON.stringify({ email: row.email, password: input.password, name: row.name }),
         }));
         if (result.ok) {
-          const body = await result.clone().json().catch(() => ({}));
+          const body: any = await result.clone().json().catch(() => null);
           const newUserId = body?.user?.id;
           if (newUserId) {
-            // Update the new user with original role/status
-            await db.update(user).set({ role: updates.role || "user", status: updates.status || "pending" }).where(eq(user.id, newUserId));
+            await db.update(user).set({ role: updates.role || "user", status: updates.status || "pending" } as Record<string, unknown>).where(eq(user.id, newUserId as string));
           }
         }
       } catch {

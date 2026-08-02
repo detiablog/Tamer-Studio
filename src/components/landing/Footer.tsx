@@ -61,10 +61,10 @@ export function Footer({ section }: SectionRendererProps) {
   const tagline = (section.config.tagline as string) || t("footerTagline", "Tamer Studio. From intent to production.");
   const rawLinks = (section.config.links as Record<string, unknown>) || {};
   const links = {
-    product: rawLinks.product ? (rawLinks.product as unknown[]).map(toFooterLink) : DEFAULT_LINKS.product,
-    resources: rawLinks.resources ? (rawLinks.resources as unknown[]).map(toFooterLink) : DEFAULT_LINKS.resources,
-    company: rawLinks.company ? (rawLinks.company as unknown[]).map(toFooterLink) : DEFAULT_LINKS.company,
-    legal: rawLinks.legal ? (rawLinks.legal as unknown[]).map(toFooterLink) : DEFAULT_LINKS.legal,
+    product: rawLinks.product ? (rawLinks.product as Array<string | { label: string; href?: string; external?: boolean }>).map(toFooterLink) : DEFAULT_LINKS.product,
+    resources: rawLinks.resources ? (rawLinks.resources as Array<string | { label: string; href?: string; external?: boolean }>).map(toFooterLink) : DEFAULT_LINKS.resources,
+    company: rawLinks.company ? (rawLinks.company as Array<string | { label: string; href?: string; external?: boolean }>).map(toFooterLink) : DEFAULT_LINKS.company,
+    legal: rawLinks.legal ? (rawLinks.legal as Array<string | { label: string; href?: string; external?: boolean }>).map(toFooterLink) : DEFAULT_LINKS.legal,
   };
 
   const socialLinks = ((section.config.socialLinks as Array<{ label: string; href: string; ariaLabel?: string }>) || []);

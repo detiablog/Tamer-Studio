@@ -68,8 +68,8 @@ export default function AIImageAdminPageClient() {
                       <p className="text-xs text-muted-foreground">Usage: {style.usageCount || 0}</p>
                     </div>
                     <div className="flex gap-2">
-                      {style.isSystem && <Badge variant="outline">System</Badge>}
-                      <Badge variant={style.isActive ? "default" : "secondary"}>{style.isActive ? "Active" : "Inactive"}</Badge>
+                      {style.isSystem && <Badge tone="default">System</Badge>}
+                      <Badge tone={style.isActive ? "default" : "muted"}>{style.isActive ? "Active" : "Inactive"}</Badge>
                     </div>
                   </div>
                 </DashboardCard>
@@ -95,8 +95,8 @@ export default function AIImageAdminPageClient() {
                   <p className="text-xs text-muted-foreground mt-1">{tpl.category}</p>
                   <p className="text-xs text-muted-foreground line-clamp-2 mt-2">{tpl.promptTemplate}</p>
                   <div className="flex gap-2 mt-3">
-                    {tpl.isSystem && <Badge variant="outline">System</Badge>}
-                    <Badge variant="secondary">Usage: {tpl.usageCount || 0}</Badge>
+                    {tpl.isSystem && <Badge tone="default">System</Badge>}
+                    <Badge tone="muted">Usage: {tpl.usageCount || 0}</Badge>
                   </div>
                 </DashboardCard>
               ))}

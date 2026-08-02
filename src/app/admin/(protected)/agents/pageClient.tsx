@@ -67,7 +67,7 @@ export default function AgentsAdminPageClient() {
                     <Bot className="size-5 text-primary" />
                     <div><p className="font-medium">{a.name}</p><p className="text-xs text-muted-foreground">{a.type} · {a.userId}</p></div>
                   </div>
-                  <Badge variant={a.status === "active" ? "default" : "secondary"}>{a.status}</Badge>
+                  <Badge tone={a.status === "active" ? "default" : "muted"}>{a.status}</Badge>
                 </div>
               </DashboardCard>
             ))}

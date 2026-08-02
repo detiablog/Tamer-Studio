@@ -2,23 +2,110 @@ version: "3.8"
 
 services:
   app:
-    build: .
-    ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=production
-      - DATABASE_URL=${DATABASE_URL}
-      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
-      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tamer-studio
     restart: unless-stopped
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--spider", "http://localhost:3000/"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
       interval: 30s
-      timeout: 10s
+      timeout: 5s
       retries: 3
-      start_period: 40s
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-          cpus: "1.0"
+      start_period: 10s
+    volumes:
+      - app-data:/app/data
+    networks:
+      - tamer-network
+
+  db:
+    image: postgres:16-alpine
+    container_name: tamer-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-tamer_studio}
+      POSTGRES_USER: ${POSTGRES_USER:-tamer}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./scripts/backup-db.sh:/docker-entrypoint-initdb.d/backup.sh
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tamer}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tamer-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: tamer-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tamer-network
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tamer-worker
+    restart: unless-stopped
+    command: ["node", "worker.js"]
+    env_file:
+      - .env
+    environment:
+      - WORKER_MODE=true
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - tamer-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: tamer-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./config/nginx/ssl:/etc/nginx/ssl:ro
+      - nginx-cache:/var/cache/nginx
+    depends_on:
+      - app
+    networks:
+      - tamer-network
+
+volumes:
+  postgres-data:
+  redis-data:
+  app-data:
+  nginx-cache:
+
+networks:
+  tamer-network:
+    driver: bridge

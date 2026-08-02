@@ -4,10 +4,10 @@ import type { RequestContext } from "@/core/middleware/types";
 import { runMiddleware } from "@/core/middleware/compose";
 import { adminAuthentication } from "@/core/middleware";
 import { db } from "@/lib/db";
-import { securityRateLimit } from "@/lib/db/schema/security";
+import { secApiEvent } from "@/lib/db/schema/security";
+import { eq, desc } from "drizzle-orm";
 import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
 import { successResponse } from "@/app/api/mappers/response";
-import { desc } from "drizzle-orm";
 
 const inMemoryRateLimits = new Map<string, {
   key: string;
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
   try {
     let dbLimits: any[] = [];
     try {
-      dbLimits = await db.select().from(securityRateLimit).orderBy(desc(securityRateLimit.createdAt));
+      dbLimits = await db.select().from(secApiEvent).where(eq(secApiEvent.rateLimited, true)).orderBy(desc(secApiEvent.createdAt));
     } catch {
       dbLimits = [];
     }

@@ -6,6 +6,9 @@ import type { Coupon, CouponUsage } from "../types";
 export interface CouponRepository {
   createCoupon(coupon: Omit<Coupon, "id" | "createdAt" | "updatedAt">): Promise<Coupon>;
   getCoupon(code: string): Promise<Coupon | undefined>;
+  getCouponById(id: string): Promise<Coupon | undefined>;
+  updateCoupon(id: string, data: Partial<Omit<Coupon, "id" | "createdAt" | "updatedAt">>): Promise<Coupon>;
+  deleteCoupon(id: string): Promise<void>;
   listCoupons(): Promise<Coupon[]>;
   recordUsage(usage: Omit<CouponUsage, "id" | "createdAt">): Promise<CouponUsage>;
   getUsageCount(couponId: string, workspaceId?: string, userId?: string): Promise<number>;
@@ -42,6 +45,35 @@ export class DefaultCouponRepository implements CouponRepository {
     const rows = await db.select().from(couponTable).where(eq(couponTable.code, code)).limit(1);
     if (rows.length === 0) return undefined;
     return this.mapRow(rows[0]);
+  }
+
+  async getCouponById(id: string): Promise<Coupon | undefined> {
+    const rows = await db.select().from(couponTable).where(eq(couponTable.id, id)).limit(1);
+    if (rows.length === 0) return undefined;
+    return this.mapRow(rows[0]);
+  }
+
+  async updateCoupon(id: string, data: Partial<Omit<Coupon, "id" | "createdAt" | "updatedAt">>): Promise<Coupon> {
+    const updateData: Record<string, unknown> = {};
+    if (data.code !== undefined) updateData.code = data.code;
+    if (data.type !== undefined) updateData.type = data.type;
+    if (data.value !== undefined) updateData.value = String(data.value);
+    if (data.currency !== undefined) updateData.currency = data.currency;
+    if (data.minPurchase !== undefined) updateData.minPurchase = data.minPurchase != null ? String(data.minPurchase) : null;
+    if (data.maxDiscount !== undefined) updateData.maxDiscount = data.maxDiscount != null ? String(data.maxDiscount) : null;
+    if (data.expiresAt !== undefined) updateData.expiresAt = new Date(data.expiresAt);
+    if (data.usageLimit !== undefined) updateData.usageLimit = String(data.usageLimit);
+    if (data.isActive !== undefined) updateData.isActive = data.isActive;
+    if (data.applicableProducts !== undefined) updateData.applicableProducts = data.applicableProducts;
+    if (data.applicablePlans !== undefined) updateData.applicablePlans = data.applicablePlans;
+    if (data.metadata !== undefined) updateData.metadata = data.metadata;
+    updateData.updatedAt = new Date();
+    const [updated] = await db.update(couponTable).set(updateData).where(eq(couponTable.id, id)).returning();
+    return this.mapRow(updated);
+  }
+
+  async deleteCoupon(id: string): Promise<void> {
+    await db.delete(couponTable).where(eq(couponTable.id, id));
   }
 
   async listCoupons(): Promise<Coupon[]> {

@@ -133,7 +133,7 @@ export default function ImageStudioPageClient() {
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {generations.map((gen) => (
-                <DashboardCard key={gen.id} className="overflow-hidden">
+                <DashboardCard key={gen.id}>
                   <div className="aspect-square bg-muted/30 flex items-center justify-center">
                     {gen.outputImages.length > 0 ? (
                       <div className="text-4xl">🎨</div>
@@ -144,7 +144,7 @@ export default function ImageStudioPageClient() {
                   <div className="p-3">
                     <p className="text-sm font-medium truncate">{gen.prompt}</p>
                     <div className="flex items-center justify-between mt-2">
-                      <Badge variant={gen.status === "completed" ? "default" : "secondary"}>{gen.status}</Badge>
+                      <Badge tone={gen.status === "completed" ? "default" : "muted"}>{gen.status}</Badge>
                       {gen.isFavorite && <Heart className="size-4 text-red-500 fill-red-500" />}
                     </div>
                   </div>
@@ -175,7 +175,7 @@ export default function ImageStudioPageClient() {
                   <h3 className="font-heading font-semibold">{proj.name}</h3>
                   {proj.description && <p className="text-sm text-muted-foreground mt-1">{proj.description}</p>}
                   {proj.tags?.length > 0 && (
-                    <div className="flex gap-1 mt-2 flex-wrap">{proj.tags.map((tag) => <Badge key={tag} variant="outline" className="text-xs">{tag}</Badge>)}</div>
+                    <div className="flex gap-1 mt-2 flex-wrap">{proj.tags.map((tag) => <div key={tag} className="text-xs"><Badge tone="muted">{tag}</Badge></div>)}</div>
                   )}
                 </DashboardCard>
               ))}
@@ -203,7 +203,7 @@ export default function ImageStudioPageClient() {
                 <tr key={gen.id} className="border-b border-border/50 hover:bg-muted/20">
                   <td className="px-4 py-3 max-w-[300px] truncate">{gen.prompt}</td>
                   <td className="px-4 py-3">{gen.type}</td>
-                  <td className="px-4 py-3"><Badge variant={gen.status === "completed" ? "default" : "secondary"}>{gen.status}</Badge></td>
+                  <td className="px-4 py-3"><Badge tone={gen.status === "completed" ? "default" : "muted"}>{gen.status}</Badge></td>
                   <td className="px-4 py-3">{gen.creditsUsed}</td>
                   <td className="px-4 py-3 text-muted-foreground">{new Date(gen.createdAt).toLocaleDateString()}</td>
                 </tr>
@@ -227,7 +227,7 @@ export default function ImageStudioPageClient() {
                 <DashboardCard key={char.id}>
                   <h3 className="font-heading font-semibold">{char.name}</h3>
                   {char.description && <p className="text-sm text-muted-foreground mt-1">{char.description}</p>}
-                  {char.promptTags?.length > 0 && <div className="flex gap-1 mt-2 flex-wrap">{char.promptTags.map((tag: string) => <Badge key={tag} variant="outline" className="text-xs">{tag}</Badge>)}</div>}
+                  {char.promptTags && char.promptTags.length > 0 && <div className="flex gap-1 mt-2 flex-wrap">{char.promptTags.map((tag: string) => <div key={tag} className="text-xs"><Badge tone="muted">{tag}</Badge></div>)}</div>}
                 </DashboardCard>
               ))}
             </div>
@@ -238,7 +238,7 @@ export default function ImageStudioPageClient() {
       {activeTab === "styles" && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {styles.map((style: { id: string; name: string; category?: string; usageCount?: number; isActive?: boolean }) => (
-            <DashboardCard key={style.id} className="cursor-pointer hover:border-primary/50 transition-colors">
+            <DashboardCard key={style.id}>
               <div className="text-2xl mb-2">{STYLE_CATEGORIES.find(s => s.key === style.category)?.icon || "🎨"}</div>
               <h3 className="font-medium text-sm">{style.name}</h3>
               <p className="text-xs text-muted-foreground mt-1">{t("imageStudio.usageCount", "Usage")}: {style.usageCount || 0}</p>
@@ -261,7 +261,7 @@ export default function ImageStudioPageClient() {
                 <DashboardCard key={prompt.id}>
                   <div className="flex items-center justify-between">
                     <div><h3 className="font-medium text-sm">{prompt.name}</h3><p className="text-xs text-muted-foreground mt-1 line-clamp-2">{prompt.prompt}</p></div>
-                    <Badge variant="outline">{prompt.useCount || 0}</Badge>
+                    <Badge tone="default">{prompt.useCount || 0}</Badge>
                   </div>
                 </DashboardCard>
               ))}

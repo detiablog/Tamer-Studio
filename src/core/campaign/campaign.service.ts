@@ -35,7 +35,7 @@ export class CampaignService {
       thumbnail: data.thumbnail || null,
       timezone: data.timezone || "UTC",
       createdBy: data.createdBy || null,
-    });
+    } as any);
   }
 
   async updateCampaign(id: string, data: Record<string, unknown>) {
@@ -79,7 +79,7 @@ export class CampaignService {
       startsAt: data.startsAt ? new Date(data.startsAt) : null,
       endsAt: data.endsAt ? new Date(data.endsAt) : null,
       createdBy: data.createdBy || null,
-    });
+    } as any);
   }
 
   async validateCoupon(code: string, userId: string) {

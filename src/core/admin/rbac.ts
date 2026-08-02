@@ -1,3 +1,5 @@
+export type AdminPermission = string;
+
 export const ADMIN_ROUTE_PERMISSIONS: Record<string, string> = {
   "/admin": "admin:read",
   "/admin/users": "admin:users",

@@ -435,7 +435,7 @@ export default function StoragePageClient() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="text-xs">{file.kind}</Badge>
+                  <Badge tone="default">{file.kind}</Badge>
                   <Button variant="ghost" size="icon-sm" onClick={() => handleDelete(file.id)}>
                     <Trash2 className="size-3.5" />
                   </Button>

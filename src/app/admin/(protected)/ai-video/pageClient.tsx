@@ -71,7 +71,7 @@ export default function AIVideoAdminPageClient() {
                       <p className="text-xs text-muted-foreground">Usage: {tpl.usageCount || 0}</p>
                     </div>
                     <div className="flex gap-2">
-                      {tpl.isSystem && <Badge variant="outline">System</Badge>}
+                      {tpl.isSystem && <Badge tone="default">System</Badge>}
                     </div>
                   </div>
                 </DashboardCard>
@@ -98,7 +98,7 @@ export default function AIVideoAdminPageClient() {
                       <h4 className="font-medium">{fx.name}</h4>
                       <p className="text-xs text-muted-foreground mt-1">{fx.category}</p>
                     </div>
-                    <Badge variant={fx.isActive ? "default" : "secondary"}>{fx.isActive ? "Active" : "Inactive"}</Badge>
+                    <Badge tone={fx.isActive ? "default" : "muted"}>{fx.isActive ? "Active" : "Inactive"}</Badge>
                   </div>
                 </DashboardCard>
               ))}
@@ -124,7 +124,7 @@ export default function AIVideoAdminPageClient() {
                       <h4 className="font-medium">{tr.name}</h4>
                       <p className="text-xs text-muted-foreground mt-1">{tr.category}</p>
                     </div>
-                    <Badge variant={tr.isActive ? "default" : "secondary"}>{tr.isActive ? "Active" : "Inactive"}</Badge>
+                    <Badge tone={tr.isActive ? "default" : "muted"}>{tr.isActive ? "Active" : "Inactive"}</Badge>
                   </div>
                 </DashboardCard>
               ))}

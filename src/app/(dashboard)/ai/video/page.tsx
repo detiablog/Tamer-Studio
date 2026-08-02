@@ -1,4 +1,4 @@
-import { VideoStudioPageClient } from "./pageClient";
+import VideoStudioPageClient from "./pageClient";
 
 export default function VideoStudioPage() {
   return <VideoStudioPageClient />;

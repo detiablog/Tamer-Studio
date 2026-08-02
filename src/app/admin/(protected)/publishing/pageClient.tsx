@@ -162,7 +162,7 @@ export function PublishingAdminPageClient() {
                         </p>
                       </div>
                     </div>
-                    <Badge tone={STATUS_COLORS[log.status] as any || "muted"} className="shrink-0">
+                    <Badge tone={STATUS_COLORS[log.status] as any || "muted"}>
                       {log.status}
                     </Badge>
                   </div>

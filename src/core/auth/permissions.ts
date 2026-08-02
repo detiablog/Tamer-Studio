@@ -100,6 +100,8 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "billing:admin",
   ],
 
+  super_admin: [],
+
   system_admin: [
     "dashboard:read",
     "workspace:read",

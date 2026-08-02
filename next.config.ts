@@ -19,8 +19,6 @@ const nextConfig: NextConfig = {
 
   serverExternalPackages: ["postgres", "redis", "@trigger.dev/sdk/v3", "nodemailer", "@sendgrid/mail", "@aws-sdk/client-ses", "mailgun.js", "resend", "postmark", "sparkpost", "@getbrevo/brevo"],
 
-  swcMinify: true,
-
   turbopack: {
     resolveAlias: {
       webpack: "webpack",

@@ -1,2 +1,5 @@
 import { SecurityPageClient } from "./pageClient";
-export default function SecurityPage() { return <SecurityPageClient />; }
+
+export default function SecurityPage() {
+  return <SecurityPageClient />;
+}

@@ -9,6 +9,7 @@ import { Breadcrumbs } from "@/components/admin/Breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/Badge";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useLocalizationContext } from "@/providers/localization";
 import { toast } from "sonner";
 import {
@@ -91,7 +92,7 @@ export default function AgentDetailPageClient({ params }: { params: Promise<{ id
             <h2 className="font-heading text-xl font-semibold">{agent.name}</h2>
             <p className="text-sm text-muted-foreground capitalize">{agent.type} · {agent.role || t("agents.agentRole")}</p>
           </div>
-          <Badge variant={agent.status === "active" ? "default" : "secondary"} className="ml-auto">{agent.status}</Badge>
+          <div className="ml-auto"><Badge tone={agent.status === "active" ? "default" : "muted"}>{agent.status}</Badge></div>
         </div>
       )}
 
@@ -125,7 +126,7 @@ export default function AgentDetailPageClient({ params }: { params: Promise<{ id
                       <ListTodo className="size-4 text-muted-foreground" />
                       <div><p className="text-sm font-medium">{task.title}</p><p className="text-xs text-muted-foreground">{new Date(task.createdAt).toLocaleString()}</p></div>
                     </div>
-                    <Badge variant={task.status === "completed" ? "default" : task.status === "failed" ? "destructive" : "secondary"}>{task.status}</Badge>
+                    <Badge tone={task.status === "completed" ? "default" : task.status === "failed" ? "warning" : "muted"}>{task.status}</Badge>
                   </div>
                 </DashboardCard>
               ))}
@@ -155,7 +156,7 @@ export default function AgentDetailPageClient({ params }: { params: Promise<{ id
                     <div className="flex-1"><p className="text-sm font-medium">{mem.key}</p><p className="text-xs text-muted-foreground mt-1">{mem.content}</p></div>
                     <div className="flex items-center gap-1">
                       {mem.isPinned && <Star className="size-4 text-yellow-500 fill-yellow-500" />}
-                      <Badge variant="outline">{mem.type}</Badge>
+                      <Badge tone="default">{mem.type}</Badge>
                     </div>
                   </div>
                 </DashboardCard>
@@ -176,7 +177,7 @@ export default function AgentDetailPageClient({ params }: { params: Promise<{ id
                 <DashboardCard key={k.id}>
                   <div className="flex items-center justify-between">
                     <div className="flex-1"><p className="text-sm font-medium">{k.name}</p>{k.content && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{k.content}</p>}</div>
-                    <div className="flex items-center gap-2"><Badge variant="outline">{k.sourceType}</Badge>
+                    <div className="flex items-center gap-2"><Badge tone="default">{k.sourceType}</Badge>
                       <Button variant="ghost" size="icon" className="size-8"><Trash2 className="size-3.5" /></Button>
                     </div>
                   </div>
@@ -197,7 +198,7 @@ export default function AgentDetailPageClient({ params }: { params: Promise<{ id
                 <div className="flex items-center justify-between">
                   <div><p className="text-sm font-medium">{run.model || "AI Model"}</p><p className="text-xs text-muted-foreground">{new Date(run.createdAt).toLocaleString()}</p></div>
                   <div className="flex items-center gap-2">
-                    <Badge variant={run.status === "completed" ? "default" : run.status === "failed" ? "destructive" : "secondary"}>{run.status}</Badge>
+                    <Badge tone={run.status === "completed" ? "default" : run.status === "failed" ? "warning" : "muted"}>{run.status}</Badge>
                     <span className="text-xs text-muted-foreground">{run.creditsUsed}cr</span>
                   </div>
                 </div>
@@ -213,7 +214,7 @@ export default function AgentDetailPageClient({ params }: { params: Promise<{ id
           {agent && (
             <div className="space-y-3">
               <div><Label>{t("agents.agentName")}</Label><Input defaultValue={agent.name} className="mt-1" /></div>
-              <div><Label>{t("agents.agentType")}</Label><Badge variant="outline" className="mt-1">{agent.type}</Badge></div>
+              <div><Label>{t("agents.agentType")}</Label><div className="mt-1"><Badge tone="default">{agent.type}</Badge></div></div>
               {agent.role && <div><Label>{t("agents.agentRole")}</Label><p className="text-sm mt-1">{agent.role}</p></div>}
               <Button><Settings className="mr-2 size-4" />Save Settings</Button>
             </div>

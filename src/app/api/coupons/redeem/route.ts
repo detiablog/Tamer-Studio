@@ -39,10 +39,10 @@ export async function POST(request: NextRequest) {
     }
 
     const userId = ctx.state.userSession!.userId;
-    const result = await campaignService.redeemCoupon(code, userId, orderAmount);
+    const result = await campaignService.redeemCoupon(code, userId, orderAmount) as Record<string, unknown>;
 
     if (!result.valid) {
-      return NextResponse.json(errorResponse("COUPON_INVALID", result.error || "Coupon redemption failed"), { status: 422 });
+      return NextResponse.json(errorResponse("COUPON_INVALID", (result.error as string) || "Coupon redemption failed"), { status: 422 });
     }
 
     return NextResponse.json(successResponse(result));

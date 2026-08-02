@@ -30,13 +30,13 @@ const SECTION_CONFIGS: Record<string, {
     description: "Feature showcase grid",
     fields: [
       { key: "columns", label: "Grid Columns", placeholder: "3", type: "select", options: ["2", "3", "4"] },
-      { key: "showIcons", label: "Show Icons", type: "toggle" },
+      { key: "showIcons", label: "Show Icons", placeholder: "", type: "toggle" },
     ],
   },
   pricing: {
     description: "Pricing plans table",
     fields: [
-      { key: "showToggle", label: "Show Monthly/Yearly Toggle", type: "toggle" },
+      { key: "showToggle", label: "Show Monthly/Yearly Toggle", placeholder: "", type: "toggle" },
       { key: "defaultPlan", label: "Highlighted Plan", placeholder: "creator", type: "select", options: ["lite", "creator", "pro", "none"] },
       { key: "plans", label: "Plans Config (JSON)", placeholder: '[{"name":"Lite","price":0},{"name":"Creator","price":29},{"name":"Pro","price":99}]', type: "textarea" },
     ],
@@ -44,14 +44,14 @@ const SECTION_CONFIGS: Record<string, {
   "ai-platform": {
     description: "AI capabilities overview",
     fields: [
-      { key: "showProviders", label: "Show AI Providers", type: "toggle" },
+      { key: "showProviders", label: "Show AI Providers", placeholder: "", type: "toggle" },
       { key: "columns", label: "Feature Columns", placeholder: "3", type: "select", options: ["2", "3", "4"] },
     ],
   },
   screenshots: {
     description: "Product screenshots carousel",
     fields: [
-      { key: "autoplay", label: "Auto-play Carousel", type: "toggle" },
+      { key: "autoplay", label: "Auto-play Carousel", placeholder: "", type: "toggle" },
       { key: "interval", label: "Auto-play Interval (ms)", placeholder: "5000", type: "number" },
     ],
   },
@@ -64,26 +64,26 @@ const SECTION_CONFIGS: Record<string, {
   "credit-packs": {
     description: "Credit packages display",
     fields: [
-      { key: "showPopular", label: "Highlight Popular Pack", type: "toggle" },
+      { key: "showPopular", label: "Highlight Popular Pack", placeholder: "", type: "toggle" },
     ],
   },
   "credit-usage": {
     description: "Credit usage tracking display",
     fields: [
-      { key: "showHistory", label: "Show Usage History", type: "toggle" },
+      { key: "showHistory", label: "Show Usage History", placeholder: "", type: "toggle" },
     ],
   },
   testimonials: {
     description: "Customer testimonials",
     fields: [
       { key: "columns", label: "Grid Columns", placeholder: "3", type: "select", options: ["2", "3"] },
-      { key: "showAvatars", label: "Show Avatars", type: "toggle" },
+      { key: "showAvatars", label: "Show Avatars", placeholder: "", type: "toggle" },
     ],
   },
   faq: {
     description: "Frequently asked questions",
     fields: [
-      { key: "allowMultiple", label: "Allow Multiple Open", type: "toggle" },
+      { key: "allowMultiple", label: "Allow Multiple Open", placeholder: "", type: "toggle" },
     ],
   },
   cta: {
@@ -702,7 +702,7 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
                     {/* Link Columns */}
                     {(["product", "resources", "company", "legal"] as const).map((col) => {
                       const colKey = `links.${col}`;
-                      const links = Array.isArray(form.config?.links?.[col]) ? (form.config.links[col] as Array<{ label: string; href: string }>) : [];
+                      const links = Array.isArray(((form.config as Record<string, unknown>).links as Record<string, unknown>)?.[col]) ? (((form.config as Record<string, unknown>).links as Record<string, unknown>)?.[col] as unknown as Array<{ label: string; href: string }>) : [];
                       return (
                         <div key={col} className="space-y-2 pt-2 border-t border-border/30">
                           <div className="flex items-center justify-between">
@@ -710,7 +710,7 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
                             <button
                               type="button"
                               onClick={() => {
-                                const current = Array.isArray(form.config?.links?.[col]) ? [...(form.config.links[col] as Array<{ label: string; href: string }>)] : [];
+                                const current = Array.isArray(((form.config as Record<string, unknown>).links as Record<string, unknown>)?.[col]) ? [...(((form.config as Record<string, unknown>).links as Record<string, unknown>)?.[col] as unknown as Array<{ label: string; href: string }>)] : [];
                                 handleConfigChange("links", { ...(form.config?.links as Record<string, unknown> ?? {}), [col]: [...current, { label: "New Link", href: "/" }] });
                               }}
                               className="text-[10px] text-primary hover:underline"

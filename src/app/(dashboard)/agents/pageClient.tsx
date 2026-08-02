@@ -146,8 +146,8 @@ export default function AgentPlatformPageClient() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {agents.slice(0, 6).map((agent) => (
-              <DashboardCard key={agent.id} className="cursor-pointer hover:border-primary/50 transition-colors"
-                onClick={() => { setSelectedAgentId(agent.id); setActiveTab("memory"); }}>
+              <div key={agent.id} className="cursor-pointer" onClick={() => { setSelectedAgentId(agent.id); setActiveTab("memory"); }}>
+              <DashboardCard>
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     <div className="text-2xl">{AGENT_TYPES.find(a => a.key === agent.type)?.icon || "🤖"}</div>
@@ -156,10 +156,11 @@ export default function AgentPlatformPageClient() {
                       <p className="text-xs text-muted-foreground capitalize">{agent.type}</p>
                     </div>
                   </div>
-                  <Badge variant={agent.status === "active" ? "default" : "secondary"}>{agent.status}</Badge>
+                  <Badge tone={agent.status === "active" ? "default" : "muted"}>{agent.status}</Badge>
                 </div>
                 {agent.description && <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{agent.description}</p>}
               </DashboardCard>
+              </div>
             ))}
           </div>
           {tasks.length > 0 && (
@@ -177,7 +178,7 @@ export default function AgentPlatformPageClient() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge variant={task.status === "completed" ? "default" : task.status === "running" ? "info" : "secondary"}>{task.status}</Badge>
+                        <Badge tone={task.status === "completed" ? "default" : task.status === "running" ? "info" : "muted"}>{task.status}</Badge>
                         <ChevronRight className="size-4 text-muted-foreground" />
                       </div>
                     </div>
@@ -205,14 +206,15 @@ export default function AgentPlatformPageClient() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {agents.map((agent) => (
-                <DashboardCard key={agent.id} className="cursor-pointer hover:border-primary/50 transition-colors"
+                <div key={agent.id} className="cursor-pointer"
                   onClick={() => window.location.href = `/agents/${agent.id}`}>
+                <DashboardCard>
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-3">
                       <div className="text-2xl">{AGENT_TYPES.find(a => a.key === agent.type)?.icon || "🤖"}</div>
                       <div><h4 className="font-medium">{agent.name}</h4><p className="text-xs text-muted-foreground capitalize">{agent.type}</p></div>
                     </div>
-                    <Badge variant={agent.status === "active" ? "default" : "secondary"}>{agent.status}</Badge>
+                    <Badge tone={agent.status === "active" ? "default" : "muted"}>{agent.status}</Badge>
                   </div>
                   {agent.description && <p className="text-xs text-muted-foreground line-clamp-2">{agent.description}</p>}
                   <div className="flex gap-2 mt-3">
@@ -224,6 +226,7 @@ export default function AgentPlatformPageClient() {
                     </Button>
                   </div>
                 </DashboardCard>
+                </div>
               ))}
             </div>
           )}
@@ -231,11 +234,13 @@ export default function AgentPlatformPageClient() {
             <h3 className="font-heading font-semibold mb-4">{t("agents.marketplace")}</h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {AGENT_TYPES.map((at) => (
-                <DashboardCard key={at.key} className="cursor-pointer hover:border-primary/50 transition-colors text-center"
+                <div key={at.key} className="cursor-pointer"
                   onClick={() => handleCreateAgent(at.key)}>
+                <DashboardCard>
                   <div className="text-3xl mb-2">{at.icon}</div>
                   <p className="text-sm font-medium">{at.label}</p>
                 </DashboardCard>
+                </div>
               ))}
             </div>
           </div>
@@ -258,12 +263,12 @@ export default function AgentPlatformPageClient() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge variant={
+                      <Badge tone={
                         task.status === "completed" ? "default" :
                         task.status === "running" ? "info" :
-                        task.status === "failed" ? "destructive" : "secondary"
+                        task.status === "failed" ? "warning" : "muted"
                       }>{task.status}</Badge>
-                      <Badge variant="outline" className="text-xs">{task.priority}</Badge>
+                      <Badge tone="default">{task.priority}</Badge>
                     </div>
                   </div>
                 </DashboardCard>
@@ -279,14 +284,16 @@ export default function AgentPlatformPageClient() {
             <div className="space-y-3">
               <h3 className="font-heading font-semibold">{t("agents.selectAgent", "Select an agent to view memory")}</h3>
               {agents.map((agent) => (
-                <DashboardCard key={agent.id} className="cursor-pointer hover:border-primary/50"
+                <div key={agent.id} className="cursor-pointer"
                   onClick={() => setSelectedAgentId(agent.id)}>
+                <DashboardCard>
                   <div className="flex items-center gap-3">
                     <div className="text-xl">{AGENT_TYPES.find(a => a.key === agent.type)?.icon || "🤖"}</div>
                     <div><p className="font-medium text-sm">{agent.name}</p><p className="text-xs text-muted-foreground capitalize">{agent.type}</p></div>
                     <ChevronRight className="size-4 text-muted-foreground ml-auto" />
                   </div>
                 </DashboardCard>
+                </div>
               ))}
             </div>
           ) : memories.length === 0 ? (
@@ -297,7 +304,7 @@ export default function AgentPlatformPageClient() {
                 <DashboardCard key={mem.id}>
                   <div className="flex items-start justify-between">
                     <div><p className="text-sm font-medium">{mem.key}</p><p className="text-xs text-muted-foreground mt-1">{mem.content}</p></div>
-                    <div className="flex gap-1"><Badge variant="outline">{mem.type}</Badge>{mem.isPinned && <Badge variant="default">📌</Badge>}</div>
+                    <div className="flex gap-1"><Badge tone="default">{mem.type}</Badge>{mem.isPinned && <Badge tone="default">📌</Badge>}</div>
                   </div>
                 </DashboardCard>
               ))}
@@ -312,14 +319,16 @@ export default function AgentPlatformPageClient() {
             <div className="space-y-3">
               <h3 className="font-heading font-semibold">{t("agents.selectAgentKnowledge", "Select an agent to view knowledge")}</h3>
               {agents.map((agent) => (
-                <DashboardCard key={agent.id} className="cursor-pointer hover:border-primary/50"
+                <div key={agent.id} className="cursor-pointer"
                   onClick={() => setSelectedAgentId(agent.id)}>
+                <DashboardCard>
                   <div className="flex items-center gap-3">
                     <div className="text-xl">{AGENT_TYPES.find(a => a.key === agent.type)?.icon || "🤖"}</div>
                     <div><p className="font-medium text-sm">{agent.name}</p></div>
                     <ChevronRight className="size-4 text-muted-foreground ml-auto" />
                   </div>
                 </DashboardCard>
+                </div>
               ))}
             </div>
           ) : knowledge.length === 0 ? (
@@ -330,7 +339,7 @@ export default function AgentPlatformPageClient() {
                 <DashboardCard key={k.id}>
                   <div className="flex items-center justify-between">
                     <div><p className="text-sm font-medium">{k.name}</p>{k.content && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{k.content}</p>}</div>
-                    <Badge variant="outline">{k.sourceType}</Badge>
+                    <Badge tone="default">{k.sourceType}</Badge>
                   </div>
                 </DashboardCard>
               ))}
@@ -345,14 +354,16 @@ export default function AgentPlatformPageClient() {
             <div className="space-y-3">
               <h3 className="font-heading font-semibold">{t("agents.selectAgentHistory", "Select an agent to view run history")}</h3>
               {agents.map((agent) => (
-                <DashboardCard key={agent.id} className="cursor-pointer hover:border-primary/50"
+                <div key={agent.id} className="cursor-pointer"
                   onClick={() => setSelectedAgentId(agent.id)}>
+                <DashboardCard>
                   <div className="flex items-center gap-3">
                     <div className="text-xl">{AGENT_TYPES.find(a => a.key === agent.type)?.icon || "🤖"}</div>
                     <div><p className="font-medium text-sm">{agent.name}</p></div>
                     <ChevronRight className="size-4 text-muted-foreground ml-auto" />
                   </div>
                 </DashboardCard>
+                </div>
               ))}
             </div>
           ) : runs.length === 0 ? (
@@ -368,7 +379,7 @@ export default function AgentPlatformPageClient() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge variant={run.status === "completed" ? "default" : run.status === "failed" ? "destructive" : "secondary"}>{run.status}</Badge>
+                      <Badge tone={run.status === "completed" ? "default" : run.status === "failed" ? "warning" : "muted"}>{run.status}</Badge>
                       <span className="text-xs text-muted-foreground">{run.creditsUsed} credits</span>
                       {run.executionTimeMs && <span className="text-xs text-muted-foreground">{(run.executionTimeMs / 1000).toFixed(1)}s</span>}
                     </div>

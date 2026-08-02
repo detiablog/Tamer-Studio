@@ -130,10 +130,11 @@ export default function VideoGeneratePageClient() {
             <h3 className="font-heading font-semibold text-sm mb-3">{t("common.status")}</h3>
             <div className="grid grid-cols-3 gap-2">
               {GENERATION_TYPES.map((gt) => (
-                <Badge key={gt.key} variant={type === gt.key ? "default" : "outline"}
-                  className="cursor-pointer justify-center py-2" onClick={() => setType(gt.key)}>
+                <div key={gt.key} className="cursor-pointer justify-center py-2" onClick={() => setType(gt.key)}>
+                <Badge tone={type === gt.key ? "default" : "muted"}>
                   {gt.label}
                 </Badge>
+                </div>
               ))}
             </div>
           </DashboardCard>
@@ -142,10 +143,11 @@ export default function VideoGeneratePageClient() {
             <h3 className="font-heading font-semibold text-sm mb-3">{t("imageStudio.style")}</h3>
             <div className="grid grid-cols-3 gap-2">
               {STYLES.map((s) => (
-                <Badge key={s.key} variant={style === s.key ? "default" : "outline"}
-                  className="cursor-pointer justify-center py-2" onClick={() => setStyle(s.key)}>
+                <div key={s.key} className="cursor-pointer justify-center py-2" onClick={() => setStyle(s.key)}>
+                <Badge tone={style === s.key ? "default" : "muted"}>
                   {s.label}
                 </Badge>
+                </div>
               ))}
             </div>
           </DashboardCard>
@@ -165,10 +167,11 @@ export default function VideoGeneratePageClient() {
               <label className="text-xs font-medium text-muted-foreground">{t("imageStudio.aspectRatio")}</label>
               <div className="flex flex-wrap gap-1 mt-2">
                 {ASPECT_RATIOS.map((ar) => (
-                  <Badge key={ar} variant={aspectRatio === ar ? "default" : "outline"}
-                    className="cursor-pointer text-xs" onClick={() => setAspectRatio(ar)}>
+                  <div key={ar} className="cursor-pointer text-xs" onClick={() => setAspectRatio(ar)}>
+                  <Badge tone={aspectRatio === ar ? "default" : "muted"}>
                     {ar}
                   </Badge>
+                  </div>
                 ))}
               </div>
             </DashboardCard>
@@ -176,10 +179,11 @@ export default function VideoGeneratePageClient() {
               <label className="text-xs font-medium text-muted-foreground">{t("imageStudio.resolution")}</label>
               <div className="flex flex-wrap gap-1 mt-2">
                 {RESOLUTIONS.map((r) => (
-                  <Badge key={r} variant={resolution === r ? "default" : "outline"}
-                    className="cursor-pointer text-xs" onClick={() => setResolution(r)}>
+                  <div key={r} className="cursor-pointer text-xs" onClick={() => setResolution(r)}>
+                  <Badge tone={resolution === r ? "default" : "muted"}>
                     {r}
                   </Badge>
+                  </div>
                 ))}
               </div>
             </DashboardCard>
@@ -187,10 +191,11 @@ export default function VideoGeneratePageClient() {
               <label className="text-xs font-medium text-muted-foreground">{t("imageStudio.style")}</label>
               <div className="flex flex-wrap gap-1 mt-2">
                 {FRAME_RATES.map((fr) => (
-                  <Badge key={fr} variant={frameRate === fr ? "default" : "outline"}
-                    className="cursor-pointer text-xs" onClick={() => setFrameRate(fr)}>
+                  <div key={fr} className="cursor-pointer text-xs" onClick={() => setFrameRate(fr)}>
+                  <Badge tone={frameRate === fr ? "default" : "muted"}>
                     {fr}
                   </Badge>
+                  </div>
                 ))}
               </div>
             </DashboardCard>
@@ -198,10 +203,11 @@ export default function VideoGeneratePageClient() {
               <label className="text-xs font-medium text-muted-foreground">{t("videoStudio.duration")}</label>
               <div className="flex flex-wrap gap-1 mt-2">
                 {DURATIONS.map((d) => (
-                  <Badge key={d} variant={duration === d ? "default" : "outline"}
-                    className="cursor-pointer text-xs" onClick={() => setDuration(d)}>
+                  <div key={d} className="cursor-pointer text-xs" onClick={() => setDuration(d)}>
+                  <Badge tone={duration === d ? "default" : "muted"}>
                     {d}s
                   </Badge>
+                  </div>
                 ))}
               </div>
             </DashboardCard>
@@ -211,10 +217,11 @@ export default function VideoGeneratePageClient() {
             <label className="text-xs font-medium text-muted-foreground">{t("imageStudio.quality")}</label>
             <div className="flex flex-wrap gap-1 mt-2">
               {QUALITY.map((q) => (
-                <Badge key={q} variant={quality === q ? "default" : "outline"}
-                  className="cursor-pointer text-xs" onClick={() => setQuality(q)}>
+                <div key={q} className="cursor-pointer text-xs" onClick={() => setQuality(q)}>
+                <Badge tone={quality === q ? "default" : "muted"}>
                   {q}
                 </Badge>
+                </div>
               ))}
             </div>
           </DashboardCard>
@@ -240,7 +247,7 @@ export default function VideoGeneratePageClient() {
           ) : (
             <div className="space-y-3">
               {results.map((result) => (
-                <DashboardCard key={result.id} className="overflow-hidden">
+                <DashboardCard key={result.id}>
                   <div className="aspect-video bg-muted/30 flex items-center justify-center">
                     {result.outputUrl ? (
                       <Play className="size-6 text-muted-foreground/30" />
@@ -251,7 +258,7 @@ export default function VideoGeneratePageClient() {
                   <div className="p-3">
                     <p className="text-xs font-medium truncate">{result.prompt}</p>
                     <div className="flex items-center justify-between mt-2">
-                      <Badge variant={result.status === "completed" ? "default" : "secondary"} className="text-xs">{result.status}</Badge>
+                      <Badge tone={result.status === "completed" ? "default" : "muted"}>{result.status}</Badge>
                       <div className="flex items-center gap-1">
                         <Button variant="ghost" size="sm" className="size-6 p-0"><Heart className="size-3" /></Button>
                         <Button variant="ghost" size="sm" className="size-6 p-0"><Download className="size-3" /></Button>

@@ -111,7 +111,7 @@ export default function AffiliatePageClient() {
             <p className="text-sm text-muted-foreground text-center max-w-md">
               {t("affiliate.rejectedDesc", "Your application was not approved. Please contact support for more information.")}
             </p>
-            <Badge tone="destructive">{t("common.rejected", "Rejected")}</Badge>
+            <Badge tone="warning">{t("common.rejected", "Rejected")}</Badge>
           </div>
         </DashboardCard>
       </div>

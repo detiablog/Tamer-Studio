@@ -30,6 +30,10 @@ export class SystemRepository {
       .limit(limit);
   }
 
+  async searchOrganizations(pattern: string, limit = 5) {
+    return [] as Array<{ id: string; label: string; description?: string }>;
+  }
+
   async searchWorkspaces(pattern: string, limit = 5) {
     return db
       .select({ id: workspace.id, label: workspace.name, description: workspace.slug })

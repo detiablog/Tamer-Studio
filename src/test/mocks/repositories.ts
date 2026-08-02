@@ -24,7 +24,6 @@ export class MockWorkspaceRepository {
       slug: input.slug,
       type: input.type as Workspace['type'],
       ownerId: input.ownerId,
-      organizationId: input.organizationId ?? null,
       settings: input.settings ?? {},
       limits: input.limits ?? {},
       status: 'active',

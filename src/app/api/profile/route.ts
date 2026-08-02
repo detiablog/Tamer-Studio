@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
       if (!user) {
         return NextResponse.json({ success: false, error: { code: "NOT_FOUND", message: "User not found" } }, { status: 404 });
       }
-      profile = { id: user.id, name: user.name, email: user.email, image: user.image, role: user.role } as any;
+      profile = { id: user.id, name: user.name, email: user.email, role: user.role } as any;
     }
     return NextResponse.json(successResponse(profile));
   } catch (error) {
