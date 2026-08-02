@@ -92,3 +92,26 @@ export function requireAnyRole(allowedRoles: string[]): Middleware {
     };
   };
 }
+
+/**
+ * Middleware that requires Founder role for critical operations.
+ * 
+ * Founder is protected:
+ *   - Cannot be deleted by Admin
+ *   - Cannot be demoted by Admin
+ *   - Requires Master Key for login
+ *   - Requires Master Key for critical actions
+ */
+export function requireFounder(): Middleware {
+  return async (ctx: RequestContext): Promise<void | SecurityError> => {
+    const adminSession = ctx.state.adminSession;
+    if (adminSession && adminSession.role === "founder") {
+      return;
+    }
+
+    return {
+      status: 403,
+      message: "Founder access required",
+    };
+  };
+}

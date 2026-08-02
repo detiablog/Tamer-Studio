@@ -280,6 +280,7 @@ const adminSidebarItems: RegisterNavigationInput[] = [
     icon: "LayoutDashboard",
     order: 0,
     group: "dashboard",
+    permissions: ["admin:read"],
   },
   {
     id: "admin.users",
@@ -318,6 +319,7 @@ const adminSidebarItems: RegisterNavigationInput[] = [
     icon: "Folder",
     order: 3,
     group: "management",
+    permissions: ["admin:read"],
   },
   {
     id: "admin.workflows",
@@ -512,6 +514,7 @@ const adminSidebarItems: RegisterNavigationInput[] = [
     icon: "Share2",
     order: 18,
     group: "management",
+    permissions: ["admin:read"],
   },
   {
     id: "admin.story",
@@ -524,6 +527,7 @@ const adminSidebarItems: RegisterNavigationInput[] = [
     icon: "BookOpen",
     order: 19,
     group: "analytics",
+    permissions: ["admin:read"],
   },
   {
     id: "admin.memory",
@@ -536,6 +540,7 @@ const adminSidebarItems: RegisterNavigationInput[] = [
     icon: "Brain",
     order: 20,
     group: "analytics",
+    permissions: ["admin:read"],
   },
 ];
 

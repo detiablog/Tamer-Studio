@@ -990,3 +990,16 @@ Every verification sprint must end with:
 5. Database state verification.
 
 Reports may only be generated after all runtime verification steps have passed successfully.
+
+## Existing Implementation First
+
+Before implementing any feature:
+
+1. Analyze the latest source code.
+2. Identify existing implementation.
+3. Reuse existing architecture whenever possible.
+4. Extend existing modules instead of creating new ones.
+5. Never duplicate runtime, services, repositories, providers, or components.
+6. If an existing implementation satisfies at least 70% of the requirement, improve it instead of replacing it.
+7. New modules may only be created when no suitable implementation exists.
+8. Always explain which existing files are being reused before proposing architectural changes.

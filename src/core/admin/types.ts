@@ -1,4 +1,12 @@
-export type AdminRole = "admin" | "super_admin";
+/**
+ * Admin Roles — synchronized with RBAC architecture
+ * 
+ * Two admin-level roles:
+ *   Admin    — Email/password authentication, database-driven permissions
+ *   Founder  — Created during installation only, unique, requires Master Key for login
+ */
+
+export type AdminRole = "admin" | "founder";
 
 export interface AdminCredentials {
   email: string;

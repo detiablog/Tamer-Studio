@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
     ip: request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0].trim() || undefined,
   };
 
-  const middlewareError = await runMiddleware([adminAuthentication(), requireAdminPermission("notifications.read")], ctx);
+  const middlewareError = await runMiddleware([adminAuthentication(), requireAdminPermission("admin:read")], ctx);
   if (middlewareError) return middlewareError;
 
   try {

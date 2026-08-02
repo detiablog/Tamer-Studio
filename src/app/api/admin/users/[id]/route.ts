@@ -41,7 +41,7 @@ export async function PUT(
     ip: request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0].trim() || undefined,
   };
 
-  const middlewareError = await runMiddleware([adminAuthentication(), requireAdminPermission("users.write")], ctx);
+  const middlewareError = await runMiddleware([adminAuthentication(), requireAdminPermission("admin:users")], ctx);
   if (middlewareError) return middlewareError;
 
   try {
@@ -96,7 +96,7 @@ export async function DELETE(
     ip: request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0].trim() || undefined,
   };
 
-  const middlewareError = await runMiddleware([adminAuthentication(), requireAdminPermission("users.write")], ctx);
+  const middlewareError = await runMiddleware([adminAuthentication(), requireAdminPermission("admin:users")], ctx);
   if (middlewareError) return middlewareError;
 
   try {

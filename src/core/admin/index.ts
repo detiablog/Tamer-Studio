@@ -14,6 +14,7 @@ export * from "./operations";
 export * from "./feature-flags";
 export * from "./maintenance";
 export * from "./admin.service";
+export * from "./admin-bootstrap.service";
 
 import { ServiceRegistry } from "@/core/foundation";
 import type { DashboardService } from "./dashboard";

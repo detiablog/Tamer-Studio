@@ -1,5 +1,22 @@
+/**
+ * Admin RBAC — synchronized with RBAC architecture
+ * 
+ * Admin roles:
+ *   admin    — Email/password, operational permissions only
+ *   founder  — Master Key required, ALL system permissions
+ * 
+ * Permission separation:
+ *   - Founder receives ALL permissions including system-critical ones
+ *   - Admin receives operational permissions only (no system-critical)
+ *   - Feature Flag controls availability, Permission controls authorization
+ */
+
 export type AdminPermission = string;
 
+/**
+ * Route-to-permission mapping for admin panel routes.
+ * Used by useAdminPermissions() hook and authz middleware.
+ */
 export const ADMIN_ROUTE_PERMISSIONS: Record<string, string> = {
   "/admin": "admin:read",
   "/admin/users": "admin:users",
@@ -23,36 +40,53 @@ export const ADMIN_ROUTE_PERMISSIONS: Record<string, string> = {
   "/admin/email/logs": "admin:email",
   "/admin/email/health": "admin:email",
   "/admin/email/statistics": "admin:email",
+  "/admin/workflows": "admin:workflows",
+  "/admin/pricing": "admin:pricing",
+  "/admin/landing-builder": "admin:landing_builder",
+  "/admin/commerce": "admin:commerce",
 };
 
-const ADMIN_PERMISSIONS = [
+/**
+ * Admin operational permissions — daily operations only.
+ * Does NOT include system-critical permissions.
+ */
+const ADMIN_OPERATIONAL_PERMISSIONS = [
   "admin:read",
   "admin:users",
   "admin:workspaces",
-  "admin:ai_providers",
-  "admin:jobs",
-  "admin:queues",
   "admin:billing",
   "admin:subscriptions",
   "admin:coupons",
   "admin:analytics",
-  "admin:audit_logs",
-  "admin:feature_flags",
-  "admin:system",
-  "admin:stats",
   "admin:email",
   "admin:write",
   "admin:commerce",
-  "workspaces.read",
-  "workspaces.write",
-  "users.read",
-  "users.write",
-  "billing.write",
-  "notifications.read",
-  "notifications.write",
+  "admin:workflows",
+  "admin:pricing",
+  "admin:landing_builder",
+  "admin:stats",
 ];
 
+/**
+ * Founder system-critical permissions — only Founder gets these.
+ * Includes: AI Provider config, Jobs, Queues, Audit Logs, Feature Flags, System Settings
+ */
+const FOUNDER_SYSTEM_PERMISSIONS = [
+  "admin:ai_providers",
+  "admin:jobs",
+  "admin:queues",
+  "admin:audit_logs",
+  "admin:feature_flags",
+  "admin:system",
+];
+
+/**
+ * Role-to-permissions mapping for admin authentication.
+ * 
+ * Admin: Operational permissions only (daily operations).
+ * Founder: ALL permissions (operational + system-critical).
+ */
 export const ADMIN_ROLE_PERMISSIONS: Record<string, string[]> = {
-  admin: [...ADMIN_PERMISSIONS],
-  super_admin: [...ADMIN_PERMISSIONS],
+  admin: [...ADMIN_OPERATIONAL_PERMISSIONS],
+  founder: [...ADMIN_OPERATIONAL_PERMISSIONS, ...FOUNDER_SYSTEM_PERMISSIONS],
 };

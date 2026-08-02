@@ -24,10 +24,8 @@ export function usePermissions() {
     hasRole,
     isGuest: userRole === "guest",
     isUser: userRole === "user",
-    isWorkspaceAdmin: userRole === "workspace_admin" || permissions.includes("workspace:admin"),
-    isSystemAdmin: userRole === "system_admin" || permissions.includes("admin:system"),
-    isSuperAdmin: userRole === "super_admin",
-    isAdmin: ["workspace_admin", "system_admin", "super_admin"].includes(userRole),
+    isAdmin: userRole === "admin" || userRole === "founder",
+    isFounder: userRole === "founder",
   };
 }
 
@@ -35,9 +33,8 @@ function permissionForRole(role: UserRole): Permission {
   const map: Record<UserRole, Permission> = {
     guest: "dashboard:read",
     user: "dashboard:read",
-    workspace_admin: "workspace:admin",
-    system_admin: "admin:system",
-    super_admin: "admin:system",
+    admin: "admin:system",
+    founder: "admin:system",
   };
   return map[role];
 }

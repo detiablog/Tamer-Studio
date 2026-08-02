@@ -4,6 +4,7 @@ export {
   requireUserPermission,
   requireWorkspaceOwnership,
   requireAnyRole,
+  requireFounder,
 } from "./authz.middleware";
 export { csrfMiddleware, getCsrfTokenForClient } from "./csrf.middleware";
 export { rateLimitMiddleware, resetClientRateLimit } from "./rate-limit.middleware";
