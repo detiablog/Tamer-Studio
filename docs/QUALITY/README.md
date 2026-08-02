@@ -1,41 +1,38 @@
-# Quality Management
+# Quality
 
-Purpose
+Quality assurance, performance, and security reviews.
 
-Store engineering quality documents.
-
-Quality documents record findings rather than implementation.
+Quality documents record findings, not implementation.
 
 ---
 
-Recommended Files
+# Reports
 
-technical-debt.md
-
-security-review.md
-
-performance-review.md
-
-qa-report.md
-
-release-readiness.md
+| Report | File |
+|--------|------|
+| Performance Review | [performance-review.md](performance-review.md) |
+| Security Review | [security-review.md](security-review.md) |
+| Release Readiness | [release-readiness.md](release-readiness.md) |
+| Technical Debt | [technical-debt.md](technical-debt.md) |
+| Repository Audit | [repository-audit.md](repository-audit.md) |
+| QA Report | [qa-report.md](qa-report.md) |
 
 ---
 
-Rules
+# Report Format
 
 Every report should include:
 
-Context
+- Context
+- Findings
+- Severity
+- Recommendation
+- Status
+- Owner
+- Date
 
-Findings
+---
 
-Severity
+# Back
 
-Recommendation
-
-Status
-
-Owner
-
-Date
+[← Documentation Portal](../README.md)

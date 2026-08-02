@@ -1,86 +1,42 @@
 # Architecture Decision Records
 
-Version: 2.0
-
-Status: Active
+ADR documents long-term technical decisions made for Tamer Studio.
 
 ---
 
-## Purpose
+# Lifecycle
 
-Architecture Decision Records (ADR) document long-term technical decisions made for Tamer Studio.
-
-Every major architectural decision should be recorded as an independent document.
-
-Each ADR explains:
-
-- Context
-- Problem
-- Decision
-- Design Rules
-- Future Evolution
-- References
+Proposed → Review → Accepted → Implemented → Superseded → Archived
 
 ---
 
-## ADR Lifecycle
+# ADR List
 
-Proposed
-
-↓
-
-Review
-
-↓
-
-Accepted
-
-↓
-
-Implemented
-
-↓
-
-Superseded
-
-↓
-
-Archived
+| ADR | Topic |
+|-----|-------|
+| [ADR-000](ADR-000-architecture-principles.md) | Architecture Principles |
+| [ADR-001](ADR-001-authentication-architecture.md) | Authentication Architecture |
+| [ADR-002](ADR-002-hybrid-admin-authentication.md) | Hybrid Admin Authentication |
+| [ADR-003](ADR-003-routing-architecture.md) | Routing Architecture |
+| [ADR-004](ADR-004-middleware-architecture.md) | Middleware Architecture |
+| [ADR-005](ADR-005-better-auth-integration.md) | Better Auth Integration |
+| [ADR-006](ADR-006-session-management.md) | Session Management |
+| [ADR-007](ADR-007-platform-core.md) | Platform Core |
+| [ADR-008](ADR-008-event-bus.md) | Event Bus |
+| [ADR-009](ADR-009-security-standards.md) | Security Standards |
+| [ADR-010](ADR-010-ai-gateway-strategy.md) | AI Gateway Strategy |
+| [ADR-011](ADR-011-ai-platform-core-architecture.md) | AI Platform Core |
+| [ADR-012](ADR-012-production-engineering-rules.md) | Production Engineering Rules |
+| [ADR-013](<ADR-013-Navigation & Information Architecture.md>) | Navigation Architecture |
 
 ---
 
-## Naming Convention
+# Naming Convention
 
-ADR-000-architecture-principles.md
-
-ADR-001-authentication-architecture.md
-
-ADR-002-hybrid-admin-authentication.md
-
-...
+`ADR-{number}-{title}.md`
 
 ---
 
-## Current ADR List
+# Back
 
-ADR-000 Architecture Principles
-
-ADR-001 Authentication Architecture
-
-ADR-002 Hybrid Admin Authentication
-
-ADR-003 Routing Architecture
-
-ADR-004 Middleware Architecture
-
-ADR-005 Better Auth Integration
-
-ADR-006 Session Management
-
-ADR-007 Platform Core
-
-ADR-008 Event Bus
-
-ADR-009 Security Standards
-
-ADR-010 Production Rules
+[← Documentation Portal](../README.md)

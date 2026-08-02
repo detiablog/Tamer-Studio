@@ -576,6 +576,18 @@ Feature quantity is less important than overall product quality.
 
 ---
 
+## Repository Hygiene
+
+The project root must remain clean.
+
+Only runtime, configuration, and repository-level files are allowed in the root directory.
+
+All documentation must live inside `/docs`.
+
+Sprint reports, audit reports, verification reports, architecture documents, and planning documents must never be created in the project root.
+
+---
+
 # License
 
 Private Repository
