@@ -110,3 +110,5 @@ export * from "./operations";
 export * from "./observability";
 export * from "./security";
 export * from "./scaling";
+export * from "./beta";
+export * from "./launch";
