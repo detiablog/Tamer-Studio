@@ -4,6 +4,7 @@ import { user, account, verification } from "@/lib/db/schema/auth";
 import { userProfile, userPreferences, externalIdentity } from "@/lib/db/schema/identity";
 import { eq, and, desc } from "drizzle-orm";
 import { randomUUID } from "crypto";
+import { config } from "@/core/config";
 
 export class UserRepository {
   async getAllUsers(): Promise<Array<{ id: string; name: string; email: string; role: string; status: string; emailVerified: boolean; createdAt: Date }>> {
@@ -22,7 +23,7 @@ export class UserRepository {
   async createUser(input: { name: string; email: string; password: string; role?: string; status?: string }): Promise<{ id: string; name: string; email: string; role: string; status: string }> {
     // Use Better Auth to create user with correct password hash
     const { auth } = await import("@/core/auth");
-    const url = new URL("/api/auth/sign-up/email", "http://localhost:3000");
+    const url = new URL("/api/auth/sign-up/email", config.app.url);
     const signUpResult = await auth.handler(new Request(url.toString(), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -208,7 +209,7 @@ export class UserRepository {
         await db.delete(account).where(eq(account.userId, userId));
         await db.delete(user).where(eq(user.id, userId));
         // Step 2: Create user + account via Better Auth sign-up
-        const url = new URL("/api/auth/sign-up/email", "http://localhost:3000");
+        const url = new URL("/api/auth/sign-up/email", config.app.url);
         const result = await auth.handler(new Request(url.toString(), {
           method: "POST",
           headers: { "Content-Type": "application/json" },

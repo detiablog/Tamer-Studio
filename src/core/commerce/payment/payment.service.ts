@@ -2,6 +2,7 @@ import type { PaymentIntent, PaymentResult, PaymentProvider } from "../types";
 import { DefaultTransactionRepository } from "../transactions/transaction.repository";
 import type { PaymentGateway } from "./gateway.interface";
 import { logger } from "@/core/logger";
+import { config } from "@/core/config";
 import { defaultEmailService } from "@/modules/email";
 import { UserRepository } from "@/core/users/user.repository";
 import { DefaultLocalizationRepository } from "@/core/localization/localization.repository";
@@ -121,7 +122,7 @@ export class DefaultPaymentService implements PaymentService {
     try {
       const userRecord = await this.userRepository.getUserByAuthId(updated.userId);
       if (userRecord) {
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+        const appUrl = config.app.url;
         await defaultEmailService.sendPaymentSuccess({
           email: userRecord.email,
           userName: userRecord.name,

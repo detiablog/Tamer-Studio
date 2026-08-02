@@ -12,6 +12,7 @@ import { DefaultSubscriptionRepository, PlanService } from "../subscription";
 import { DefaultInvoiceRepository } from "../invoice";
 import { DefaultAuditService } from "../audit/audit.service";
 import { logger } from "@/core/logger";
+import { config } from "@/core/config";
 
 export class PaymentService {
   private gateway: PaymentGateway;
@@ -44,7 +45,7 @@ export class PaymentService {
       throw new Error("Invalid amount: must be greater than 0");
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const baseUrl = config.app.url;
 
     const input: CheckoutInput = {
       amount,

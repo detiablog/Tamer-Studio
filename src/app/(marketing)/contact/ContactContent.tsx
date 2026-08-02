@@ -15,7 +15,7 @@ export function ContactContent() {
         <div className="mt-8 space-y-4">
           <div>
             <label className="text-sm font-medium">{t("marketing.contactEmail")}</label>
-            <p className="text-sm text-muted-foreground">support@tamer.studio</p>
+            <p className="text-sm text-muted-foreground">support@tamerstudio.com</p>
           </div>
           <div>
             <label className="text-sm font-medium">{t("marketing.contactSupport")}</label>

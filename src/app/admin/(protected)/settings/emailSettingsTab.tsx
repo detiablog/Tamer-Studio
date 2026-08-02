@@ -415,7 +415,7 @@ export function EmailSettingsTab({ adminToken, t, siteName }: EmailSettingsTabPr
                 type="email"
                 value={settings.senderEmail}
                 onChange={(e) => setSettings((prev) => ({ ...prev, senderEmail: e.target.value }))}
-                placeholder="noreply@tamer.studio"
+                placeholder="noreply@tamerstudio.com"
                 className="mt-1.5"
               />
             </div>
@@ -426,7 +426,7 @@ export function EmailSettingsTab({ adminToken, t, siteName }: EmailSettingsTabPr
               type="email"
               value={settings.replyTo}
               onChange={(e) => setSettings((prev) => ({ ...prev, replyTo: e.target.value }))}
-              placeholder="support@tamer.studio"
+              placeholder="support@tamerstudio.com"
               className="mt-1.5"
             />
           </div>

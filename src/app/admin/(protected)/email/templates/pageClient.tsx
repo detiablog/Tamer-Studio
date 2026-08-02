@@ -82,7 +82,7 @@ const SAMPLE_VARIABLES: Record<string, string> = {
   name: "John Doe",
   email: "john@example.com",
   site_name: "Tamer Studio",
-  support_email: "support@tamer.studio",
+  support_email: "support@tamerstudio.com",
   current_year: String(new Date().getFullYear()),
   verification_url: "https://app.example.com/verify?token=abc",
   reset_url: "https://app.example.com/reset?token=abc",

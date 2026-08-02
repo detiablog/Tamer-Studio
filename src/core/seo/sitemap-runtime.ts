@@ -5,7 +5,7 @@ export class SitemapRuntime {
   private baseUrl: string;
 
   constructor(baseUrl?: string) {
-    this.baseUrl = baseUrl || "https://tamer.studio";
+    this.baseUrl = baseUrl || process.env.NEXT_PUBLIC_APP_URL || "https://tamerstudio.com";
   }
 
   async resolve(input: SEOSitemapInput): Promise<SEOSitemapResult[]> {

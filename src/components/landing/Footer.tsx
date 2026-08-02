@@ -68,7 +68,7 @@ export function Footer({ section }: SectionRendererProps) {
   };
 
   const socialLinks = ((section.config.socialLinks as Array<{ label: string; href: string; ariaLabel?: string }>) || []);
-  const contactEmail = (section.config.contactEmail as string) || "support@tamer.studio";
+  const contactEmail = (section.config.contactEmail as string) || "support@tamerstudio.com";
   const supportHref = (section.config.supportHref as string) || "/support";
   const version = (section.config.version as string) || "1.0.0";
   const build = (section.config.build as string) || "2026.07.25";

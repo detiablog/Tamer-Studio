@@ -1,30 +1,25 @@
 import { verifySecret } from "@/core/security/crypto";
 import { logger } from "@/core/logger";
+import { config } from "@/core/config";
 import crypto from "crypto";
 
 /**
  * Verify admin master key
- * Supports: plain text key OR SHA256 hash OR scrypt hash
+ * Supports: SHA256 hash OR scrypt hash
+ * Plain text comparison is deprecated for security.
  */
 export async function verifyMasterKey(masterKey: string): Promise<boolean> {
-  // 1. Try plain text match
-  const plainKey = process.env.ADMIN_MASTER_KEY;
-  if (plainKey && masterKey === plainKey) {
-    logger.debug("Admin key verified via plain text match");
-    return true;
-  }
-
-  const expectedHash = process.env.ADMIN_MASTER_KEY_HASH;
+  const expectedHash = config.admin.masterKeyHash || process.env.ADMIN_MASTER_KEY_HASH;
   if (!expectedHash) {
     return false;
   }
 
-  // 2. Try scrypt format
+  // 1. Try scrypt format
   if (expectedHash.startsWith("scrypt:")) {
     return verifySecret(masterKey, expectedHash);
   }
 
-  // 3. Try SHA256 format
+  // 2. Try SHA256 format
   if (/^[a-fA-F0-9]{64}$/.test(expectedHash)) {
     // Direct hash comparison: user might send the hash itself
     if (masterKey === expectedHash) {

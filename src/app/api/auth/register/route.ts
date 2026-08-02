@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { user, emailVerificationLog } from "@/lib/db/schema/auth";
 import { auth } from "@/core/auth";
+import { config } from "@/core/config";
 import { generateSecureToken, hashToken } from "@/modules/email/email.encryption";
 import { defaultEmailService } from "@/modules/email";
 import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
@@ -112,7 +113,7 @@ export async function POST(request: NextRequest) {
       resendCount: 0,
     });
 
-    const verificationUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/auth/verify-email?token=${rawToken}`;
+    const verificationUrl = `${config.app.url}/api/auth/verify-email?token=${rawToken}`;
 
     try {
       await defaultEmailService.sendVerification(email, rawToken, name);

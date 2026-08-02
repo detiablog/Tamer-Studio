@@ -7,7 +7,7 @@ export class OpenGraphRuntime {
 
   constructor(siteName?: string, defaultImage?: string) {
     this.defaultSiteName = siteName || "Tamer Studio";
-    this.defaultImage = defaultImage || "https://tamer.studio/og-image.svg";
+    this.defaultImage = defaultImage || `${process.env.NEXT_PUBLIC_APP_URL || "https://tamerstudio.com"}/og-image.svg`;
   }
 
   async resolve(input: SEOOpenGraphInput): Promise<SEOOpenGraphResult> {

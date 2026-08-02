@@ -144,7 +144,7 @@ async function seed() {
     const userId3 = `user_${randomUUID()}`;
 
     await db.insert(user).values([
-      { id: userId1, email: "admin@tamer.studio", name: "Admin User", role: "admin", status: "active", emailVerified: true },
+      { id: userId1, email: "admin@tamerstudio.com", name: "Admin User", role: "admin", status: "active", emailVerified: true },
       { id: userId2, email: "user@example.com", name: "Regular User", role: "user", status: "active", emailVerified: true },
       { id: userId3, email: "demo@example.com", name: "Demo User", role: "user", status: "pending", emailVerified: false },
     ]);
@@ -862,7 +862,7 @@ async function seed() {
 
     console.log("✅ Database seeded successfully!");
     console.log("\nSeeded data:");
-    console.log("- 3 users (admin@tamer.studio, user@example.com, demo@example.com)");
+    console.log("- 3 users (admin@tamerstudio.com, user@example.com, demo@example.com)");
     console.log("- 2 roles (Admin, User)");
     console.log("- 3 permissions");
     console.log("- 1 organization (Acme Studio)");

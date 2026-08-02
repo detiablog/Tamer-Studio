@@ -4,6 +4,8 @@ import { cookies } from "next/headers";
 import { getSEORuntime } from "@/core/seo";
 import { logger } from "@/core/logger";
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://tamerstudio.com";
+
 export async function GET(request: NextRequest) {
   try {
     const cookieStore = await cookies();
@@ -32,7 +34,7 @@ export async function GET(request: NextRequest) {
         title: resolved.metadata.title,
         description: resolved.metadata.description,
         keywords: resolved.metadata.keywords,
-        image: resolved.openGraph.images[0]?.url || 'https://tamer.studio/og-image.svg',
+        image: resolved.openGraph.images[0]?.url || `${APP_URL}/og-image.svg`,
         url: resolved.openGraph.url,
         type: resolved.openGraph.type,
         locale,
@@ -66,27 +68,27 @@ export async function GET(request: NextRequest) {
         title: "Tamer Studio - AI-Powered Production Platform",
         description: "Build, deploy, and scale AI-powered applications with Tamer Studio.",
         keywords: "AI, production platform, automation",
-        image: "https://tamer.studio/og-image.png",
-        url: "https://tamer.studio",
+        image: `${APP_URL}/og-image.png`,
+        url: APP_URL,
         type: "website",
         locale: "en",
         hreflangs: [
-          { hreflang: "en", href: "https://tamer.studio" },
-          { hreflang: "x-default", href: "https://tamer.studio" },
+          { hreflang: "en", href: APP_URL },
+          { hreflang: "x-default", href: APP_URL },
         ],
         twitter: {
           card: "summary_large_image",
           site: "@tamerstudio",
           title: "Tamer Studio - AI-Powered Production Platform",
           description: "Build, deploy, and scale AI-powered applications with Tamer Studio.",
-          image: "https://tamer.studio/og-image.png",
+          image: `${APP_URL}/og-image.png`,
         },
         openGraph: {
           title: "Tamer Studio - AI-Powered Production Platform",
           description: "Build, deploy, and scale AI-powered applications with Tamer Studio.",
           type: "website",
-          url: "https://tamer.studio",
-          image: "https://tamer.studio/og-image.png",
+          url: APP_URL,
+          image: `${APP_URL}/og-image.png`,
           locale: "en",
           siteName: "Tamer Studio",
         },

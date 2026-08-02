@@ -5,9 +5,13 @@ interface OriginValidationConfig {
   allowedHosts?: string[];
 }
 
-const DEFAULT_ALLOWED_ORIGINS = [
-  process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
-];
+function getAllowedOrigins(): string[] {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  if (!appUrl) {
+    throw new Error("NEXT_PUBLIC_APP_URL is required");
+  }
+  return [appUrl];
+}
 
 export function originValidationMiddleware(config?: OriginValidationConfig): Middleware {
   return async (ctx: RequestContext): Promise<void | SecurityError> => {
@@ -18,7 +22,7 @@ export function originValidationMiddleware(config?: OriginValidationConfig): Mid
       return;
     }
 
-    const allowedOrigins = config?.allowedOrigins || DEFAULT_ALLOWED_ORIGINS;
+    const allowedOrigins = config?.allowedOrigins || getAllowedOrigins();
     const allowedHosts = config?.allowedHosts || [];
 
     if (origin && !allowedOrigins.includes(origin)) {

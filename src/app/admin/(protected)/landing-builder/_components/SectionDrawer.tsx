@@ -691,7 +691,7 @@ export function SectionDrawer({ open, section, onClose, onSave, onDelete, onDupl
                       <p className="text-[11px] font-semibold text-foreground">Contact</p>
                       <div>
                         <Label className="text-xs text-muted-foreground">{t("sectionDrawer.contactEmail", "Contact Email")}</Label>
-                        <Input value={String(form.config?.contactEmail ?? "")} onChange={(e) => handleConfigChange("contactEmail", e.target.value)} placeholder="support@tamer.studio" className="mt-1.5" />
+                        <Input value={String(form.config?.contactEmail ?? "")} onChange={(e) => handleConfigChange("contactEmail", e.target.value)} placeholder="support@tamerstudio.com" className="mt-1.5" />
                       </div>
                       <div>
                         <Label className="text-xs text-muted-foreground">{t("sectionDrawer.supportHref", "Support URL")}</Label>

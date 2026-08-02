@@ -3,6 +3,7 @@ import { Server as IOServer, Socket } from "socket.io";
 import { createAdapter } from "@socket.io/redis-adapter";
 import { createClient } from "redis";
 import { logger } from "@/core/logger";
+import { config } from "@/core/config";
 
 let io: IOServer | null = null;
 
@@ -20,7 +21,7 @@ export async function initializeWebSocket(server: HTTPServer): Promise<IOServer>
 
   io = new IOServer(server, {
     cors: {
-      origin: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+      origin: config.app.url,
       credentials: true,
     },
     adapter: createAdapter(pubClient, redisClient),

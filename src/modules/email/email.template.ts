@@ -21,11 +21,11 @@ const DEFAULT_TEMPLATES: Record<string, Omit<EmailTemplate, "id" | "createdAt" |
         <p style="font-size: 14px; color: #94a3b8; margin: 0;">This link expires in 24 hours. If you didn't create an account, you can safely ignore this email.</p>
       </div>
       <div style="text-align: center; padding: 24px 0; border-top: 1px solid #e2e8f0;">
-        <p style="font-size: 12px; color: #94a3b8; margin: 0 0 8px 0;">Need help? <a href="mailto:support@tamer.studio" style="color: #6366f1;">support@tamer.studio</a></p>
+        <p style="font-size: 12px; color: #94a3b8; margin: 0 0 8px 0;">Need help? <a href="mailto:support@tamerstudio.com" style="color: #6366f1;">support@tamerstudio.com</a></p>
         <p style="font-size: 12px; color: #cbd5e1; margin: 0;">© ${new Date().getFullYear()} Tamer Studio. All rights reserved.</p>
       </div>
     </div>`,
-    text: "Hi {{name}},\n\nWelcome to Tamer Studio! Please verify your email address by clicking this link: {{verificationUrl}}\n\nThis link expires in 24 hours.\n\nNeed help? support@tamer.studio\n\n© ${new Date().getFullYear()} Tamer Studio",
+    text: "Hi {{name}},\n\nWelcome to Tamer Studio! Please verify your email address by clicking this link: {{verificationUrl}}\n\nThis link expires in 24 hours.\n\nNeed help? support@tamerstudio.com\n\n© ${new Date().getFullYear()} Tamer Studio",
     variables: ["name", "verificationUrl"],
     isActive: true,
     version: 1,
@@ -52,11 +52,11 @@ const DEFAULT_TEMPLATES: Record<string, Omit<EmailTemplate, "id" | "createdAt" |
         <p style="font-size: 14px; color: #94a3b8; margin: 0;">If you didn't request this, you can safely ignore this email. Your password will remain unchanged.</p>
       </div>
       <div style="text-align: center; padding: 24px 0; border-top: 1px solid #e2e8f0;">
-        <p style="font-size: 12px; color: #94a3b8; margin: 0 0 8px 0;">Need help? <a href="mailto:support@tamer.studio" style="color: #6366f1;">support@tamer.studio</a></p>
+        <p style="font-size: 12px; color: #94a3b8; margin: 0 0 8px 0;">Need help? <a href="mailto:support@tamerstudio.com" style="color: #6366f1;">support@tamerstudio.com</a></p>
         <p style="font-size: 12px; color: #cbd5e1; margin: 0;">© ${new Date().getFullYear()} Tamer Studio. All rights reserved.</p>
       </div>
     </div>`,
-    text: "Hi {{name}},\n\nWe received a request to reset your password. Click this link to reset it: {{resetUrl}}\n\nThis link expires in 30 minutes.\n\nIf you didn't request this, you can safely ignore this email.\n\nNeed help? support@tamer.studio\n\n© ${new Date().getFullYear()} Tamer Studio",
+    text: "Hi {{name}},\n\nWe received a request to reset your password. Click this link to reset it: {{resetUrl}}\n\nThis link expires in 30 minutes.\n\nIf you didn't request this, you can safely ignore this email.\n\nNeed help? support@tamerstudio.com\n\n© ${new Date().getFullYear()} Tamer Studio",
     variables: ["name", "resetUrl"],
     isActive: true,
     version: 1,
@@ -109,7 +109,7 @@ const DEFAULT_TEMPLATES: Record<string, Omit<EmailTemplate, "id" | "createdAt" |
         </div>
       </div>
       <div style="text-align: center; padding: 24px 0; border-top: 1px solid #e2e8f0;">
-        <p style="font-size: 12px; color: #94a3b8; margin: 0 0 8px 0;">Need help? <a href="mailto:support@tamer.studio" style="color: #6366f1;">support@tamer.studio</a></p>
+        <p style="font-size: 12px; color: #94a3b8; margin: 0 0 8px 0;">Need help? <a href="mailto:support@tamerstudio.com" style="color: #6366f1;">support@tamerstudio.com</a></p>
         <p style="font-size: 12px; color: #cbd5e1; margin: 0;">© ${new Date().getFullYear()} Tamer Studio. All rights reserved.</p>
       </div>
     </div>`,

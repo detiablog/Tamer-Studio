@@ -36,7 +36,7 @@ export class RobotsRuntime {
             disallow: noindexRoutes,
           },
         ],
-        sitemap: `${input?.baseUrl || "https://tamer.studio"}/sitemap.xml`,
+        sitemap: `${input?.baseUrl || process.env.NEXT_PUBLIC_APP_URL || "https://tamerstudio.com"}/sitemap.xml`,
       };
     } else {
       result = {

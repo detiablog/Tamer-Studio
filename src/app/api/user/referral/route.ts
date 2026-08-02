@@ -5,6 +5,7 @@ import { runMiddleware } from "@/core/middleware/compose";
 import { userAuthentication } from "@/core/middleware";
 import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
 import { successResponse } from "@/app/api/mappers/response";
+import { config } from "@/core/config";
 import { db } from "@/lib/db";
 import { referral } from "@/lib/db/schema/dashboard";
 import { eq, count, sql } from "drizzle-orm";
@@ -68,7 +69,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(successResponse({
       referralCode: existingCode?.referralCode || null,
-      referralLink: existingCode ? `${process.env.NEXT_PUBLIC_APP_URL || "https://tamer.ai"}/ref/${existingCode.referralCode}` : null,
+      referralLink: existingCode ? `${config.app.url}/ref/${existingCode.referralCode}` : null,
       stats: {
         totalReferred: totalReferred?.count ?? 0,
         rewardedCount: rewardedCount?.count ?? 0,
@@ -127,7 +128,7 @@ export async function POST(request: NextRequest) {
     if (existingReferral.length > 0) {
       return NextResponse.json(successResponse({
         referralCode: existingReferral[0].referralCode,
-        referralLink: `${process.env.NEXT_PUBLIC_APP_URL || "https://tamer.ai"}/ref/${existingReferral[0].referralCode}`,
+        referralLink: `${config.app.url}/ref/${existingReferral[0].referralCode}`,
       }));
     }
 
@@ -143,7 +144,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(successResponse({
       referralCode: code,
-      referralLink: `${process.env.NEXT_PUBLIC_APP_URL || "https://tamer.ai"}/ref/${code}`,
+      referralLink: `${config.app.url}/ref/${code}`,
     }));
   } catch (error) {
     return mapErrorToResponse(error);

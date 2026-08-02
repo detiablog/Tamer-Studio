@@ -17,7 +17,7 @@ export function SupportContent() {
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           <div className="rounded-2xl border border-border bg-card p-6">
             <h3 className="font-semibold">{t("marketing.supportContactUs")}</h3>
-            <p className="mt-2 text-sm text-muted-foreground">support@tamer.studio</p>
+            <p className="mt-2 text-sm text-muted-foreground">support@tamerstudio.com</p>
             <p className="text-xs text-muted-foreground mt-1">{t("marketing.supportResponseTime")}: 24h</p>
           </div>
           <div className="rounded-2xl border border-border bg-card p-6">

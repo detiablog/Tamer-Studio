@@ -6,7 +6,7 @@ export class SchemaRuntime {
   private siteName: string;
 
   constructor(baseUrl?: string, siteName?: string) {
-    this.baseUrl = baseUrl || "https://tamer.studio";
+    this.baseUrl = baseUrl || process.env.NEXT_PUBLIC_APP_URL || "https://tamerstudio.com";
     this.siteName = siteName || "Tamer Studio";
   }
 
@@ -157,7 +157,7 @@ export class SchemaRuntime {
       logo: (data.logo as string) || `${this.baseUrl}/favicon.svg`,
       contactPoint: data.contactPoint || {
         "@type": "ContactPoint",
-        email: "support@tamer.studio",
+        email: "support@tamerstudio.com",
         contactType: "customer support",
         availableLanguage: ["English", "Bahasa Indonesia"],
       },

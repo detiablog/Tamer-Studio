@@ -7,7 +7,7 @@ export class HreflangRuntime {
   private supportedLocales: string[];
 
   constructor(baseUrl?: string, defaultLocale?: string, supportedLocales?: string[]) {
-    this.baseUrl = baseUrl || "https://tamer.studio";
+    this.baseUrl = baseUrl || process.env.NEXT_PUBLIC_APP_URL || "https://tamerstudio.com";
     this.defaultLocale = defaultLocale || "en";
     this.supportedLocales = supportedLocales || ["en", "id"];
   }

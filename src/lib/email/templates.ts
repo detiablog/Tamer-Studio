@@ -25,8 +25,8 @@ export interface EmailTemplateDef {
 }
 
 const SITE_NAME = "Tamer Studio";
-const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-const SUPPORT_EMAIL = "support@tamer.studio";
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "";
+const SUPPORT_EMAIL = "support@tamerstudio.com";
 
 const baseLayout = (content: string) => `<!DOCTYPE html>
 <html>

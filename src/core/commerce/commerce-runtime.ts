@@ -25,6 +25,7 @@ import { DefaultSubscriptionRepository } from "../subscription/subscription";
 import { DefaultInvoiceRepository } from "../invoice/invoice";
 import { StripeGateway } from "../payment/stripe-gateway";
 import { logger } from "../logger";
+import { config } from "@/core/config";
 import { db } from "@/lib/db";
 import { wallet as walletTable, planPricing } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -172,7 +173,7 @@ export async function createCheckout(input: {
     refundedAt: null,
   });
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const baseUrl = config.app.url;
 
   const session = await gateway.createCheckout({
     amount,

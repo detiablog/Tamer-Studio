@@ -5,6 +5,7 @@ import { runMiddleware } from "@/core/middleware/compose";
 import { userAuthentication } from "@/core/middleware";
 import { mapErrorToResponse } from "@/app/api/mappers/error-mapper";
 import { successResponse } from "@/app/api/mappers/response";
+import { config } from "@/core/config";
 import { db } from "@/lib/db";
 import { affiliate } from "@/lib/db/schema/dashboard";
 import { eq } from "drizzle-orm";
@@ -72,7 +73,7 @@ export async function GET(request: NextRequest) {
         totalCommission: aff.totalCommission,
         pendingCommission: aff.pendingCommission,
         paidCommission: aff.paidCommission,
-        affiliateLink: `${process.env.NEXT_PUBLIC_APP_URL || "https://tamer.ai"}/affiliate/${aff.affiliateCode}`,
+        affiliateLink: `${config.app.url}/affiliate/${aff.affiliateCode}`,
         createdAt: aff.createdAt,
       },
     }));

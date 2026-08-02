@@ -5,7 +5,7 @@ export class CanonicalRuntime {
   private defaultBaseUrl: string;
 
   constructor(baseUrl?: string) {
-    this.defaultBaseUrl = baseUrl || "https://tamer.studio";
+    this.defaultBaseUrl = baseUrl || process.env.NEXT_PUBLIC_APP_URL || "https://tamerstudio.com";
   }
 
   async resolve(input: SEOCanonicalInput): Promise<SEOCanonicalResult> {

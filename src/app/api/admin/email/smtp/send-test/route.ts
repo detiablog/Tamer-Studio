@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const fromAddress = smtpProvider.senderEmail || config.username || "noreply@tamer.studio";
+    const fromAddress = smtpProvider.senderEmail || config.username || "noreply@tamerstudio.com";
     const senderName = smtpProvider.senderName || "Tamer Studio";
 
     const result = await sendEmail(config, {

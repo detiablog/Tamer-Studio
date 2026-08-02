@@ -8,6 +8,7 @@ import { successResponse } from "@/app/api/mappers/response";
 import { cookies } from "next/headers";
 import { resolveCurrencyInfo } from "@/lib/currency/formatter";
 import { DefaultBillingEngine } from "@/core/billing/service";
+import { config } from "@/core/config";
 
 export async function GET(request: NextRequest) {
   const ctx: RequestContext = {
@@ -166,8 +167,8 @@ export async function POST(request: NextRequest) {
       paymentDate: paymentDate || new Date().toISOString(),
       purchasedItem: purchasedItem || "Subscription",
       totalPayment: String(totalPayment),
-      invoiceUrl: invoiceUrl || `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/billing`,
-      dashboardUrl: dashboardUrl || `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/dashboard`,
+      invoiceUrl: invoiceUrl || `${config.app.url}/billing`,
+      dashboardUrl: dashboardUrl || `${config.app.url}/dashboard`,
     });
 
     return NextResponse.json(successResponse({ message: "Payment confirmation email sent successfully" }));

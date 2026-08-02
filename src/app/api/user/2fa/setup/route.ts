@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     const userId = ctx.state.userSession!.userId;
 
     const [userRecord] = await db.select({ email: user.email }).from(user).where(eq(user.id, userId)).limit(1);
-    const userEmail = userRecord?.email || "user@tamer.studio";
+    const userEmail = userRecord?.email || "";
 
     const [existing] = await db
       .select()

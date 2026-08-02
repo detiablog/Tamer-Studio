@@ -16,7 +16,7 @@ export class MetadataRuntime {
       locale: "en_US",
       themeColor: "#0f172a",
       manifest: null,
-      metadataBase: "https://tamer.studio",
+      metadataBase: process.env.NEXT_PUBLIC_APP_URL || "https://tamerstudio.com",
       ...defaults,
     };
   }

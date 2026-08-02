@@ -29,7 +29,7 @@ const orgSchema = seoRuntime.getSchemaRuntime().resolveOrganization({
   logo: new URL("/favicon.svg", SITE_URL).toString(),
   contactPoint: {
     "@type": "ContactPoint",
-    email: "support@tamer.studio",
+    email: "support@tamerstudio.com",
     contactType: "customer support",
     availableLanguage: ["English", "Bahasa Indonesia"],
   },

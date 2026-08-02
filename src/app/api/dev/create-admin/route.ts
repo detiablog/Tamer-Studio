@@ -10,7 +10,12 @@ export async function POST(request: NextRequest) {
 
   try {
     const userService = new UserService();
-    const existingUser = await userService.getUserByEmail("admin@tamer.studio");
+    const adminEmail = process.env.ADMIN_EMAIL || "";
+    if (!adminEmail) {
+      return NextResponse.json(errorResponse("CONFIGURATION_ERROR", "ADMIN_EMAIL environment variable is required"), { status: 500 });
+    }
+
+    const existingUser = await userService.getUserByEmail(adminEmail);
 
     if (existingUser) {
       return NextResponse.json(successResponse({

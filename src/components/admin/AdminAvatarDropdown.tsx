@@ -46,7 +46,7 @@ export function AdminAvatarDropdown() {
             if (!cancelled) {
               setAdminInfo({
                 id: "dev-admin",
-                email: "admin@tamer.studio",
+                email: "admin@tamerstudio.com",
                 name: "Admin User",
                 role: "super_admin",
                 initials: "AU",
@@ -69,7 +69,7 @@ export function AdminAvatarDropdown() {
           if (process.env.NODE_ENV === "development") {
             setAdminInfo({
               id: "dev-admin",
-              email: "admin@tamer.studio",
+              email: "admin@tamerstudio.com",
               name: "Admin User",
               role: "super_admin",
               initials: "AU",

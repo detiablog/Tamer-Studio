@@ -6,6 +6,7 @@ import { emailTemplateEngine } from "./email.template";
 import { emailLogger } from "./email.logger";
 import { hashToken, generateSecureToken, generateId } from "./email.encryption";
 import { emailTokenRepository } from "./email-token.repository";
+import { config } from "@/core/config";
 
 export class DefaultEmailService implements EmailService {
   async send(message: EmailMessage, type: EmailType, options?: { priority?: number; scheduledAt?: Date }): Promise<string> {
@@ -15,7 +16,7 @@ export class DefaultEmailService implements EmailService {
   }
 
   async sendVerification(email: string, token: string, userName: string): Promise<string> {
-    const verificationUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/verify-email?token=${token}`;
+    const verificationUrl = `${config.app.url}/verify-email?token=${token}`;
     const rendered = emailTemplateEngine.renderType("verification", { name: userName, verificationUrl });
     if (!rendered) {
       throw new Error("Verification template not found");
@@ -34,7 +35,7 @@ export class DefaultEmailService implements EmailService {
   }
 
   async sendResetPassword(email: string, token: string, userName: string): Promise<string> {
-    const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/reset-password?token=${token}`;
+    const resetUrl = `${config.app.url}/reset-password?token=${token}`;
     const rendered = emailTemplateEngine.renderType("reset_password", { name: userName, resetUrl });
     if (!rendered) {
       throw new Error("Reset password template not found");

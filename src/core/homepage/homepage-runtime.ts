@@ -171,22 +171,23 @@ export class HomepageRuntime {
   async resolveSEO(page: CMSPage | null, context: HomepageContext): Promise<HomepageSEOData> {
     const seoRuntime = getSEORuntime();
 
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://tamerstudio.com";
     const defaultSEO: HomepageSEOData = {
       title: "Tamer Studio - AI-Powered Production Platform",
       description: "Build, deploy, and scale AI-powered applications with Tamer Studio.",
       keywords: ["AI", "production platform", "automation", "AI providers", "multi-model", "enterprise AI"],
-      image: "https://tamer.studio/og-image.png",
-      url: "https://tamer.studio",
-      canonical: "https://tamer.studio",
+      image: `${appUrl}/og-image.png`,
+      url: appUrl,
+      canonical: appUrl,
       robots: "index, follow",
       ogType: "website",
       ogLocale: context.locale === "id" ? "id_ID" : "en_US",
       twitterCard: "summary_large_image",
       twitterSite: "@tamerstudio",
       hreflangs: [
-        { hreflang: "en", href: "https://tamer.studio" },
-        { hreflang: "id", href: "https://tamer.studio/id" },
-        { hreflang: "x-default", href: "https://tamer.studio" },
+        { hreflang: "en", href: appUrl },
+        { hreflang: "id", href: `${appUrl}/id` },
+        { hreflang: "x-default", href: appUrl },
       ],
     };
 

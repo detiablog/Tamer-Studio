@@ -26,11 +26,11 @@ import { getValidationRuntime, ValidationRuntime } from "./seo-validation-runtim
 import { getSEOCache } from "./seo-cache";
 
 const DEFAULT_RUNTIME_CONFIG: SEORuntimeConfig = {
-  baseUrl: "https://tamer.studio",
+  baseUrl: process.env.NEXT_PUBLIC_APP_URL || "https://tamerstudio.com",
   siteName: "Tamer Studio",
   defaultLocale: "en",
   supportedLocales: ["en", "id"],
-  defaultImage: "https://tamer.studio/og-image.svg",
+  defaultImage: `${process.env.NEXT_PUBLIC_APP_URL || "https://tamerstudio.com"}/og-image.svg`,
   twitterSite: "@tamerstudio",
   twitterCreator: "@tamerstudio",
   cacheEnabled: true,
