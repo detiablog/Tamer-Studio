@@ -74,6 +74,7 @@ export const metadata = {
   metadataBase: new URL(SITE_URL),
   other: {
     "theme-color": "#6366f1",
+    "mobile-web-app-capable": "yes",
     "apple-mobile-web-app-capable": "yes",
     "apple-mobile-web-app-status-bar-style": "black-translucent",
     "apple-mobile-web-app-title": "Tamer Studio",
@@ -91,7 +92,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en" className={cn("font-sans", geist.variable)} suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.json" />
-        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.svg" />
       </head>
       <body>
           <ThemeProvider>

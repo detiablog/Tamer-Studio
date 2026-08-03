@@ -2,14 +2,27 @@ const CACHE_NAME = "tamer-studio-v1";
 const STATIC_ASSETS = [
   "/",
   "/offline",
-  "/dashboard",
-  "/ai/image",
-  "/ai/video",
+  "/login",
+  "/register",
+  "/about",
+  "/contact",
+  "/pricing",
+  "/favicon.svg",
 ];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
+    caches.open(CACHE_NAME).then((cache) =>
+      Promise.all(
+        STATIC_ASSETS.map((url) =>
+          fetch(url).then((response) => {
+            if (response.ok) {
+              return cache.put(url, response);
+            }
+          }).catch(() => {})
+        )
+      )
+    )
   );
   self.skipWaiting();
 });
@@ -25,7 +38,7 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
-  
+
   if (event.request.url.includes("/api/")) {
     event.respondWith(
       fetch(event.request).catch(() => {
@@ -42,9 +55,11 @@ self.addEventListener("fetch", (event) => {
     caches.match(event.request).then((cached) => {
       if (cached) return cached;
       return fetch(event.request).then((response) => {
-        if (response.ok) {
+        if (response.ok && response.type === "basic") {
           const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, clone).catch(() => {});
+          });
         }
         return response;
       }).catch(() => {
@@ -62,8 +77,8 @@ self.addEventListener("push", (event) => {
   const title = data.title || "Tamer Studio";
   const options = {
     body: data.body || "You have a new notification",
-    icon: "/icons/icon-192x192.png",
-    badge: "/icons/icon-72x72.png",
+    icon: "/favicon.svg",
+    badge: "/favicon.svg",
     data: data.url || "/",
     vibrate: [100, 50, 100],
   };
