@@ -3,20 +3,33 @@ import postgres from "postgres";
 import { config } from "@/core/config";
 import * as schema from "./schema";
 
-const connectionString = config.database.url;
+let client: ReturnType<typeof postgres> | null = null;
+let dbInstance: ReturnType<typeof drizzle<typeof schema>> | null = null;
 
-// Create connection with proper pooling
-const client = postgres(connectionString, {
-  max: 10, // connection pool size
-  idle_timeout: 30, // close idle connections after 30s
-  connect_timeout: 5, // timeout for new connections
-});
+function getDb() {
+  if (!dbInstance) {
+    if (!client) {
+      client = postgres(config.database.url, {
+        max: 10,
+        idle_timeout: 30,
+        connect_timeout: 5,
+      });
 
-export const db = drizzle(client, { schema });
+      if (typeof globalThis !== "undefined") {
+        (globalThis as any).onExit = async () => {
+          await client!.end();
+        };
+      }
+    }
 
-// Graceful shutdown
-if (typeof globalThis !== "undefined") {
-  (globalThis as any).onExit = async () => {
-    await client.end();
-  };
+    dbInstance = drizzle(client, { schema });
+  }
+
+  return dbInstance;
 }
+
+export const db = new Proxy({} as ReturnType<typeof drizzle<typeof schema>>, {
+  get(_, prop) {
+    return (getDb() as any)[prop];
+  },
+});

@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const { searchParams } = request.nextUrl;
-    const type = searchParams.get("type") || undefined;
+    const type = (searchParams.get("type") || undefined) as import("@/core/product-intelligence/pi.types").PiReportType | undefined;
     const dateFrom = searchParams.get("dateFrom") || undefined;
     const dateTo = searchParams.get("dateTo") || undefined;
     const result = await piService.getReports({ type, dateFrom, dateTo });

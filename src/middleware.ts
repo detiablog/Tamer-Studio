@@ -57,7 +57,7 @@ function setLocalizationCookies(request: NextRequest, response: NextResponse) {
   }
 }
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const method = request.method;
 
@@ -199,4 +199,5 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: ["/((?!_next/static|_next/image|favicon.svg).*)"],
+  runtime: "nodejs",
 };

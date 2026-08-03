@@ -22,7 +22,7 @@ import { logger } from "@/core/logger"
 export function AvatarDropdown() {
   const [open, setOpen] = React.useState(false)
   const router = useRouter()
-  const { role, isAdmin, isSuperAdmin } = usePermissions()
+  const { role, isAdmin, isFounder } = usePermissions()
   const { t } = useLocalizationContext()
 
   const handleSignOut = async () => {
@@ -72,11 +72,11 @@ export function AvatarDropdown() {
         aria-haspopup="true"
         aria-label={t("dropdown.accountMenu")}
       >
-        <Avatar name={isSuperAdmin ? "S" : isAdmin ? "A" : "U"} size={32} />
+        <Avatar name={isFounder ? "S" : isAdmin ? "A" : "U"} size={32} />
         <div className="hidden md:flex flex-col items-start">
           <span className="text-sm font-medium leading-none">{t("dropdown.account")}</span>
           <span className="text-xs text-muted-foreground leading-none mt-0.5">
-            {isSuperAdmin ? t("roles.superAdmin") : isAdmin ? t("roles.admin") : t("roles.user")}
+            {isFounder ? t("roles.superAdmin") : isAdmin ? t("roles.admin") : t("roles.user")}
           </span>
         </div>
         <ChevronRight className="size-3.5 text-muted-foreground rotate-180 hidden md:block" />
@@ -92,7 +92,7 @@ export function AvatarDropdown() {
           >
             {/* User info header */}
             <div className="flex items-center gap-3 rounded-lg p-3">
-              <Avatar name={isSuperAdmin ? "S" : isAdmin ? "A" : "U"} size={40} />
+              <Avatar name={isFounder ? "S" : isAdmin ? "A" : "U"} size={40} />
               <div className="flex flex-col">
                 <span className="text-sm font-medium">{t("dropdown.account")}</span>
                 <span className="text-xs text-muted-foreground">{t("dropdown.placeholderEmail")}</span>

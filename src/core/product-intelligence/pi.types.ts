@@ -321,11 +321,13 @@ export interface PiSettings {
 }
 
 export interface PiFunnelParams {
+  funnelId?: string;
   startDate?: string;
   endDate?: string;
 }
 
 export interface PiRetentionParams {
+  cohort?: string;
   cohortType?: PiCohortType;
   startDate?: string;
   endDate?: string;
@@ -333,6 +335,8 @@ export interface PiRetentionParams {
 
 export interface PiReportParams {
   type?: PiReportType;
+  dateFrom?: string;
+  dateTo?: string;
   period?: string;
   page?: number;
   limit?: number;

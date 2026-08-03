@@ -87,7 +87,7 @@ export class InstallationService {
       if (!result.success) {
         current = markPhaseFailed(current, phase, result.error!);
         saveState(current);
-        logger.error(`Installation failed at ${phase}`, result.error?.error);
+        logger.error(`Installation failed at ${phase}`, new Error(result.error?.message || "Unknown error"));
         return stateToProgress(current);
       }
 
@@ -184,7 +184,17 @@ export class InstallationService {
   private async stepRunMigrations(): Promise<StepResult> {
     try {
       const { runMigrations } = await import("@/core/database");
-      return await runMigrations();
+      const result = await runMigrations();
+      if (!result.success) {
+        return {
+          success: false,
+          error: {
+            phase: "database_migration",
+            message: result.error || "Database migration failed",
+          },
+        };
+      }
+      return { success: true };
     } catch (err) {
       return {
         success: false,

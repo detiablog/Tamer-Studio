@@ -50,6 +50,19 @@ const fetcher = (url: string) =>
 
 type Tab = "overview" | "incidents" | "hotfixes" | "health" | "kpis" | "feedback" | "reports";
 
+interface HypercareIncident {
+  id: string;
+  title: string;
+  description: string;
+  severity: string;
+  status: string;
+  priority?: string;
+  affectedModule?: string;
+  affectedServices?: string[];
+  createdAt?: string;
+  timeline?: Array<{ timestamp?: string; time?: string; action?: string; status?: string; note?: string; message?: string }>;
+}
+
 function StatusDot({ status }: { status: string }) {
   const color =
     status === "healthy" || status === "resolved" || status === "verified" || status === "on_track"
@@ -105,7 +118,7 @@ export function HypercarePageClient() {
   const [searchQuery, setSearchQuery] = React.useState("");
   const [showCreateIncident, setShowCreateIncident] = React.useState(false);
   const [showCreateHotfix, setShowCreateHotfix] = React.useState(false);
-  const [selectedIncident, setSelectedIncident] = React.useState<Record<string, unknown> | null>(null);
+  const [selectedIncident, setSelectedIncident] = React.useState<HypercareIncident | null>(null);
 
   const [newIncident, setNewIncident] = React.useState({
     title: "", description: "", severity: "medium", priority: "medium", affectedModule: "", affectedServices: "",
@@ -474,7 +487,7 @@ export function HypercarePageClient() {
                     <Clock className="size-3" />
                     {t("hypercare.createdAt", "Created")}: {selectedIncident.createdAt}
                   </div>
-                  {selectedIncident.affectedServices && selectedIncident.affectedServices.length > 0 && (
+                  {Array.isArray(selectedIncident.affectedServices) && selectedIncident.affectedServices.length > 0 && (
                     <div className="mb-4">
                       <p className="text-xs font-medium text-muted-foreground mb-1">{t("hypercare.affectedServices", "Affected Services")}</p>
                       <div className="flex flex-wrap gap-1">

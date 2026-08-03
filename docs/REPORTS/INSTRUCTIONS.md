@@ -1,1005 +1,478 @@
-# Tamer Studio AI Engineering Instructions
-Version: 1.0
+# P0 :: CORE
 
-## PURPOSE
+RULE
+Runtime > Report
 
-You are the Lead Software Engineer responsible for maintaining, extending, and improving the Tamer Studio codebase.
+RULE
+Browser > Build
 
-These instructions apply to every implementation unless a Sprint Specification explicitly overrides them.
+RULE
+Existing > New
 
-Your responsibility is not only to write code, but to preserve software quality, architecture consistency, scalability, maintainability, and long-term project health.
+RULE
+Reuse > Improve > Extend
 
----
+RULE
+Architecture > Feature
 
-# CORE ENGINEERING PHILOSOPHY
+RULE
+Quality > Speed
 
-Always think before coding.
+RULE
+Database = SSOT
 
-Understand before modifying.
+RULE
+Documentation != Truth
 
-Search before creating.
+RULE
+Browser = Truth
 
-Reuse before extending.
-
-Extend before rebuilding.
-
-Preserve before replacing.
-
-Consistency over shortcuts.
-
-Maintainability over speed.
-
-Architecture over convenience.
-
-Quality over quantity.
-
-Long-term code quality is always more important than short-term implementation speed.
+FAIL
+Build PASS != Runtime PASS
 
 ---
 
-# PRIMARY OBJECTIVE
+# P0 :: FROZEN
 
-Your objective is to improve the existing Tamer Studio project while preserving its architecture.
+LOCK
 
-Never prioritize writing new code over understanding the existing codebase.
+- Database Architecture
+- RBAC
+- Better Auth
+- Installation Runtime
+- Bootstrap
+- Configuration
+- Environment
+- Migration Architecture
+- Seed Architecture
 
-Every implementation must improve the project rather than increase technical debt.
+ALLOW
 
----
+- Bug Fix
+- Security Fix
+- Performance
+- Additive Feature
 
-# BEFORE WRITING ANY CODE
+FORBIDDEN
 
-Always perform a complete project audit.
-
-Search and understand:
-
-- Project structure
-- Folder organization
-- Existing architecture
-- Existing business logic
-- Existing services
-- Existing APIs
-- Existing components
-- Existing utilities
-- Existing middleware
-- Existing hooks
-- Existing providers
-- Existing database schema
-- Existing admin features
-- Existing localization
-- Existing settings
-- Existing billing
-- Existing subscriptions
-
-Never assume something does not exist.
-
-Search first.
+- Rewrite Architecture
+- Replace Runtime
+- Auth V2
+- Session V2
+- Repository V2
+- Service V2
+- Middleware V2
 
 ---
 
-# IMPLEMENTATION PRIORITY
+# EXISTING FIRST
 
-Always follow this order:
+FLOW
 
-1. Search existing implementation.
-2. Analyze existing implementation.
-3. Reuse existing implementation.
-4. Extend existing implementation.
-5. Create new implementation only if absolutely necessary.
+Audit
+→ Existing
+→ Reuse
+→ Improve
+→ Extend
 
-Never duplicate existing functionality.
+NEVER
 
----
+Search
+→ Rewrite
 
-# PROJECT ARCHITECTURE
+IF Existing >=70%
 
-Always preserve the existing architecture.
+Improve.
 
-Never replace architecture without explicit instruction.
-
-Follow the current project structure.
-
-Reuse:
-
-- Components
-- Services
-- Hooks
-- Providers
-- Middleware
-- Utilities
-- Types
-- APIs
-
-Maintain consistent naming conventions.
-
-Keep modules cohesive.
-
-Avoid unnecessary abstractions.
+Do NOT recreate.
 
 ---
 
-# DATABASE RULES
+# ACTIVE RUNTIME
 
-The database is the Single Source of Truth.
+VERIFY
 
-Never hardcode business configuration.
+Route
+→ Layout
+→ Page
+→ Component
+→ Child
 
-This includes but is not limited to:
+Only modify active runtime.
 
-- Languages
-- Regions
-- Currency
-- Pricing
-- Payment Methods
-- Campaigns
-- Subscription Plans
-- Feature Flags
-- Settings
+Never modify dead code.
 
-Reuse existing database tables whenever possible.
-
-Only create new tables if absolutely necessary.
-
-Prefer database migrations over replacements.
-
-Never delete existing production data.
-
-Never drop existing tables unless explicitly instructed.
-
-Maintain backward compatibility.
+Never assume newest file is active.
 
 ---
 
-# BUSINESS LOGIC
+# IMPACT
 
-Business logic belongs on the server.
+CHECK
 
-Avoid placing business logic inside:
+UI
+API
+Database
+Repository
+Service
+Auth
+Session
+Cookie
+Middleware
+RBAC
+Navigation
+Installation
+Landing
+CMS
+Billing
+AI Runtime
+Localization
 
-- UI Components
-- Pages
-- Client Hooks
-
-UI should consume services rather than implement business rules.
-
----
-
-# API RULES
-
-Before creating a new API:
-
-Search existing routes.
-
-Search existing services.
-
-Search existing server actions.
-
-Search existing controllers.
-
-Reuse existing endpoints whenever possible.
-
-Never duplicate APIs.
+Every affected module must be verified.
 
 ---
 
-# COMPONENT RULES
+# DATABASE
 
-Before creating a new component:
+Database = SSOT
 
-Search existing components.
+NO
 
-Search layouts.
+Hardcoded URL
+Hardcoded Secret
+Hardcoded Email
+Hardcoded Currency
+Hardcoded Locale
+Hardcoded Domain
 
-Search shared UI.
+Schema
 
-Search design system.
+Additive First
 
-Reuse existing components whenever possible.
+Backward Compatible
 
-Only create new components when no suitable component exists.
-
-Maintain visual consistency across the project.
-
----
-
-# TYPESCRIPT
-
-Always use Strict TypeScript.
-
-Avoid using:
-
-- any
-- unnecessary type assertions
-- duplicated interfaces
-
-Reuse existing types whenever possible.
-
-Keep types centralized.
+No destructive migration without Architecture Sprint.
 
 ---
 
-# ADMIN PANEL
+# RBAC
 
-Whenever a feature is configurable:
+Role = Identity
 
-Prefer implementing it through the Admin Panel.
+Permission = Capability
 
-Avoid hardcoded configuration.
+FeatureFlag = Availability
 
-Configuration should be stored in the database whenever appropriate.
+FLOW
 
-Reuse existing Admin UI patterns.
+Feature Enabled
+→ Permission Granted
+→ Access
+
+Never authorize by role alone.
+
+Roles
+
+Guest
+User
+Admin
+Founder
+
+No additional system roles.
 
 ---
 
-# SYNCHRONIZATION
+# AUTH
 
-Always identify all affected modules.
+Reuse Better Auth.
 
-Never implement isolated features.
+Reuse Session.
 
-Whenever a feature changes, verify synchronization across:
+Reuse Middleware.
 
-- Landing Page
-- Dashboard
-- Admin Panel
-- Authentication
-- Checkout
-- User Settings
-- SEO
-- Metadata
-- Localization
-- Billing
-- Subscription
+Reuse Cookie.
 
-Synchronization is mandatory.
+Founder
+
+Email
+Password
+MasterKey
+
+Admin
+
+Email
+Password
+
+Never create parallel authentication.
+
+---
+
+# INSTALL
+
+Reuse
+
+Migration
+Bootstrap
+RBAC
+BetterAuth
+Seeds
+
+Installer creates Founder only.
+
+---
+
+# UI
+
+Responsive Required
+
+Dark Mode Compatible
+
+Accessible
+
+No Placeholder
+
+No Missing i18n
+
+Permission Driven
+
+FeatureFlag Aware
+
+---
+
+# API
+
+Thin Controller
+
+Service Logic
+
+Repository Access
+
+Validate Input
+
+Consistent Response
+
+Audit Sensitive Action
 
 ---
 
 # LOCALIZATION
 
-Localization is a Business Engine.
+Every new text
 
-Localization controls:
+EN
+ID
 
-- Language
-- Region
-- Currency
-- Pricing Profile
-- Payment Profile
-- Campaign
-- Business Rules
+No raw string.
 
-Do not implement regional logic outside the Localization Engine.
+No missing key.
 
 ---
 
-# SECURITY
+# REPORT
 
-Validate everything server-side.
+Always include
 
-Never trust client-side values.
+Reused
+Improved
+Created
+Modified
+Database
+API
+UI
+Known Risk
+Regression
+Next Sprint
 
-Sanitize user input.
-
-Protect admin functionality.
-
-Protect sensitive APIs.
-
-Prevent unauthorized access.
-
-Follow secure coding practices.
-
----
-
-# PERFORMANCE
-
-Reuse existing caching.
-
-Avoid duplicated database queries.
-
-Avoid duplicated API requests.
-
-Avoid unnecessary rendering.
-
-Optimize expensive operations.
-
-Keep implementations scalable.
+Reports are not proof.
 
 ---
 
-# CODE QUALITY
+# VERIFY
 
-Production Ready only.
+Browser
 
-Never leave:
+Console
 
-- TODO
-- FIXME
-- Placeholder
-- Mock implementation
-- Dead code
-- Unused imports
-- Duplicate logic
+Network
 
-Write clean, maintainable code.
+Database
 
-Follow the project's coding style.
+Route
 
----
+Permission
 
-# REGRESSION PROTECTION
+Session
 
-Before modifying any code:
+Cookie
 
-Identify:
+Localization
 
-- Dependencies
-- Downstream impact
-- Existing consumers
-- Possible regressions
+Responsive
 
-Never break existing functionality.
-
-Backward compatibility is mandatory unless explicitly instructed otherwise.
+Audit Log
 
 ---
 
-# IMPLEMENTATION STRATEGY
+# REGRESSION
 
-Treat every Sprint as an Engineering Specification.
+Every change must verify
 
-Read the entire Sprint before implementation.
+Authentication
 
-Do not skip sections.
+Authorization
 
-Implementation Roadmap defines execution order.
+Navigation
 
-Requirements define mandatory behavior.
+Database
 
-Acceptance Criteria define completion.
+Installation
 
-Implementation Report is mandatory.
+Landing
 
----
+CMS
 
-# IMPLEMENTATION ORDER
+Billing
 
-Unless explicitly overridden by the Sprint:
+AI Runtime
 
-1. Audit Existing Codebase
-2. Analyze Dependencies
-3. Analyze Database
-4. Search Existing Implementation
-5. Reuse Existing Modules
-6. Extend Existing Features
-7. Create New Features only if required
-8. Synchronize Related Modules
-9. Verify Backward Compatibility
-10. Regression Testing
-11. End-to-End Testing
+User Dashboard
+
+Admin Dashboard
 
 ---
 
-# REPORTING
+# TECHNICAL DEBT
 
-Every completed Sprint must include a final implementation report.
+Found issue?
 
-The report must contain:
+Choose
 
-- Existing modules reused
-- Existing modules extended
-- New modules created
-- Existing files modified
-- New files created
-- Database changes
-- API changes
-- UI changes
-- Synchronization summary
-- Regression testing summary
-- Known limitations
-- Recommendations for the next Sprint
+KEEP
 
-Never end implementation without the report.
+IMPROVE
+
+MERGE
+
+REMOVE
+
+Never ignore.
+
+Leave project cleaner than before.
 
 ---
 
-# DECISION MAKING
+# FORBIDDEN
 
-When multiple implementation approaches exist:
+Duplicate Component
 
-Choose the solution that:
+Duplicate Route
 
-- Reuses more existing code
-- Produces less technical debt
-- Improves maintainability
-- Preserves architecture
-- Minimizes regressions
-- Maximizes scalability
+Duplicate API
 
-Avoid unnecessary complexity.
+Duplicate Repository
 
----
+Duplicate Service
 
-# SPRINT PRIORITY
+Duplicate Runtime
 
-If a Sprint Specification conflicts with these instructions:
+Duplicate Middleware
 
-The Sprint Specification takes precedence only for that specific requirement.
+Duplicate Auth
 
-All other global engineering instructions remain in effect.
+Unused Component Modification
 
----
+Legacy Runtime Modification
 
-# FINAL PRINCIPLE
-
-Build software as if you will maintain it for the next five years.
-
-Every line of code should improve the project.
-
-Never sacrifice architecture for short-term convenience.
-
-Think like a Senior Software Engineer.
-
-Think like a Software Architect.
-
-Think like the future maintainer of the project.
-
-# INTERNATIONALIZATION (i18n) & LOCALIZATION RULES
-
-Tamer Studio supports multiple languages.
-
-Internationalization must always remain complete and synchronized.
-
-Current supported languages include:
-
-- English (default)
-- Indonesian
+Fake PASS Report
 
 ---
 
-# TRANSLATION SYNCHRONIZATION
+# DONE
 
-Whenever creating, modifying, renaming, or removing:
+Required
 
-- UI text
-- Labels
-- Buttons
-- Menus
-- Titles
-- Descriptions
-- Tooltips
-- Notifications
-- Validation Messages
-- Error Messages
-- Success Messages
-- Placeholders
-- Dialogs
-- Form Labels
-- Table Headers
-- Settings
-- Navigation Items
-- Dashboard Widgets
-- Admin Panel Text
-- Landing Page Content
-- Metadata
+Build PASS
 
-You MUST update every localization file.
+Lint PASS
 
-Never leave translation files unsynchronized.
+Runtime PASS
+
+Browser PASS
+
+Regression PASS
+
+Permission PASS
+
+Database PASS
+
+Localization PASS
+
+Protected Route PASS
+
+End-to-End PASS
+
+Otherwise
+
+NOT COMPLETE.
 
 ---
 
-# TRANSLATION KEYS
+# SPRINT
 
-Never hardcode user-facing text.
+Audit
 
-Every visible string must use localization keys.
+↓
 
-Whenever new UI text is introduced:
+Dependency
 
-1. Create the translation key.
-2. Add the English translation.
-3. Add the Indonesian translation.
-4. Register the key if required by the existing localization architecture.
-5. Replace hardcoded text with the translation key.
+↓
 
----
+Runtime Dependency
 
-# MODIFYING EXISTING TEXT
+↓
 
-Whenever an existing text changes:
+Impact
 
-Automatically update every language.
+↓
 
-Never update only one language.
+Implementation
 
-All supported languages must remain synchronized.
+↓
 
----
+Runtime Verify
 
-# REMOVING TEXT
+↓
 
-Whenever removing UI elements:
+Regression
 
-Remove unused translation keys if they are no longer referenced anywhere.
+↓
 
-Do not leave orphan translation keys.
+End-to-End
 
----
+↓
 
-# RENAME KEYS
+Report
 
-Whenever renaming translation keys:
+↓
 
-Automatically update every reference.
+Done
 
-Never leave broken translation references.
+Skipping phases is forbidden.
 
 ---
 
-# TRANSLATION CONSISTENCY
+# ENGINEERING LAW
 
-Use consistent terminology across the project.
+Every Sprint
 
-Avoid duplicate meanings with different keys.
+Reduce Technical Debt
 
-Reuse existing translation keys whenever possible.
+Increase Consistency
 
-Do not create duplicate translations.
+Preserve Architecture
 
-Search before creating new keys.
+Improve Documentation
 
----
+Never sacrifice Runtime for Report.
 
-# ADMIN PANEL
-
-Every new configurable feature added to the Admin Panel must support localization.
-
-Do not hardcode admin labels.
-
----
-
-# LANDING PAGE
-
-Landing content must always support localization.
-
-Never hardcode landing text.
-
-Landing Builder must remain localization-ready.
-
----
-
-# DASHBOARD
-
-Dashboard content must always support localization.
-
-All widgets must use translation keys.
-
----
-
-# AUTHENTICATION
-
-Login
-
-Register
-
-Forgot Password
-
-Reset Password
-
-Profile
-
-Account Settings
-
-All must remain fully localized.
-
----
-
-# ERROR MESSAGES
-
-Every new error message must include translations for every supported language.
-
-Never return untranslated user-facing errors.
-
----
-
-# SUCCESS MESSAGES
-
-Every success message must include translations for every supported language.
-
----
-
-# VALIDATION MESSAGES
-
-Every validation message must include translations for every supported language.
-
----
-
-# AUTOMATIC SYNCHRONIZATION
-
-Translation maintenance is automatic.
-
-Whenever implementation changes UI text, translation files must also be updated.
-
-This is not an optional task.
-
-This is part of every implementation.
-
-Never wait for a separate localization Sprint.
-
----
-
-# REGRESSION PROTECTION
-
-After implementation verify:
-
-✔ No missing translation keys.
-
-✔ No untranslated UI.
-
-✔ No fallback caused by missing keys.
-
-✔ No orphan translation keys.
-
-✔ No duplicate translation keys.
-
-✔ English is synchronized.
-
-✔ Indonesian is synchronized.
-
----
-
-# IMPLEMENTATION REPORT
-
-Every Sprint implementation report must include:
-
-- New translation keys
-- Updated translation keys
-- Removed translation keys
-- Languages updated
-- Missing translations (if any)
-
-Translation synchronization is considered mandatory.
-
-# TRANSLATION FIRST POLICY
-
-Whenever any implementation changes user-facing content, the localization system must be updated immediately as part of the same implementation.
-
-Translation updates must never become a separate task.
-
-The implementation is considered incomplete until all supported languages are synchronized.
-
-# ZERO HARDCODED USER TEXT POLICY
-
-Never hardcode user-visible text anywhere in the application.
-
-Every user-facing string must come from the localization system.
-
-This applies to:
-
-- Landing Page
-- Dashboard
-- Admin Panel
-- Authentication
-- Checkout
-- Billing
-- AI Features
-- Settings
-- Notifications
-- Dialogs
-- Validation
-- Errors
-- Emails
-- Tooltips
-
-Hardcoded user-facing text is considered an implementation defect.
-
-# EXECUTION EFFICIENCY
-
-The project is large and implementation may span many files.
-
-Reasoning should be concise and goal-oriented.
-
-Do not generate excessively long internal reasoning.
-
-Avoid repeating information already analyzed.
-
-Focus on implementation rather than explanation.
-
-Spend more tokens on implementation than reasoning.
-
----
-
-# REASONING POLICY
-
-Before implementing:
-
-- Analyze the current Sprint.
-- Analyze only the relevant modules.
-- Identify dependencies.
-- Make an implementation plan.
-
-Once the plan is clear:
-
-Begin implementation immediately.
-
-Do not continue expanding analysis unnecessarily.
-
-Avoid overthinking.
-
-Avoid repeating architecture explanations.
-
-Avoid restating Sprint requirements.
-
----
-
-# MINIMAL REASONING
-
-Reason only when it directly improves implementation.
-
-Do not explain obvious decisions.
-
-Do not describe every coding step.
-
-Do not generate long implementation diaries.
-
-Do not repeatedly summarize the Sprint.
-
----
-
-# TOKEN EFFICIENCY
-
-Preserve context length.
-
-Avoid consuming context with repetitive reasoning.
-
-Prefer code changes over lengthy explanations.
-
-Prefer concise implementation notes.
-
-Large projects require maximizing available context for implementation.
-
----
-
-# EXECUTION MODE
-
-Prioritize execution.
-
-If sufficient information is available:
-
-Implement immediately.
-
-Do not ask unnecessary questions.
-
-Do not repeatedly confirm the same requirement.
-
-Do not restate completed analysis.
-
----
-
-# REPORTING
-
-Provide reasoning only when necessary.
-
-The final implementation report should summarize the work.
-
-Do not generate long progress reports during implementation.
-
-Use short implementation updates instead.
-
----
-
-# CONTEXT PRESERVATION
-
-Preserve context for code generation.
-
-Avoid wasting context on repeated explanations.
-
-Focus on:
-
-- Analysis
-- Implementation
-- Validation
-- Final Report
-
-Everything else should remain concise.
-
----
-
-# ENGINEERING PRIORITY
-
-The priority order is:
-
-1. Correct implementation
-2. Architecture compliance
-3. Code quality
-4. Context efficiency
-5. Concise reasoning
-
-Implementation quality is more important than verbose reasoning.
-
-# THINK ONCE POLICY
-
-Analyze once.
-
-Plan once.
-
-Implement continuously.
-
-Do not repeatedly re-analyze the same codebase unless new information appears.
-
-Reuse previous conclusions during the same implementation session.
-
-# AVOID ANALYSIS LOOP
-
-Do not repeatedly:
-
-- Audit the same files.
-- Explain the same architecture.
-- Restate the same Sprint.
-- Re-evaluate unchanged modules.
-
-If previous analysis is sufficient, continue implementation.
-
-Only perform additional analysis when new dependencies are discovered.
-
-# CMS Development Rule (Permanent)
-
-Whenever a new editable feature is introduced, AI MUST first determine whether it belongs to the existing CMS Engine.
-
-AI MUST NOT create a new CMS, Page Builder, Landing Builder, Media Manager, or Content Management implementation if an equivalent capability already exists.
-
-Before implementing any editable feature, AI MUST:
-
-1. Search the existing CMS Engine.
-2. Reuse existing content types whenever possible.
-3. Extend the existing Content Registry instead of creating parallel systems.
-4. Reuse existing Media Library.
-5. Reuse existing Publishing Pipeline.
-6. Reuse existing Versioning.
-7. Reuse existing Permission System.
-8. Reuse existing Localization Runtime.
-9. Reuse existing SEO integration.
-
-If a new content type is required, AI MUST register it in the CMS Content Registry instead of creating a standalone implementation.
-
-Duplicate CMS implementations are forbidden.
-
-Runtime Configuration Policy
-
-Never use arbitrary ports.
-Always read .env.local first.
-If not found, read .env.
-Use the configured application port.
-Never change runtime ports unless explicitly instructed.
-If the configured port is already in use, identify the conflicting process and report it instead of silently switching to another port.
-All runtime commands (next dev, next start, tests, Playwright, API verification) must use the configured port unless the user explicitly requests otherwise.
-
-Runtime Port Policy
-
-Always use the application's configured port from .env.local or .env.
-Never choose an arbitrary fallback port automatically.
-If the configured port is occupied:
-identify the conflicting process,
-report it,
-stop the conflicting process only if explicitly permitted,
-or request confirmation before using another port.
-Every verification report must record why a different port was used, if applicable.
-No new feature development is allowed if the authentication lifecycle is failing. Every authentication-related change must pass the complete end-to-end authentication verification (Register → Login → Session → Middleware → Protected API → Logout) before the sprint can be marked as complete.
-
-## Mandatory Verification Rule
-
-Before implementing any new feature or bug fix, the AI must verify that:
-
-1. Database schema matches the latest Drizzle schema.
-2. Database matches Better Auth requirements.
-3. No migration drift exists.
-4. Register lifecycle passes.
-5. User login lifecycle passes.
-6. Admin login lifecycle passes.
-7. Session persistence passes.
-8. Protected API verification passes.
-9. Middleware verification passes.
-
-If any verification fails, feature development must stop until the issue is resolved.
-
-No sprint may be marked COMPLETE without passing all verification checks.
-
-## Authentication Architecture Rule
-
-The project must maintain a single authentication architecture.
-
-Every authentication and authorization flow must use the same Better Auth runtime.
-
-Forbidden:
-
-- Manual cookie parsing
-- Custom admin sessions
-- Separate admin authentication
-- Legacy authentication middleware
-- Duplicate session validation
-- Direct authentication table queries for authorization
-
-Every protected route and API must retrieve the authenticated user through the centralized authentication helper.
-
-Role and permission validation must always be performed on the server using the authenticated session.
-
-Any new admin feature must automatically integrate with the shared authentication runtime without introducing a second authentication mechanism.
-
-## Authentication Runtime Rules
-
-Every authenticated request must use the centralized Better Auth runtime.
-
-The following are strictly forbidden:
-
-- Manual cookie parsing
-- Manual JWT validation
-- Multiple authentication helpers
-- Multiple session implementations
-- Custom admin authentication
-- Legacy authentication middleware
-- Reading authentication state directly from cookies
-- Reading roles from request payloads
-
-Middleware, Server Components, Route Handlers, Server Actions and API Routes must all use the same authentication helper.
-
-Authentication logic must never be duplicated.
-
-Any authentication change must automatically execute the complete authentication verification suite before being considered complete.
-
-## API Architecture Rules
-
-Every backend endpoint must use the centralized runtime architecture.
-
-Every API Route must:
-
-- Use the shared Better Auth helper.
-- Use the shared database client.
-- Validate every request using the project's standard validation library.
-- Return standardized response objects.
-- Handle every exception gracefully.
-- Never expose internal errors.
-- Never duplicate authentication logic.
-- Never duplicate database initialization.
-- Never create additional API patterns outside the established architecture.
-
-Any newly created API Route must automatically pass the API verification suite before it is considered complete.
-
-## Runtime Verification Policy
-
-Runtime behavior is the single source of truth.
-
-Documentation, generated reports, static analysis, and previous verification results must never override actual browser behavior.
-
-A sprint cannot be marked PASS if:
-
-- Browser login fails.
-- Console contains runtime errors.
-- Required pages do not render correctly.
-- Network requests fail.
-- Playwright end-to-end tests fail.
-- The UI does not match the expected application state.
-
-Every verification sprint must end with:
-
-1. Playwright browser execution.
-2. Browser screenshots.
-3. Console error verification.
-4. Network request verification.
-5. Database state verification.
-
-Reports may only be generated after all runtime verification steps have passed successfully.
-
-## Existing Implementation First
-
-Before implementing any feature:
-
-1. Analyze the latest source code.
-2. Identify existing implementation.
-3. Reuse existing architecture whenever possible.
-4. Extend existing modules instead of creating new ones.
-5. Never duplicate runtime, services, repositories, providers, or components.
-6. If an existing implementation satisfies at least 70% of the requirement, improve it instead of replacing it.
-7. New modules may only be created when no suitable implementation exists.
-8. Always explain which existing files are being reused before proposing architectural changes.
+Reality over Reports.

@@ -2,33 +2,74 @@ import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { logger } from "@/core/logger";
 
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL || "",
-  token: process.env.UPSTASH_REDIS_REST_TOKEN || "",
+let redisClient: Redis | null = null;
+let authLimiterInstance: Ratelimit | null = null;
+let apiLimiterInstance: Ratelimit | null = null;
+let productionLimiterInstance: Ratelimit | null = null;
+
+function getRedisClient(): Redis {
+  if (!redisClient) {
+    redisClient = new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL || "",
+      token: process.env.UPSTASH_REDIS_REST_TOKEN || "",
+    });
+  }
+  return redisClient;
+}
+
+export function getAuthLimiter(): Ratelimit {
+  if (!authLimiterInstance) {
+    authLimiterInstance = new Ratelimit({
+      redis: getRedisClient(),
+      limiter: Ratelimit.slidingWindow(5, "15 m"),
+      analytics: true,
+      prefix: "ratelimit:auth",
+    });
+  }
+  return authLimiterInstance;
+}
+
+export function getApiLimiter(): Ratelimit {
+  if (!apiLimiterInstance) {
+    apiLimiterInstance = new Ratelimit({
+      redis: getRedisClient(),
+      limiter: Ratelimit.slidingWindow(100, "1 m"),
+      analytics: true,
+      prefix: "ratelimit:api",
+    });
+  }
+  return apiLimiterInstance;
+}
+
+export function getProductionLimiter(): Ratelimit {
+  if (!productionLimiterInstance) {
+    productionLimiterInstance = new Ratelimit({
+      redis: getRedisClient(),
+      limiter: Ratelimit.slidingWindow(20, "1 h"),
+      analytics: true,
+      prefix: "ratelimit:production",
+    });
+  }
+  return productionLimiterInstance;
+}
+
+// Backward compatibility - lazy getters
+export const authLimiter = new Proxy({} as Ratelimit, {
+  get(_, prop) {
+    return (getAuthLimiter() as any)[prop];
+  },
 });
 
-// Login/Register: 5 requests per 15 minutes per IP
-export const authLimiter = new Ratelimit({
-  redis,
-  limiter: Ratelimit.slidingWindow(5, "15 m"),
-  analytics: true,
-  prefix: "ratelimit:auth",
+export const apiLimiter = new Proxy({} as Ratelimit, {
+  get(_, prop) {
+    return (getApiLimiter() as any)[prop];
+  },
 });
 
-// API endpoints: 100 requests per minute per user
-export const apiLimiter = new Ratelimit({
-  redis,
-  limiter: Ratelimit.slidingWindow(100, "1 m"),
-  analytics: true,
-  prefix: "ratelimit:api",
-});
-
-// Production execution: 20 per hour per workspace
-export const productionLimiter = new Ratelimit({
-  redis,
-  limiter: Ratelimit.slidingWindow(20, "1 h"),
-  analytics: true,
-  prefix: "ratelimit:production",
+export const productionLimiter = new Proxy({} as Ratelimit, {
+  get(_, prop) {
+    return (getProductionLimiter() as any)[prop];
+  },
 });
 
 export async function checkRateLimit(

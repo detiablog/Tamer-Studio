@@ -6,14 +6,19 @@ import { LocalStorage } from "@/core/assets/local-storage";
 import { logAction } from "@/core/audit";
 import { logger } from "@/core/logger";
 
-function createAssetService(): AssetService {
-  const storage = new LocalStorage();
-  return new AssetService(storage);
+let assetServiceInstance: AssetService | null = null;
+
+function getAssetService(): AssetService {
+  if (!assetServiceInstance) {
+    const storage = new LocalStorage();
+    assetServiceInstance = new AssetService(storage);
+  }
+  return assetServiceInstance;
 }
 
 export class MediaService {
   private repository = new MediaRepository();
-  private assetService = createAssetService();
+  private assetService = getAssetService();
 
   async upload(
     userId: string,

@@ -921,6 +921,9 @@
   },
   "admin": {
     "dashboard": "Dashboard",
+    "management": "Manajemen",
+    "marketing": "Pemasaran",
+    "settings": "Pengaturan",
     "label": "Admin",
     "database": "Database",
     "jobQueue": "Job Queue",
@@ -2166,12 +2169,16 @@
       "masterKeyLabel": "Kunci Admin",
       "masterKeyPlaceholder": "Masukkan kunci admin",
       "submit": "Masuk",
+      "modeLabel": "Mode login",
+      "modeAdmin": "Admin",
+      "modeFounder": "Founder",
       "errors": {
         "missing_fields": "Harap isi semua kolom.",
         "invalid_master_key": "Kunci admin tidak valid. Akses ditolak.",
         "invalid_credentials": "Email atau kata sandi tidak valid.",
         "account_inactive": "Akun admin Anda tidak aktif.",
-        "unexpected_error": "Terjadi kesalahan tak terduga. Silakan coba lagi."
+        "unexpected_error": "Terjadi kesalahan tak terduga. Silakan coba lagi.",
+        "rate_limited": "Terlalu banyak percobaan. Silakan coba lagi nanti."
       }
     },
     "loginForm": {
@@ -2191,8 +2198,16 @@
       "securelyStored": "Kredensial Anda dienkripsi dan disimpan dengan aman.",
       "authenticating": "Mengotentikasi...",
       "submitButton": "Masuk",
+      "submitFounder": "Masuk sebagai Founder",
+      "rememberMe": "Ingat saya",
+      "invalidEmail": "Harap masukkan alamat email yang valid.",
       "restrictedAccess": "Akses terbatas — hanya personel yang berwenang",
-      "toastSuccess": "Portal admin berhasil diakses"
+      "toastSuccess": "Portal admin berhasil diakses",
+      "successTitle": "Akses Diberikan",
+      "successMessage": "Mengalihkan ke portal admin..."
+    },
+    "sidebar": {
+      "label": "Navigasi admin"
     },
     "payments": "Pembayaran",
     "paymentsDescription": "Kelola transaksi pembayaran dan penagihan",

@@ -1,11 +1,17 @@
 import { cookies } from "next/headers";
 import { adminRepository, adminSessionRepository } from "./admin.repository";
 import { logger } from "@/core/logger";
-import type { AdminSession } from "./types";
+import type { AdminSession, AdminRole } from "./types";
 
 export async function getAdminSession(): Promise<AdminSession | null> {
-  const cookieStore = await cookies();
-  const sessionToken = cookieStore.get("admin_session")?.value;
+  let sessionToken: string | undefined;
+
+  try {
+    const cookieStore = await cookies();
+    sessionToken = cookieStore.get("admin_session")?.value;
+  } catch {
+    return null;
+  }
 
   if (!sessionToken) {
     return null;
@@ -39,7 +45,7 @@ export async function getAdminSession(): Promise<AdminSession | null> {
       id: sessionRecord.id,
       token: sessionRecord.token,
       adminId: sessionRecord.adminId,
-      role: adminRecord.role as "admin" | "super_admin",
+      role: adminRecord.role as AdminRole,
       expiresAt: sessionRecord.expiresAt,
       createdAt: sessionRecord.createdAt,
     };
@@ -61,7 +67,7 @@ export async function setAdminSessionCookie(token: string): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.set("admin_session", token, {
     httpOnly: true,
-    secure: false,
+    secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     maxAge: 24 * 60 * 60,
     path: "/",
@@ -100,7 +106,7 @@ export async function getAdminSessionFromToken(
       id: sessionRecord.id,
       token: sessionRecord.token,
       adminId: sessionRecord.adminId,
-      role: adminRecord.role as "admin" | "super_admin",
+      role: adminRecord.role as AdminRole,
       expiresAt: sessionRecord.expiresAt,
       createdAt: sessionRecord.createdAt,
     };

@@ -132,6 +132,7 @@ type MetricSummary = {
   min: number;
   max: number;
   count: number;
+  unit?: string;
 };
 
 type CapacityForecast = {

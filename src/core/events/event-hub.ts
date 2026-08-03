@@ -1,20 +1,9 @@
 import { logger } from "@/core/logger/logger";
 import { eventBus } from "./event-bus";
 import { EventLog } from "./event-log";
-import {
-  getCacheInvalidationSubscriber,
-  resetCacheInvalidationSubscriber,
-} from "./subscribers/cache-invalidation.subscriber";
-import {
-  getAuditLogSubscriber,
-  resetAuditLogSubscriber,
-} from "./subscribers/audit-log.subscriber";
-import {
-  getNotificationSubscriber,
-  resetNotificationSubscriber,
-} from "./subscribers/notification.subscriber";
 
 let initialized = false;
+let subscribersRegistered = false;
 const eventLog = new EventLog();
 
 function setupEventLogging(): void {
@@ -23,30 +12,38 @@ function setupEventLogging(): void {
   });
 }
 
+async function registerSubscribers(): Promise<void> {
+  if (subscribersRegistered) return;
+  subscribersRegistered = true;
+
+  const [
+    { getCacheInvalidationSubscriber },
+    { getAuditLogSubscriber },
+    { getNotificationSubscriber },
+  ] = await Promise.all([
+    import("./subscribers/cache-invalidation.subscriber"),
+    import("./subscribers/audit-log.subscriber"),
+    import("./subscribers/notification.subscriber"),
+  ]);
+
+  getCacheInvalidationSubscriber().initialize();
+  getAuditLogSubscriber().initialize();
+  getNotificationSubscriber().initialize();
+
+  logger.info("EventHub subscribers registered", {
+    stats: eventBus.getStats(),
+  });
+}
+
 export function initializeEventHub(): void {
   if (initialized) {
-    logger.warn("EventHub already initialized, skipping");
     return;
   }
 
-  logger.info("Initializing EventHub...");
-
-  setupEventLogging();
-
-  const cacheInvalidation = getCacheInvalidationSubscriber();
-  cacheInvalidation.initialize();
-
-  const auditLog = getAuditLogSubscriber();
-  auditLog.initialize();
-
-  const notification = getNotificationSubscriber();
-  notification.initialize();
-
   initialized = true;
 
-  logger.info("EventHub initialized successfully", {
-    stats: eventBus.getStats(),
-  });
+  setupEventLogging();
+  registerSubscribers();
 }
 
 export function shutdownEventHub(): void {
@@ -54,13 +51,10 @@ export function shutdownEventHub(): void {
 
   logger.info("Shutting down EventHub...");
 
-  resetCacheInvalidationSubscriber();
-  resetAuditLogSubscriber();
-  resetNotificationSubscriber();
-
   eventLog.clear();
 
   initialized = false;
+  subscribersRegistered = false;
 
   logger.info("EventHub shut down successfully");
 }

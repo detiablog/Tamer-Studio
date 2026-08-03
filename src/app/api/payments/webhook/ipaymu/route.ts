@@ -5,7 +5,7 @@ import { logger } from "@/core/logger";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ provider: string }> }
+  { params }: { params: Promise<Record<string, string>> }
 ) {
   const { provider } = await params;
 

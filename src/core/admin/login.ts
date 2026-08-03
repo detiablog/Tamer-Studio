@@ -8,23 +8,27 @@ import { randomUUID } from "crypto";
 export async function loginAdmin(credentials: {
   email: string;
   password: string;
-  adminKey: string;
+  adminKey?: string;
   ipAddress?: string;
   userAgent?: string;
 }) {
-  const isValidMasterKey = await verifyMasterKey(credentials.adminKey);
-  if (!isValidMasterKey) {
-    logger.security("Admin login attempt with invalid master key", {
-      email: credentials.email,
-    });
-    await recordFailedLogin({
-      email: credentials.email,
-      identifier: credentials.ipAddress ?? "unknown",
-      reason: "invalid_master_key",
-      userAgent: credentials.userAgent,
-      ipAddress: credentials.ipAddress,
-    });
-    return { success: false, reason: "invalid_master_key" as const };
+  const isFounderMode = !!credentials.adminKey;
+
+  if (isFounderMode) {
+    const isValidMasterKey = await verifyMasterKey(credentials.adminKey!);
+    if (!isValidMasterKey) {
+      logger.security("Admin login attempt with invalid master key", {
+        email: credentials.email,
+      });
+      await recordFailedLogin({
+        email: credentials.email,
+        identifier: credentials.ipAddress ?? "unknown",
+        reason: "invalid_master_key",
+        userAgent: credentials.userAgent,
+        ipAddress: credentials.ipAddress,
+      });
+      return { success: false, reason: "invalid_master_key" as const };
+    }
   }
 
   if (credentials.password.length < 12) {
@@ -72,6 +76,20 @@ export async function loginAdmin(credentials: {
       return { success: false, reason: "account_inactive" as const };
     }
 
+    if (adminRecord.role === "founder" && !isFounderMode) {
+      logger.security("Founder login attempt without master key", {
+        adminId: adminRecord.id,
+      });
+      await recordFailedLogin({
+        email: credentials.email,
+        identifier: credentials.ipAddress ?? "unknown",
+        reason: "invalid_master_key",
+        userAgent: credentials.userAgent,
+        ipAddress: credentials.ipAddress,
+      });
+      return { success: false, reason: "invalid_master_key" as const };
+    }
+
     const isValid = await verifyPassword(
       credentials.password,
       adminRecord.passwordHash
@@ -106,6 +124,7 @@ export async function loginAdmin(credentials: {
     logger.audit("Admin logged in", {
       adminId: adminRecord.id,
       email: adminRecord.email,
+      role: adminRecord.role,
     });
 
     return {

@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const { searchParams } = request.nextUrl;
-    const category = searchParams.get("category") || undefined;
+    const category = (searchParams.get("category") || undefined) as import("@/core/product-intelligence/pi.types").PiKpiCategory | undefined;
     const result = await piService.getKpis({ category });
     return NextResponse.json(successResponse(result));
   } catch (error) {

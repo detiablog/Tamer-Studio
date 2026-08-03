@@ -5,8 +5,22 @@ import { generateId } from "@/modules/email/email.encryption";
 import { AssetService } from "@/core/assets/asset.service";
 import { LocalStorage } from "@/core/assets/local-storage";
 
-const defaultStorage = new LocalStorage();
-const assetService = new AssetService(defaultStorage);
+let defaultStorageInstance: LocalStorage | null = null;
+let assetServiceInstance: AssetService | null = null;
+
+function getDefaultStorage(): LocalStorage {
+  if (!defaultStorageInstance) {
+    defaultStorageInstance = new LocalStorage();
+  }
+  return defaultStorageInstance;
+}
+
+function getAssetService(): AssetService {
+  if (!assetServiceInstance) {
+    assetServiceInstance = new AssetService(getDefaultStorage());
+  }
+  return assetServiceInstance;
+}
 
 export interface UploadInput {
   userId: string;
@@ -35,7 +49,7 @@ export class StorageEngine {
     const id = generateId("file");
     const key = `files/${input.userId}/${id}/${input.filename}`;
 
-    await assetService.store({
+    await getAssetService().store({
       id,
       kind: input.kind as any,
       data: input.buffer,
@@ -58,20 +72,20 @@ export class StorageEngine {
   async download(fileId: string): Promise<Buffer | null> {
     const file = await this.getFile(fileId);
     if (!file) return null;
-    return assetService.retrieve(file.storageKey);
+    return getAssetService().retrieve(file.storageKey);
   }
 
   async getUrl(fileId: string): Promise<string | null> {
     const file = await this.getFile(fileId);
     if (!file) return null;
-    return assetService.getDownloadUrl(file.storageKey);
+    return getAssetService().getDownloadUrl(file.storageKey);
   }
 
   async delete(fileId: string): Promise<boolean> {
     const file = await this.getFile(fileId);
     if (!file) return false;
 
-    await assetService.delete(file.storageKey);
+    await getAssetService().delete(file.storageKey);
     await db.delete(storageFile).where(eq(storageFile.id, fileId));
     await this.updateQuota(file.userId, -file.sizeBytes, file.kind);
     return true;

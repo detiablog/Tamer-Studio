@@ -1,7 +1,4 @@
-import Link from "next/link";
 import { cookies } from "next/headers";
-import { clearAdminSessionCookie } from "@/core/admin/session";
-import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { LoginPageClientContent } from "./_components/LoginPageClient";
 
 export const metadata = {
@@ -22,7 +19,7 @@ export default async function AdminLoginPage({ searchParams }: AdminLoginPagePro
   const csrfToken = cookieStore.get("csrf_token")?.value ?? "";
 
   const params = await searchParams;
-  const error = params.error as "missing_fields" | "invalid_master_key" | "invalid_credentials" | "account_inactive" | "unexpected_error" | undefined;
+  const error = params.error as "missing_fields" | "invalid_master_key" | "invalid_credentials" | "account_inactive" | "unexpected_error" | "rate_limited" | undefined;
 
   return (
     <LoginPageClientContent csrfToken={csrfToken} error={error} />

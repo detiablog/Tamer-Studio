@@ -22,9 +22,7 @@ import {
   Settings,
   UserCog,
   Shield,
-  Globe,
   Layout,
-  Link,
   DollarSign,
   Activity,
   Megaphone,
@@ -63,34 +61,35 @@ interface SidebarNavItem {
   icon: any;
   href: string;
   group: string;
+  permission?: string;
 }
 
 const ADMIN_NAV_ITEMS: SidebarNavItem[] = [
-  { id: "dashboard", labelKey: "admin.dashboard", label: "Dashboard", icon: LayoutDashboard, href: "/admin", group: "dashboard" },
-  { id: "users", labelKey: "admin.users", label: "Users", icon: Users, href: "/admin/users", group: "management" },
-  { id: "workspaces", labelKey: "admin.workspaces", label: "Workspaces", icon: Briefcase, href: "/admin/workspaces", group: "management" },
-  { id: "workflows", labelKey: "admin.workflows", label: "Workflows", icon: GitBranch, href: "/admin/workflows", group: "management" },
+  { id: "dashboard", labelKey: "admin.dashboard", label: "Dashboard", icon: LayoutDashboard, href: "/admin", group: "dashboard", permission: "admin:read" },
+  { id: "users", labelKey: "admin.users", label: "Users", icon: Users, href: "/admin/users", group: "management", permission: "admin:users" },
+  { id: "workspaces", labelKey: "admin.workspaces", label: "Workspaces", icon: Briefcase, href: "/admin/workspaces", group: "management", permission: "admin:workspaces" },
+  { id: "workflows", labelKey: "admin.workflows", label: "Workflows", icon: GitBranch, href: "/admin/workflows", group: "management", permission: "admin:workflows" },
   { id: "assets-admin", labelKey: "admin.assets", label: "Assets", icon: Database, href: "/admin/assets", group: "management" },
   { id: "storage-admin", labelKey: "admin.storage", label: "Storage", icon: HardDrive, href: "/admin/storage", group: "management" },
-  { id: "subscriptions", labelKey: "admin.subscriptions", label: "Subscriptions", icon: DollarSign, href: "/admin/subscriptions", group: "management" },
-  { id: "payments", labelKey: "admin.payments", label: "Payments", icon: CreditCard, href: "/admin/payments", group: "management" },
-  { id: "invoices", labelKey: "admin.invoices", label: "Invoices", icon: FileText, href: "/admin/payments/invoices", group: "management" },
-  { id: "pricing", labelKey: "admin.pricing", label: "Pricing", icon: DollarSign, href: "/admin/pricing", group: "management" },
+  { id: "subscriptions", labelKey: "admin.subscriptions", label: "Subscriptions", icon: DollarSign, href: "/admin/subscriptions", group: "management", permission: "admin:subscriptions" },
+  { id: "payments", labelKey: "admin.payments", label: "Payments", icon: CreditCard, href: "/admin/payments", group: "management", permission: "admin:billing" },
+  { id: "invoices", labelKey: "admin.invoices", label: "Invoices", icon: FileText, href: "/admin/payments/invoices", group: "management", permission: "admin:billing" },
+  { id: "pricing", labelKey: "admin.pricing", label: "Pricing", icon: DollarSign, href: "/admin/pricing", group: "management", permission: "admin:pricing" },
   { id: "profile", labelKey: "admin.profile", label: "Profile", icon: UserCog, href: "/admin/profile", group: "management" },
   { id: "optimizer-admin", labelKey: "admin.optimizer", label: "Optimizer", icon: Target, href: "/admin/optimizer", group: "analytics" },
   { id: "memory-admin", labelKey: "admin.memory", label: "Memory", icon: Brain, href: "/admin/memory", group: "analytics" },
-  { id: "analytics", labelKey: "admin.analytics", label: "Analytics", icon: BarChart3, href: "/admin/analytics", group: "analytics" },
+  { id: "analytics", labelKey: "admin.analytics", label: "Analytics", icon: BarChart3, href: "/admin/analytics", group: "analytics", permission: "admin:analytics" },
   { id: "performance", labelKey: "admin.performance", label: "Performance", icon: Gauge, href: "/admin/performance", group: "analytics" },
   { id: "reports", labelKey: "admin.reports", label: "Reports", icon: FileBarChart, href: "/admin/reports", group: "analytics" },
-  { id: "audit-logs", labelKey: "admin.auditLogs", label: "Audit Logs", icon: ScrollText, href: "/admin/audit-logs", group: "analytics" },
-  { id: "email-dashboard", labelKey: "email.dashboard", label: "Dashboard", icon: Activity, href: "/admin/email/dashboard", group: "analytics" },
-  { id: "email", labelKey: "admin.email", label: "Email", icon: Mail, href: "/admin/email", group: "analytics" },
-  { id: "billing", labelKey: "admin.billing", label: "Billing", icon: CreditCard, href: "/admin/billing", group: "settings" },
-  { id: "coupons", labelKey: "admin.coupons", label: "Coupons", icon: FileText, href: "/admin/coupons", group: "settings" },
-  { id: "feature-flags", labelKey: "admin.featureFlags", label: "Feature Flags", icon: Flag, href: "/admin/feature-flags", group: "settings" },
-  { id: "api-keys", labelKey: "admin.apiKeys", label: "API Keys", icon: Key, href: "/admin/api-keys", group: "settings" },
-  { id: "ai-providers", labelKey: "admin.aiProviders", label: "AI Providers", icon: Brain, href: "/admin/ai-providers", group: "settings" },
-  { id: "ai-admin", labelKey: "admin.aiAdmin", label: "AI Admin", icon: Brain, href: "/admin/ai", group: "settings" },
+  { id: "audit-logs", labelKey: "admin.auditLogs", label: "Audit Logs", icon: ScrollText, href: "/admin/audit-logs", group: "analytics", permission: "admin:audit_logs" },
+  { id: "email-dashboard", labelKey: "email.dashboard", label: "Dashboard", icon: Activity, href: "/admin/email/dashboard", group: "analytics", permission: "admin:email" },
+  { id: "email", labelKey: "admin.email", label: "Email", icon: Mail, href: "/admin/email", group: "analytics", permission: "admin:email" },
+  { id: "billing", labelKey: "admin.billing", label: "Billing", icon: CreditCard, href: "/admin/billing", group: "settings", permission: "admin:billing" },
+  { id: "coupons", labelKey: "admin.coupons", label: "Coupons", icon: FileText, href: "/admin/coupons", group: "settings", permission: "admin:coupons" },
+  { id: "feature-flags", labelKey: "admin.featureFlags", label: "Feature Flags", icon: Flag, href: "/admin/feature-flags", group: "settings", permission: "admin:feature_flags" },
+  { id: "api-keys", labelKey: "admin.apiKeys", label: "API Keys", icon: Key, href: "/admin/api-keys", group: "settings", permission: "admin:ai_providers" },
+  { id: "ai-providers", labelKey: "admin.aiProviders", label: "AI Providers", icon: Brain, href: "/admin/ai-providers", group: "settings", permission: "admin:ai_providers" },
+  { id: "ai-admin", labelKey: "admin.aiAdmin", label: "AI Admin", icon: Brain, href: "/admin/ai", group: "settings", permission: "admin:ai_providers" },
   { id: "prompts-admin", labelKey: "admin.prompts", label: "Prompt Intelligence", icon: Brain, href: "/admin/prompts", group: "analytics" },
   { id: "ai-runtime", labelKey: "admin.aiRuntime.title", label: "AI Runtime", icon: Cpu, href: "/admin/ai-runtime", group: "analytics" },
   { id: "ai-image", labelKey: "admin.aiImage", label: "AI Image", icon: Image, href: "/admin/ai-image", group: "analytics" },
@@ -104,15 +103,15 @@ const ADMIN_NAV_ITEMS: SidebarNavItem[] = [
   { id: "calendar-admin", labelKey: "admin.calendar", label: "Calendar", icon: CalendarDays, href: "/admin/calendar", group: "analytics" },
   { id: "trends-admin", labelKey: "admin.trends", label: "Trends", icon: TrendingUp, href: "/admin/trends", group: "analytics" },
   { id: "agents-admin", labelKey: "admin.agents", label: "Agents", icon: Bot, href: "/admin/agents", group: "analytics" },
-  { id: "jobs", labelKey: "admin.jobs", label: "Jobs", icon: Briefcase, href: "/admin/jobs", group: "settings" },
-  { id: "queues", labelKey: "admin.queues", label: "Queues", icon: ListTodo, href: "/admin/queues", group: "settings" },
-  { id: "landing-builder", labelKey: "admin.landingBuilder", label: "Landing Builder", icon: Layout, href: "/admin/landing-builder", group: "settings" },
+  { id: "jobs", labelKey: "admin.jobs", label: "Jobs", icon: Briefcase, href: "/admin/jobs", group: "settings", permission: "admin:jobs" },
+  { id: "queues", labelKey: "admin.queues", label: "Queues", icon: ListTodo, href: "/admin/queues", group: "settings", permission: "admin:queues" },
+  { id: "landing-builder", labelKey: "admin.landingBuilder", label: "Landing Builder", icon: Layout, href: "/admin/landing-builder", group: "settings", permission: "admin:landing_builder" },
   { id: "campaigns", labelKey: "admin.campaigns", label: "Campaigns", icon: Megaphone, href: "/admin/campaigns", group: "marketing" },
-  { id: "campaigns-coupons", labelKey: "admin.coupons", label: "Coupons", icon: Ticket, href: "/admin/campaigns/coupons", group: "marketing" },
+  { id: "campaigns-coupons", labelKey: "admin.coupons", label: "Coupons", icon: Ticket, href: "/admin/campaigns/coupons", group: "marketing", permission: "admin:coupons" },
   { id: "publishing-admin", labelKey: "admin.publishing", label: "Publishing", icon: Share2, href: "/admin/publishing", group: "management" },
-  { id: "settings", labelKey: "admin.settings", label: "Settings", icon: Settings, href: "/admin/settings", group: "settings" },
-  { id: "security", labelKey: "admin.security", label: "Security", icon: Shield, href: "/admin/security", group: "settings" },
-  { id: "devops", labelKey: "admin.devops", label: "DevOps", icon: Rocket, href: "/admin/devops", group: "settings" },
+  { id: "settings", labelKey: "admin.settings", label: "Settings", icon: Settings, href: "/admin/settings", group: "settings", permission: "admin:system" },
+  { id: "security", labelKey: "admin.security", label: "Security", icon: Shield, href: "/admin/security", group: "settings", permission: "admin:system" },
+  { id: "devops", labelKey: "admin.devops", label: "DevOps", icon: Rocket, href: "/admin/devops", group: "settings", permission: "admin:system" },
 ];
 
 function SidebarTooltip({ label, children }: { label: string; children: React.ReactNode }) {
@@ -156,25 +155,33 @@ const groupOrder = ["dashboard", "management", "analytics", "marketing", "settin
 
 export function AdminSidebar({ pathname, collapsed, onToggle }: AdminSidebarProps) {
   const currentPath = pathname ?? (typeof window !== "undefined" ? window.location.pathname : "");
-  const { mounted } = useAdminPermissions();
+  const { mounted, hasPermission } = useAdminPermissions();
   const { t } = useLocalizationContext();
 
   const isActive = (href: string) => {
     return currentPath === href || currentPath.startsWith(href + "/");
   };
 
+  const visibleItems = React.useMemo(() => {
+    if (!mounted) return ADMIN_NAV_ITEMS;
+    return ADMIN_NAV_ITEMS.filter((item) => {
+      if (!item.permission) return true;
+      return hasPermission(item.permission);
+    });
+  }, [mounted, hasPermission]);
+
   const grouped = React.useMemo(() => {
     const groups: Record<string, SidebarNavItem[]> = {};
-    for (const item of ADMIN_NAV_ITEMS) {
+    for (const item of visibleItems) {
       const group = item.group ?? "default";
       if (!groups[group]) groups[group] = [];
       groups[group].push(item);
     }
     return groups;
-  }, []);
+  }, [visibleItems]);
 
   return (
-    <aside className={cn("w-full shrink-0 py-4 transition-all duration-300 ease-in-out", collapsed ? "px-2" : "px-3")}>
+    <aside className={cn("w-full shrink-0 py-4 transition-all duration-300 ease-in-out", collapsed ? "px-2" : "px-3")} role="navigation" aria-label={t("admin.sidebar.label", "Admin navigation")}>
       <nav className="flex flex-col gap-1">
         <button
           onClick={onToggle}

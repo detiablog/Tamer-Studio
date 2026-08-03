@@ -47,8 +47,8 @@ import type {
   PiKpiParams,
   PiKpiCategory,
   PiKpiStatus,
-  PI_KPI_TARGETS,
 } from "./pi.types";
+import { PI_KPI_TARGETS } from "./pi.types";
 
 export class ProductIntelligenceService {
   async getExecutiveDashboard(): Promise<PiExecutiveDashboard> {

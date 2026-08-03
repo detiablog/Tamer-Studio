@@ -38,10 +38,30 @@ import type {
 } from "./commerce.types";
 import type { Wallet, CreditTransaction } from "@/core/types/billing";
 
-const walletService = new WalletService();
-const subscriptionRepository = new DefaultSubscriptionRepository();
-const invoiceRepository = new DefaultInvoiceRepository();
-const gateway = new StripeGateway();
+let walletServiceInstance: WalletService | null = null;
+let subscriptionRepositoryInstance: DefaultSubscriptionRepository | null = null;
+let invoiceRepositoryInstance: DefaultInvoiceRepository | null = null;
+let gatewayInstance: StripeGateway | null = null;
+
+function getWalletService(): WalletService {
+  if (!walletServiceInstance) walletServiceInstance = new WalletService();
+  return walletServiceInstance;
+}
+
+function getSubscriptionRepository(): DefaultSubscriptionRepository {
+  if (!subscriptionRepositoryInstance) subscriptionRepositoryInstance = new DefaultSubscriptionRepository();
+  return subscriptionRepositoryInstance;
+}
+
+function getInvoiceRepository(): DefaultInvoiceRepository {
+  if (!invoiceRepositoryInstance) invoiceRepositoryInstance = new DefaultInvoiceRepository();
+  return invoiceRepositoryInstance;
+}
+
+function getGateway(): StripeGateway {
+  if (!gatewayInstance) gatewayInstance = new StripeGateway();
+  return gatewayInstance;
+}
 
 let seeded = false;
 
@@ -175,7 +195,7 @@ export async function createCheckout(input: {
 
   const baseUrl = config.app.url;
 
-  const session = await gateway.createCheckout({
+  const session = await getGateway().createCheckout({
     amount,
     currency: pricing.currency,
     workspaceId: input.workspaceId,
@@ -219,10 +239,10 @@ export async function handlePaymentCompleted(orderId: string): Promise<void> {
 
   await updateOrderStatus(order.id, "paid", { paidAt: new Date() });
 
-  const wallet = await walletService.getOrCreateWallet(order.workspaceId);
+  const wallet = await getWalletService().getOrCreateWallet(order.workspaceId);
 
   if (order.creditsGranted > 0) {
-    await walletService.credit(
+    await getWalletService().credit(
       wallet.id,
       order.workspaceId,
       order.creditsGranted,
@@ -240,11 +260,11 @@ export async function handlePaymentCompleted(orderId: string): Promise<void> {
     const isRecurring = billingOption && billingOption.frequency !== "one_time";
 
     if (isRecurring) {
-      const existingSubscription = await subscriptionRepository.getSubscription(order.workspaceId);
+      const existingSubscription = await getSubscriptionRepository().getSubscription(order.workspaceId);
       if (existingSubscription) {
-        await subscriptionRepository.updateSubscriptionStatus(order.workspaceId, "canceled");
+        await getSubscriptionRepository().updateSubscriptionStatus(order.workspaceId, "canceled");
       }
-      await subscriptionRepository.createSubscription(order.workspaceId, order.planId);
+      await getSubscriptionRepository().createSubscription(order.workspaceId, order.planId);
     }
 
     const plan = await findPlanById(order.planId);
@@ -255,8 +275,8 @@ export async function handlePaymentCompleted(orderId: string): Promise<void> {
       },
     ];
 
-    const invoice = await invoiceRepository.createInvoice(order.workspaceId, lineItems);
-    await invoiceRepository.updateInvoiceStatus(invoice.id, "paid");
+    const invoice = await getInvoiceRepository().createInvoice(order.workspaceId, lineItems);
+    await getInvoiceRepository().updateInvoiceStatus(invoice.id, "paid");
   }
 
   logger.info("Payment completed processed", {
@@ -270,7 +290,7 @@ export async function handlePaymentCompleted(orderId: string): Promise<void> {
 // ─── Credits ─────────────────────────────────────────────────────────────────
 
 export async function getCredits(workspaceId: string): Promise<Wallet> {
-  return walletService.getOrCreateWallet(workspaceId);
+  return getWalletService().getOrCreateWallet(workspaceId);
 }
 
 export async function consumeCredits(
@@ -278,8 +298,8 @@ export async function consumeCredits(
   amount: number,
   description: string,
 ): Promise<CreditTransaction> {
-  const wallet = await walletService.getOrCreateWallet(workspaceId);
-  return walletService.debit(wallet.id, workspaceId, amount, "usage_debit", description);
+  const wallet = await getWalletService().getOrCreateWallet(workspaceId);
+  return getWalletService().debit(wallet.id, workspaceId, amount, "usage_debit", description);
 }
 
 // ─── Orders ──────────────────────────────────────────────────────────────────
@@ -317,7 +337,7 @@ export async function getAllWallets(): Promise<Wallet[]> {
 
 export async function hasActiveAccess(workspaceId: string): Promise<boolean> {
   try {
-    const wallet = await walletService.getWallet(workspaceId);
+    const wallet = await getWalletService().getWallet(workspaceId);
     if (wallet.availableCredits > 0) return true;
   } catch {
     // No wallet → continue

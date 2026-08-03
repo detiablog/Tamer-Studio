@@ -33,15 +33,15 @@ export async function POST(request: NextRequest) {
       adminKey = typeof formData.get("adminKey") === "string" ? String(formData.get("adminKey")) : "";
     }
 
-    if (!email || !password || !adminKey) {
-      logger.warn("Admin login: missing fields", { email, hasPassword: !!password, hasAdminKey: !!adminKey });
+    if (!email || !password) {
+      logger.warn("Admin login: missing fields", { email, hasPassword: !!password });
       return NextResponse.json({ success: false, reason: "missing_fields" }, { status: 400 });
     }
 
     const result = await loginAdmin({
       email,
       password,
-      adminKey,
+      adminKey: adminKey || undefined,
       ipAddress: request.headers.get("x-forwarded-for") ?? identifier,
       userAgent: request.headers.get("user-agent") ?? undefined,
     });

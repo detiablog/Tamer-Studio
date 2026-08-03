@@ -11,7 +11,16 @@ export async function POST(request: NextRequest) {
     await logoutAdminByToken(token);
   }
 
-  const response = NextResponse.json({ success: true });
+  const contentType = request.headers.get("content-type") || "";
+  const isJsonRequest = contentType.includes("application/json");
+
+  if (isJsonRequest) {
+    const response = NextResponse.json({ success: true });
+    response.cookies.delete("admin_session");
+    return response;
+  }
+
+  const response = NextResponse.redirect(new URL("/admin/login", request.url));
   response.cookies.delete("admin_session");
   return response;
 }

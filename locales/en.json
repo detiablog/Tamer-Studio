@@ -921,6 +921,9 @@
   },
   "admin": {
     "dashboard": "Dashboard",
+    "management": "Management",
+    "marketing": "Marketing",
+    "settings": "Settings",
     "label": "Admin",
     "database": "Database",
     "jobQueue": "Job Queue",
@@ -2159,12 +2162,16 @@
       "masterKeyLabel": "Admin Key",
       "masterKeyPlaceholder": "Enter admin key",
       "submit": "Sign In",
+      "modeLabel": "Login mode",
+      "modeAdmin": "Admin",
+      "modeFounder": "Founder",
       "errors": {
         "missing_fields": "Please fill in all fields.",
         "invalid_master_key": "Invalid admin key. Access denied.",
         "invalid_credentials": "Invalid email or password.",
         "account_inactive": "Your admin account is inactive.",
-        "unexpected_error": "An unexpected error occurred. Please try again."
+        "unexpected_error": "An unexpected error occurred. Please try again.",
+        "rate_limited": "Too many attempts. Please try again later."
       }
     },
     "loginForm": {
@@ -2184,8 +2191,16 @@
       "securelyStored": "Your credentials are encrypted and securely stored.",
       "authenticating": "Authenticating...",
       "submitButton": "Sign In",
+      "submitFounder": "Sign In as Founder",
+      "rememberMe": "Remember me",
+      "invalidEmail": "Please enter a valid email address.",
       "restrictedAccess": "Restricted access — authorized personnel only",
-      "toastSuccess": "Admin portal accessed successfully"
+      "toastSuccess": "Admin portal accessed successfully",
+      "successTitle": "Access Granted",
+      "successMessage": "Redirecting to the admin portal..."
+    },
+    "sidebar": {
+      "label": "Admin navigation"
     },
     "payments": "Payments",
     "paymentsDescription": "Manage payment transactions and billing",

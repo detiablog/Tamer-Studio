@@ -5,7 +5,12 @@ import { handlePaymentCompleted } from "@/core/commerce/commerce-runtime";
 import { findOrdersByWorkspace } from "@/core/commerce/commerce.repository";
 import { logger } from "@/core/logger";
 
-const gateway = new StripeGateway();
+let gatewayInstance: StripeGateway | null = null;
+
+function getGateway(): StripeGateway {
+  if (!gatewayInstance) gatewayInstance = new StripeGateway();
+  return gatewayInstance;
+}
 
 export async function POST(request: NextRequest) {
   const signature = request.headers.get("stripe-signature");
@@ -19,7 +24,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.text();
-    const event = await gateway.verifyWebhook(body, signature);
+    const event = await getGateway().verifyWebhook(body, signature);
 
     if (event.type === "payment.completed") {
       const metadata = event.metadata ?? {};
